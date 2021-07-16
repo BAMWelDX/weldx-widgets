@@ -27,8 +27,10 @@ class WidgetSimpleOutput(WidgetBase):
     def display(self):
         display((self.out,))
 
-    def __init__(self):
-        self.out = Output()
+    def __init__(self, out=None):
+        if out is None:
+            out = Output()
+        self.out = out
 
     # FIXME: doesnt work!
     def set_visible(self, state):
