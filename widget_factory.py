@@ -1,8 +1,12 @@
 import ipywidgets as widgets
-from ipywidgets import HBox, Label, Text
+from ipywidgets import HBox, Label, Text, Layout
+
 
 # TODO: factory pattern.
-from widget_groove_sel import description_layout, textbox_layout
+plot_layout = Layout(width="60%", height="550px")
+button_layout = Layout(width="200px", height="50px")
+textbox_layout = Layout(width="15%", height="30px")
+description_layout = Layout(width="30%", height="30px")
 
 
 def hbox_float_text_creator(text, unit, value=7.5, min=0):

@@ -4,19 +4,16 @@ import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import weldx
 from IPython.display import clear_output, display
-from ipywidgets import Button, HBox, Label, Layout, VBox
+from ipywidgets import Button, HBox, Label, VBox
 from weldx.constants import WELDX_QUANTITY as Q_
 from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
 
-from widget_factory import hbox_float_text_creator
+from widget_factory import hbox_float_text_creator, plot_layout, button_layout, \
+    description_layout
 from widget_base import WidgetSimpleOutput
 
 # Layouts
 # TODO: not global? can cause ugly side effects, better use a factory.
-plot_layout = Layout(width="60%", height="550px")
-button_layout = Layout(width="200px", height="50px")
-textbox_layout = Layout(width="15%", height="30px")
-description_layout = Layout(width="30%", height="30px")
 
 
 def get_code_numbers():
