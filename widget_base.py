@@ -3,6 +3,8 @@ import abc
 from IPython.core.display import display
 from ipywidgets import Output
 
+from widget_factory import layout_generic_output
+
 
 class WidgetBase(abc.ABC):
     """Base class for weldx widgets."""
@@ -31,7 +33,7 @@ class WidgetSimpleOutput(WidgetBase):
 
     def __init__(self, out=None):
         if out is None:
-            out = Output()
+            out = Output(layout=layout_generic_output)
         self.out = out
 
     def set_visible(self, state: bool):
