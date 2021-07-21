@@ -29,7 +29,7 @@ class WidgetBase(abc.ABC):
 
 class WidgetSimpleOutput(WidgetBase):
     def display(self):
-        display((self.out,))
+        display(*(self.out, ))
 
     def __init__(self, out=None):
         if out is None:
