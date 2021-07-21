@@ -4,14 +4,15 @@ import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import weldx
 from IPython.display import clear_output, display
-from ipywidgets import Button, HBox, Label, Layout, Text, VBox
+from ipywidgets import Button, HBox, Label, Layout, VBox
 from weldx.constants import WELDX_QUANTITY as Q_
 from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
 
+from widget_factory import hbox_float_text_creator
 from widget_base import WidgetSimpleOutput
 
 # Layouts
-# TODO: not global?
+# TODO: not global? can cause ugly side effects, better use a factory.
 plot_layout = Layout(width="60%", height="550px")
 button_layout = Layout(width="200px", height="50px")
 textbox_layout = Layout(width="15%", height="30px")
@@ -67,6 +68,7 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
             with self.button_o:
                 clear_output()
                 tree = {"groove": self.groove_obj}
+                print("vis tree....")
                 with weldx.WeldxFile(
                     tree=tree, mode="rw"
                 ) as fh:
@@ -75,7 +77,9 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
         # button
         b = Button(description="Show as .yml File", layout=button_layout)
         b.on_click(on_button_clicked)
-        return b
+
+        box = VBox([self.filename, b, self.button_o])
+        return box
 
     def _create_plot(self):
         with self.out:
@@ -110,29 +114,29 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
                         [Label("code_number :", layout=description_layout), dropdown]
                     )
                 elif "angle" in item:
-                    hbox_dict[item] = self._hbox_float_text_creator(item, "deg", 45)
+                    hbox_dict[item] = hbox_float_text_creator(item, "deg", 45)
                 elif "workpiece_thickness" in item:
-                    hbox_dict[item] = self._hbox_float_text_creator(item, "mm", 15)
+                    hbox_dict[item] = hbox_float_text_creator(item, "mm", 15)
                 else:
-                    hbox_dict[item] = self._hbox_float_text_creator(item, "mm", 5)
+                    hbox_dict[item] = hbox_float_text_creator(item, "mm", 5)
 
         groove_list = list(_groove_name_to_type.keys())
-
+        # TODO: layout
         groove_type_dropdown = widgets.Dropdown(
             options=groove_list,
             value=groove_list[1],
             description="Groove type :",
         )
 
-        # connect observing functions, bind arguments.
+        # connect value observers
         groove_type_dropdown.observe(self._update_params_to_selection, names="value")
 
-        up_plt = self._update_plot
-        groove_type_dropdown.observe(up_plt, "value")
+        update_plot = self._update_plot
+        groove_type_dropdown.observe(update_plot, "value")
         for key, box in hbox_dict.items():
-            box.children[1].observe(up_plt, "value")
+            box.children[1].observe(update_plot, "value")
             if key != "code_number":
-                box.children[2].observe(up_plt, "value")
+                box.children[2].observe(update_plot, "value")
 
         return groove_type_dropdown
 
@@ -157,7 +161,9 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
             # TODO: replot can be avoided (e.g. set_xydata?)
             self.ax.lines = []
             #self.ax.texts = []
-            self.groove_obj.plot(line_style="-", ax=self.ax)
+            from generic import show_only_exception_message
+            with show_only_exception_message():
+                self.groove_obj.plot(line_style="-", ax=self.ax)
 
     def _update_params_to_selection(self, change):
         selection = change["new"]
@@ -174,13 +180,17 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
     def display(self):
         display(self.boxed_widgets)
 
-    @staticmethod
-    def _hbox_float_text_creator(text, unit, value=7.5):
-        hbox = HBox(
-            [
-                Label(text + " :", layout=description_layout),
-                widgets.BoundedFloatText(value=value, min=0, layout=textbox_layout),
-                Text(value=unit, placeholder="unit", layout=textbox_layout),
-            ]
-        )
-        return hbox
+
+class WidgetGrooveSelectionTCPMovement:
+    def __init__(self):
+        self.groove_sel = GrooveSelectionWidget()
+
+        # TODO: add input fields for weld speed, seam length, tcp offsets (x, y, z). At libo lab we only use (y,z)
+        epsilon = 1
+        with self.groove_sel.out:
+            self.weld_speed = hbox_float_text_creator("Weld speed", value=20, min=epsilon, unit="mm/s")
+            self.seam_length = hbox_float_text_creator("Seam length", value=300, min=epsilon, unit="mm")
+
+    def display(self):
+        self.groove_sel.display()
+        #display( *(self.weld_speed, self.seam_length))
