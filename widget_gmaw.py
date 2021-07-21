@@ -34,6 +34,14 @@ def plot_gmaw(gmaw, t):
 
     return fig, ax
 
+def demo_process():
+    process = dict(
+        welding_process=process_pulse,
+        shielding_gas=gas_for_procedure,
+        weld_speed=TimeSeries(v_weld),
+        welding_wire={"diameter": Q_(1.2, "mm")},
+    )
+
 
 def gmaw_procs():
     # spray arc processes
@@ -83,9 +91,9 @@ def gmaw_procs():
         meta={"modulation": "II"},
     )
 
-class GMAW_Widget(WidgetSimpleOutput):
-    def __init__(self, gmaw):
-        super(GMAW_Widget, self).__init__()
+class WidgetGMAW(WidgetSimpleOutput):
+    def __init__(self):
+        super(WidgetGMAW, self).__init__()
 
         # with self.out:
         #     plot_gmaw(
@@ -95,7 +103,7 @@ class GMAW_Widget(WidgetSimpleOutput):
 
         # choose between pulse or spray
         spray = w.Checkbox(desc="foo", layout=description_layout)
-        box = w.HBox([spray])
+        self.box = w.HBox([spray])
 
     def display(self):
         from IPython.core.display import display
