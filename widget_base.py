@@ -18,9 +18,11 @@ class WidgetBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def set_visible(self, state):
+    def set_visible(self, state: bool):
         """toggle visibility."""
-        pass
+
+    def _ipython_display_(self):
+        self.display()
 
 
 class WidgetSimpleOutput(WidgetBase):
@@ -32,9 +34,6 @@ class WidgetSimpleOutput(WidgetBase):
             out = Output()
         self.out = out
 
-    # FIXME: doesnt work!
-    def set_visible(self, state):
-        if state:
-            self.out.layout.visible = True
-        else:
-            self.out.layout.visible = False
+    def set_visible(self, state: bool):
+        # FIXME: doesnt work!
+        self.out.layout.visible = bool(state)
