@@ -36,6 +36,7 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
     def __init__(self):
         super(GrooveSelectionWidget, self).__init__()
 
+        # TODO: put all widgets in out, not just the plot!
         self.out.layout = plot_layout
         self.groove_obj = None  # current groove object
         self.hbox_dict = None  # TODO: better name
