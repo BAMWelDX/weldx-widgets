@@ -6,7 +6,7 @@ from ipywidgets import Output, Widget
 from widget_factory import layout_generic_output
 
 
-class WidgetBase(Widget, abc.ABC):
+class WidgetBase(abc.ABC):
     """Base class for weldx widgets."""
 
     def copy(self):
