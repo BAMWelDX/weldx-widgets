@@ -10,8 +10,6 @@ from libo.utils import split_by_trigger, build_scan_data, get_data_transformatio
 from widget_base import WidgetSimpleOutput
 import numpy as np
 
-WID = "430"
-
 
 class WidgetScans(WidgetSimpleOutput):
     def __init__(self, mh24_file, tool_file, scans_dir, max_scans=None):
@@ -20,7 +18,7 @@ class WidgetScans(WidgetSimpleOutput):
         self.mh24_file = Path(mh24_file)
         self.tool_file = Path(tool_file)
         self.scans_dir = Path(scans_dir)
-        assert self.scans_dir.exists(), self.scans_dir
+        assert self.scans_dir.exists()
         assert self.mh24_file.exists()
         assert self.tool_file.exists()
 
@@ -61,19 +59,16 @@ class WidgetScans(WidgetSimpleOutput):
     def _vorher_nachher_scans_an_csm(self, mh_scan_list):
         scans = []
 
-        for mh_scan in mh_scan_list[1:10:2]:
+        for mh_scan in mh_scan_list[1:self.max_scans:2]:
             naht_nr = int(mh_scan.naht_NR.max().values)
             schw_nr = int(mh_scan.schw_NR.max().values)
-
-            scans_g = self.scans_dir.glob(
-                # TODO: WID should be static, right?
-                f"LLT1_WID_N{naht_nr:03d}_L001_R001_S{schw_nr}_*.nc"
-            )
+            pattern = f"LLT1_WID*_N{naht_nr:03d}_L001_R001_S{schw_nr}_*.nc"
+            scans_g = self.scans_dir.glob(pattern)
 
             SCAN_file = list(scans_g)[0]
             scan = xr.load_dataset(SCAN_file)
 
-            res = self.build_scan_data(mh_scan, scan)
+            res = self._build_scan_data(mh_scan, scan)
             scan_name = f"scan_N{naht_nr}_S{schw_nr}"
             scans.append(scan_name)
             res = self.csm.transform_data(res, "user_frame", f"n_start{naht_nr}")
@@ -89,9 +84,9 @@ class WidgetScans(WidgetSimpleOutput):
             data_sets=self.scans,
         )
 
-    def build_scan_data(self,
-        mh_scan, scan: xr.Dataset,
-    ) -> weldx.SpatialData:
+    def _build_scan_data(self,
+                         mh_scan, scan: xr.Dataset,
+                         ) -> weldx.SpatialData:
         """Create transformed scan SpatialData from robot movement and LLT scan data.
 
         Parameters
@@ -138,8 +133,7 @@ class WidgetScans(WidgetSimpleOutput):
     def _reshape_scan_data(self,
         ds: xr.Dataset,
         lcs: weldx.LocalCoordinateSystem,
-        n_slice=slice(450, 800, 5),
-        p_slice=slice(None, None, 3),
+
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Transform data gathered by LLT Dashboard into userframe coordinates
 
@@ -165,6 +159,9 @@ class WidgetScans(WidgetSimpleOutput):
         transformed = weldx.util.xr_matmul(
             lcs.orientation, data_arr, dims_a=["c", "v"], dims_b=["c"], dims_out=["c"]
         )
+        # TODO: input params!
+        n_slice=slice(450, 800, 5),
+        p_slice=slice(None, None, 3),
         transformed = transformed + lcs.coordinates.rename({"time": "p"})
         transformed = transformed.isel(n=n_slice, p=p_slice)
 
@@ -194,7 +191,7 @@ class WidgetScans(WidgetSimpleOutput):
 if __name__ == "__main__":
     from kisa_config import p_base
 
-    WID = 430
+    WID = 432
     base = p_base / f"WID{WID}"
 
     TOOL_file = p_base / "MH24_TOOL.CND"
