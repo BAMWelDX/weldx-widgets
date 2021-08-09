@@ -1,27 +1,6 @@
-from weldx_widgets.widget_factory import FloatWithUnit
+from weldx_widgets.widget_factory import FloatWithUnit, make_title
 
-# TODO: even simpler just one chooser?! then combine?!?
-
-"""
-class ShieldingGasForProcedure:
-
-    use_torch_shielding_gas: bool
-    torch_shielding_gas: ShieldingGasType
-    torch_shielding_gas_flowrate: pint.Quantity
-    
-    [[use_backing_gas: bool = None
-    backing_gas: ShieldingGasType = None
-    backing_gas_flowrate: pint.Quantity = None]]
-    
-    use_trailing_gas: bool = None
-    trailing_shielding_gas: ShieldingGasType = None
-    trailing_shielding_gas_flowrate: pint.Quantity = None
-    
-3. gase, toggle
-"""
-
-# TODO: simple: one gas + flow rate!
-from ipywidgets import Checkbox, HBox, Dropdown, IntSlider, VBox, Layout
+from ipywidgets import Checkbox, HBox, Dropdown, IntSlider, VBox, Layout, HTML
 from weldx.asdf.tags.weldx.aws import (
     GasComponent,
     ShieldingGasType,
@@ -29,29 +8,30 @@ from weldx.asdf.tags.weldx.aws import (
 )
 from weldx_widgets.widget_factory import description_layout
 
-from weldx_widgets.widget_base import WidgetSimpleOutput, WidgetMyBox
+from weldx_widgets.widget_base import WidgetMyHBox, WidgetMyVBox
 from weldx import Q_
 
 __all__ = [
-    "WidgetSimpleGasSelection", "WidgetGasSelection",
+    "WidgetSimpleGasSelection",
+    "WidgetGasSelection",
 ]
 
 
-
-
-class WidgetSimpleGasSelection(WidgetMyBox):
+class WidgetSimpleGasSelection(WidgetMyHBox):
     """Models a simple gas component."""
+
     gas_list = ["Argon", "CO2", "Helium", "Hydrogen", "Oxygen", None]
 
-    def __init__(self):
-        self.gas_box = self._create_gas_dropdown(0, 80)
+    def __init__(self, index=0, percentage=80):
+        self.gas_box = self._create_gas_dropdown(index, percentage)
         self._flow_rate = FloatWithUnit(text="flow rate", value=20, min=0, unit="l/min")
 
-        super(WidgetSimpleGasSelection, self).__init__(children = (self.gas_box, self._flow_rate))
-
+        super(WidgetSimpleGasSelection, self).__init__(
+            children=(self.gas_box, self._flow_rate)
+        )
 
     def _create_gas_dropdown(self, index=0, percentage=100):
-        gas_list = WidgetGasSelection.gas_list
+        gas_list = WidgetSimpleGasSelection.gas_list
 
         gas_dropdown = Dropdown(
             options=gas_list,
@@ -74,136 +54,117 @@ class WidgetSimpleGasSelection(WidgetMyBox):
         return self.gas_selection.value
 
     @property
-    def gas_percentage(self) -> Q_:
+    def percentage(self) -> Q_:
         return Q_(self._percentage.value, "%")
 
     @property
     def flow_rate(self):
-        return Q_(self.flow_rate.float, self.flow_rate.unit)
+        return Q_(self._flow_rate.float_value, self._flow_rate.unit)
 
-    def to_tree(
-            self,
-            use_torch_shielding_gas: bool = True
-    ):
+    def to_tree(self):
         gas_comp = [
-            GasComponent(self.selected_gas, Q_(self.gas_percentage, "percent")),
+            GasComponent(self.selected_gas, Q_(self.percentage, "percent")),
         ]
         gas_type = ShieldingGasType(gas_component=gas_comp, common_name="SG")
 
-        gas_for_procedure = ShieldingGasForProcedure(
-            use_torch_shielding_gas=use_torch_shielding_gas,
-            torch_shielding_gas=gas_type,
-            torch_shielding_gas_flowrate=self.flow_rate.float.value,
+        return dict(gas_component=gas_type)
+
+
+class WidgetGasSelection(WidgetMyVBox):
+    gas_usages = ("Torch shielding gas", "Backing gas", "Trailing shielding gas")
+    schema_names = ("use_torch_shielding_gas", "use_backing_gas", "use_trailing_gas")
+
+    def __init__(self):
+        gas_boxes = []
+        for i, (g, s) in enumerate(
+            zip(
+                WidgetGasSelection.gas_usages,
+                WidgetGasSelection.schema_names,
+            )
+        ):
+            use_gas = Checkbox(value=i == 0, description=f"Use {g}?")
+            gas_sel = WidgetSimpleGasSelection(index=i)
+            setattr(self, f"_{s[4:]}", gas_sel)
+            setattr(self, f"_{s}", use_gas)
+
+            def toggle_use_gas(change):
+                value = change["new"]
+                gas_sel.layout.visible = value
+
+            use_gas.observe(toggle_use_gas, "value")
+            box = HBox([use_gas, gas_sel])
+            gas_boxes.append(box)
+        super(WidgetGasSelection, self).__init__(
+            children=[
+                make_title("Welding gases"),
+                *gas_boxes,
+            ]
         )
-        # TODO: wrap inside a dict according to schema!
-        return gas_for_procedure
-
-
-
-class WidgetGasSelection(WidgetSimpleOutput):
-    gas_list = ["Argon", "CO2", "Helium", "Hydrogen", "Oxygen", None]
-
-    def __init__(self, gas_name, enabled=True):
-        super(WidgetGasSelection, self).__init__()
-        self.use_gas = Checkbox(
-            value=enabled, description=f"Use {gas_name} gas"
-        )
-
-        self.gas_box = self._create_gas_dropdown(0, 80)
-        self.box = HBox([self.use_gas, self.gas_box])
-
-        def toggle_use_gas(change):
-            value = change["new"]
-            self.gas_box.layout.visible = value
-
-        self.use_gas.observe(toggle_use_gas, "value")
 
     @property
     def use_torch_shielding_gas(self):
-        return self.use_torch_shielding_gas.value
-
-    def _create_gas_dropdown(self, index=0, percentage=80):
-        gas_list = WidgetGasSelection.gas_list
-
-        gas_dropdown1 = Dropdown(
-            options=gas_list,
-            value=gas_list[index],
-            description="1. Shielding gas:",
-            layout=description_layout,
-            style={"description_width": "initial"},
-        )
-
-        gas_dropdown2 = Dropdown(
-            options=gas_list,
-            value=gas_list[index + 1],
-            description="2. Shielding gas:",
-            layout=description_layout,
-            style={"description_width": "initial"},
-        )
-
-        slider1 = IntSlider(start=0, end=100, value=percentage)
-        slider2 = IntSlider(start=0, end=100, value=100 - percentage)
-        container1 = HBox((gas_dropdown1, slider1))
-        container2 = HBox((gas_dropdown2, slider2))
-
-        def update(change):
-            owner = change["owner"]
-            to_change = slider1 if owner is slider2 else slider2
-            to_change.value = 100 - change["new"]
-            assert int(slider1.value) + int(slider2.value) == 100
-
-        slider1.observe(update, "value")
-        slider2.observe(update, "value")
-
-        self._gas1 = gas_dropdown1
-        self._gas2 = gas_dropdown2
-        self._gas1_percentage = slider1
-        self._gas2_percentage = slider2
-
-        box = VBox([container1, container2])
-        return box
+        return self._use_torch_shielding_gas
 
     @property
-    def gas_1(self):
-        return self._gas1.value
+    def use_backing_gas(self):
+        return self._use_backing_gas
 
     @property
-    def gas_2(self):
-        return self._gas2.value
+    def use_trailing_gas(self):
+        return self._use_trailing_gas
 
     @property
-    def gas_1_percentage(self):
-        return self._gas1_percentage.value
+    def torch_shielding_gas(self):
+        return self._torch_shielding_gas
 
     @property
-    def gas_2_percentage(self):
-        return self._gas2_percentage.value
+    def backing_gas(self):
+        return self._backing_gas
 
+    @property
+    def trailing_gas(self):
+        return self._trailing_gas
 
-    # TODO: flow rate should be obtain from a widget!
-    def to_tree(
-        self, flow_rate: Q_ = Q_(20, "l / min"), use_torch_shielding_gas: bool = True
-    ):
+    def to_tree(self) -> dict:
+        """
+        class ShieldingGasForProcedure:
 
-        gas_comp = [
-            GasComponent(self.gas_1, Q_(self.gas_1_percentage, "percent")),
-            GasComponent(self.gas_2, Q_(self.gas_2_percentage, "percent")),
-        ]
-        gas_type = ShieldingGasType(gas_component=gas_comp, common_name="SG")
+            use_torch_shielding_gas: bool
+            torch_shielding_gas: ShieldingGasType
+            torch_shielding_gas_flowrate: pint.Quantity
 
+            [[use_backing_gas: bool = None
+            backing_gas: ShieldingGasType = None
+            backing_gas_flowrate: pint.Quantity = None]]
+
+            use_trailing_gas: bool = None
+            trailing_shielding_gas: ShieldingGasType = None
+            trailing_shielding_gas_flowrate: pint.Quantity = None
+        """
         gas_for_procedure = ShieldingGasForProcedure(
-            use_torch_shielding_gas=use_torch_shielding_gas,
-            torch_shielding_gas=gas_type,
-            torch_shielding_gas_flowrate=flow_rate,
+            use_torch_shielding_gas=self.use_torch_shielding_gas,
+            torch_shielding_gas=ShieldingGasType(
+                **self.torch_shielding_gas.to_tree(), common_name="SG"
+            ),
+            torch_shielding_gas_flowrate=self.torch_shielding_gas,
         )
+
+        if self.use_backing_gas:
+            gas_for_procedure.use_backing_gas = True
+            gas_for_procedure.backing_gas = ShieldingGasType(
+                **self.backing_gas.to_tree(),
+                common_name="BG",
+            )
+        if self.use_trailing_gas:
+            gas_for_procedure.use_trailing_gas = True
+            gas_for_procedure.backing_gas = ShieldingGasType(
+                **self.trailing_gas.to_tree(),
+                common_name="TG",
+            )
         # TODO: wrap inside a dict according to schema!
-        return gas_for_procedure
-
-    def display(self):
-        from IPython.core.display import display
-
-        display(self.box)
+        return {"gas_for_procedure": gas_for_procedure}
 
 
-if __name__ == '__main__':
-    w = WidgetSimpleGasSelection()
+if __name__ == "__main__":
+    w = WidgetGasSelection()
+    print(w.to_tree())
