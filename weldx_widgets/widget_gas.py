@@ -1,5 +1,8 @@
-from weldx.asdf.tags.weldx.aws import GasComponent, ShieldingGasType, \
-    ShieldingGasForProcedure
+from weldx.asdf.tags.weldx.aws import (
+    GasComponent,
+    ShieldingGasType,
+    ShieldingGasForProcedure,
+)
 from weldx_widgets.widget_factory import description_layout
 
 from weldx_widgets.widget_base import WidgetSimpleOutput
@@ -25,26 +28,17 @@ class ShieldingGasForProcedure:
 """
 
 
-
 class WidgetGasSelection(WidgetSimpleOutput):
-    gas_list = [
-        "Argon",
-        "CO2",
-        "Helium",
-        "Hydrogen",
-        "Oxygen",
-        None
-    ]
+    gas_list = ["Argon", "CO2", "Helium", "Hydrogen", "Oxygen", None]
 
     def __init__(self, gas_name, enabled=True):
         super(WidgetGasSelection, self).__init__()
-        self.use_gas = pn.widgets.Checkbox(value=enabled, description=f"Use {gas_name} gas")
+        self.use_gas = pn.widgets.Checkbox(
+            value=enabled, description=f"Use {gas_name} gas"
+        )
 
         self.gas_box = self._create_gas_dropdown(0, 80)
-        self.box = pn.Row([
-            self.use_gas,
-            self.gas_box
-        ])
+        self.box = pn.Row([self.use_gas, self.gas_box])
 
         def toggle_use_gas(change):
             value = change["new"]
@@ -53,15 +47,12 @@ class WidgetGasSelection(WidgetSimpleOutput):
         def callback(target, event):
             value = bool(event.new)
             target.visible = value
-            #target.object = event.new.upper() + '!!!'
+            # target.object = event.new.upper() + '!!!'
 
-        self.use_gas.link(
-            self.gas_box, callbacks={"value": callback}
-        )
+        self.use_gas.link(self.gas_box, callbacks={"value": callback})
 
-        #self.use_gas.param.params_depended_on()
-        #self.use_gas.observe(toggle_use_gas, "value")
-
+        # self.use_gas.param.params_depended_on()
+        # self.use_gas.observe(toggle_use_gas, "value")
 
     @property
     def use_torch_shielding_gas(self):
@@ -75,15 +66,15 @@ class WidgetGasSelection(WidgetSimpleOutput):
             value=gas_list[index],
             description="1. Shielding gas:",
             layout=description_layout,
-            style={'description_width': 'initial'}
+            style={"description_width": "initial"},
         )
 
         gas_dropdown2 = pn.widgets.Select(
             options=gas_list,
-            value=gas_list[index+1],
+            value=gas_list[index + 1],
             description="2. Shielding gas:",
             layout=description_layout,
-            style={'description_width': 'initial'}
+            style={"description_width": "initial"},
         )
 
         slider1 = pn.widgets.IntSlider(start=0, end=100, value=percentage)
@@ -97,15 +88,11 @@ class WidgetGasSelection(WidgetSimpleOutput):
             to_change.value = 100 - change["new"]
             assert slider1 + slider2 == 100
 
-        #slider1.observe(update, "value")
-        #slider2.observe(update, "value")
+        # slider1.observe(update, "value")
+        # slider2.observe(update, "value")
 
-        slider1.link(
-            slider2, callbacks=dict(value=update)
-        )
-        slider2.link(
-            slider1, callbacks=dict(value=update)
-        )
+        slider1.link(slider2, callbacks=dict(value=update))
+        slider2.link(slider1, callbacks=dict(value=update))
 
         self._gas1 = gas_dropdown1
         self._gas2 = gas_dropdown2
@@ -131,8 +118,9 @@ class WidgetGasSelection(WidgetSimpleOutput):
     def gas_2_percentage(self):
         return self._gas2_percentage.value
 
-    def to_tree(self, flow_rate: Q_ = Q_(20, "l / min"),
-                use_torch_shielding_gas: bool = True):
+    def to_tree(
+        self, flow_rate: Q_ = Q_(20, "l / min"), use_torch_shielding_gas: bool = True
+    ):
 
         gas_comp = [
             GasComponent(self.gas_1, Q_(self.gas_1_percentage, "percent")),
@@ -150,4 +138,5 @@ class WidgetGasSelection(WidgetSimpleOutput):
 
     def display(self):
         from IPython.core.display import display
+
         display(self.box)

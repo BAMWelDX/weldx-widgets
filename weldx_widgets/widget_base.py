@@ -2,7 +2,8 @@ import abc
 
 from IPython.core.display import display
 from ipywidgets import Output
-#from panel.widgets import Output
+
+# from panel.widgets import Output
 
 from widget_factory import layout_generic_output
 
@@ -31,7 +32,7 @@ class WidgetBase(abc.ABC):
 # TODO: preferably we should derive some ipywidgets container...
 class WidgetSimpleOutput(WidgetBase):
     def display(self):
-        display(*(self.out, ))
+        display(*(self.out,))
 
     def __init__(self, out=None):
         if out is None:

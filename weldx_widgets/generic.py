@@ -30,7 +30,7 @@ class WidgetSaveButton(WidgetSimpleOutput):
             self.file_chooser = FileChooser(path=path, filename=filename)
             self.button = w.Button(desc=desc)
 
-        self.file_chooser.observe(self._chose_file, "selected_file") # TODO: or value?
+        self.file_chooser.observe(self._chose_file, "selected_file")  # TODO: or value?
 
     def _chose_file(self):
         # TODO: pre-validate the path, e.g. writeable.
@@ -51,5 +51,3 @@ class WidgetSaveButton(WidgetSimpleOutput):
     @path.setter
     def path(self, value):
         self.file_chooser.default_path = value
-
-

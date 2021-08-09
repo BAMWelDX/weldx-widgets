@@ -8,8 +8,12 @@ from ipywidgets import Button, HBox, Label, VBox
 from weldx.constants import WELDX_QUANTITY as Q_
 from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
 
-from weldx_widgets.widget_factory import hbox_float_text_creator, plot_layout, button_layout, \
-    description_layout
+from weldx_widgets.widget_factory import (
+    hbox_float_text_creator,
+    plot_layout,
+    button_layout,
+    description_layout,
+)
 from weldx_widgets.widget_base import WidgetSimpleOutput
 
 # Layouts
@@ -25,7 +29,15 @@ def get_code_numbers():
         return a["code_number"].__args__
     except:
         return [
-            "1.12", "1.13", "2.12", "3.1.1", "3.1.2", "3.1.3", "4.1.1", "4.1.2", "4.1.3"
+            "1.12",
+            "1.13",
+            "2.12",
+            "3.1.1",
+            "3.1.2",
+            "3.1.3",
+            "4.1.1",
+            "4.1.2",
+            "4.1.3",
         ]
 
 
@@ -67,9 +79,7 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
                 clear_output()
                 tree = {"groove": self.groove_obj}
                 print("vis tree....")
-                with weldx.WeldxFile(
-                    tree=tree, mode="rw"
-                ) as fh:
+                with weldx.WeldxFile(tree=tree, mode="rw") as fh:
                     fh.show_asdf_header(True, True)
 
         # button
@@ -80,8 +90,9 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
         return box
 
     def _create_plot(self):
-        #from panel.pane . plot import Matplotlib
+        # from panel.pane . plot import Matplotlib
         from panel.pane import Matplotlib
+
         with self.out:
             self.fig, self.ax = plt.subplots(1, 1, figsize=(5, 4), dpi=100)
             canvas = self.fig.canvas
@@ -90,7 +101,7 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
             canvas.footer_visible = False
             canvas.resizable = False
             self.pn_mpl = Matplotlib(self.fig)
-            #plt.show(self.fig)
+            # plt.show(self.fig)
 
     def _create_groove_dropdown(self):
         # get all attribute mappings (human-readable names)
@@ -141,10 +152,7 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
 
         return groove_type_dropdown
 
-    def _update_plot(
-        self,
-        _
-    ):
+    def _update_plot(self, _):
         selection = self.groove_type_dropdown.value
         with self.out:
             get_groove_dict = dict()
@@ -161,8 +169,9 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
             self.groove_obj = get_groove(**get_groove_dict)
             # TODO: replot can be avoided (e.g. set_xydata?)
             self.ax.lines = []
-            #self.ax.texts = []
+            # self.ax.texts = []
             from generic import show_only_exception_message
+
             with show_only_exception_message():
                 self.groove_obj.plot(line_style="-", ax=self.ax)
 
@@ -175,7 +184,7 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
             in (
                 _groove_name_to_type[selection]._mapping[x]
                 for x in _groove_name_to_type[selection]._mapping
-               )
+            )
         ]
 
     def display(self):
@@ -189,9 +198,13 @@ class WidgetGrooveSelectionTCPMovement:
         # TODO: add input fields for weld speed, seam length, tcp offsets (x, y, z). At libo lab we only use (y,z)
         epsilon = 1
         with self.groove_sel.out:
-            self.weld_speed = hbox_float_text_creator("Weld speed", value=20, min=epsilon, unit="mm/s")
-            self.seam_length = hbox_float_text_creator("Seam length", value=300, min=epsilon, unit="mm")
+            self.weld_speed = hbox_float_text_creator(
+                "Weld speed", value=20, min=epsilon, unit="mm/s"
+            )
+            self.seam_length = hbox_float_text_creator(
+                "Seam length", value=300, min=epsilon, unit="mm"
+            )
 
     def display(self):
         self.groove_sel.display()
-        #display( *(self.weld_speed, self.seam_length))
+        # display( *(self.weld_speed, self.seam_length))

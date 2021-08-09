@@ -12,7 +12,9 @@ import numpy as np
 
 # TODO: handle both cases, parameterstudie (mehrere schweißungen auf einem werkstück) und einzel schweißung!
 class WidgetScans(WidgetSimpleOutput):
-    def __init__(self, mh24_file, tool_file, scans_dir, single_weld=False, max_scans=None):
+    def __init__(
+        self, mh24_file, tool_file, scans_dir, single_weld=False, max_scans=None
+    ):
         super(WidgetScans, self).__init__()
 
         self.mh24_file = Path(mh24_file)
@@ -25,13 +27,12 @@ class WidgetScans(WidgetSimpleOutput):
         self.max_scans = max_scans
         self.single_weld = single_weld
         coords = ["X", "Y", "Z"]
-        channels = ["trigScan1_prog", "trigSchweissen", "naht_NR", "schw_NR", "trigLLT1"] \
-            + [f"UF_{c}" for c in coords] + coords
-        mh24_ds = libo.io.tc3.read_txt(
-            mh24_file,
-            channels=None,
-            engine="c"
+        channels = (
+            ["trigScan1_prog", "trigSchweissen", "naht_NR", "schw_NR", "trigLLT1"]
+            + [f"UF_{c}" for c in coords]
+            + coords
         )
+        mh24_ds = libo.io.tc3.read_txt(mh24_file, channels=None, engine="c")
         mh24_ds = libo.io.tc3.to_xarray(mh24_ds)
 
         mh_scan_list = split_by_trigger(mh24_ds, "trigScan1_prog")
@@ -61,9 +62,9 @@ class WidgetScans(WidgetSimpleOutput):
         scans = []
         # TODO: handle self.single_weld (different pattern needed).
         if self.single_weld:
-            mh_scan_list_i = iter(mh_scan_list[1:self.max_scans:2])
+            mh_scan_list_i = iter(mh_scan_list[1 : self.max_scans : 2])
         else:
-            mh_scan_list_i = iter(mh_scan_list[1:self.max_scans])
+            mh_scan_list_i = iter(mh_scan_list[1 : self.max_scans])
 
         for mh_scan in mh_scan_list_i:
             naht_nr = int(mh_scan.naht_NR.max().values)
@@ -89,14 +90,20 @@ class WidgetScans(WidgetSimpleOutput):
             self.csm.plot(
                 backend="k3d",
                 coordinate_systems=["user_frame"]
-                + [f"n{x}" for x in range(1, self.max_scans
-                                          if self.max_scans else len(self.scans))],
+                + [
+                    f"n{x}"
+                    for x in range(
+                        1, self.max_scans if self.max_scans else len(self.scans)
+                    )
+                ],
                 data_sets=self.scans,
             )
 
-    def _build_scan_data(self,
-                         mh_scan, scan: xr.Dataset,
-                         ) -> weldx.SpatialData:
+    def _build_scan_data(
+        self,
+        mh_scan,
+        scan: xr.Dataset,
+    ) -> weldx.SpatialData:
         """Create transformed scan SpatialData from robot movement and LLT scan data.
 
         Parameters
@@ -139,10 +146,10 @@ class WidgetScans(WidgetSimpleOutput):
 
         return sd
 
-    def _reshape_scan_data(self,
+    def _reshape_scan_data(
+        self,
         ds: xr.Dataset,
         lcs: weldx.LocalCoordinateSystem,
-
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Transform data gathered by LLT Dashboard into userframe coordinates
 

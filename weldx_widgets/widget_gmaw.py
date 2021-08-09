@@ -30,9 +30,10 @@ def plot_gmaw(gmaw, t):
     ax[-1].set_xlabel(f"time / s")
     ax[0].set_title(title, loc="left")
 
-    #ipympl_style(fig)
+    # ipympl_style(fig)
 
     return fig, ax
+
 
 def demo_process():
     process = dict(
@@ -47,14 +48,13 @@ def gmaw_procs():
     # spray arc processes
     params_spray = dict(
         wire_feedrate=Q_(10.0, "m/min"),
-        voltage=TS(data=Q_([40.0,20.0], "V"),time=Q_([0.0,10.0],"s")),
+        voltage=TS(data=Q_([40.0, 20.0], "V"), time=Q_([0.0, 10.0], "s")),
         impedance=Q_(10.0, "percent"),
-        characteristic=Q_(5,"V/A"),
+        characteristic=Q_(5, "V/A"),
     )
     process_spray = GmawProcess(
         "spray", "CLOOS", "Quinto", params_spray, tag="CLOOS/spray_arc"
     )
-
 
     # pulsed arc processes
     # U, I modulation:
@@ -91,6 +91,7 @@ def gmaw_procs():
         meta={"modulation": "II"},
     )
 
+
 class WidgetGMAW(WidgetSimpleOutput):
     def __init__(self):
         super(WidgetGMAW, self).__init__()
@@ -100,11 +101,11 @@ class WidgetGMAW(WidgetSimpleOutput):
         #         gmaw,
         #     )
 
-
         # choose between pulse or spray
         spray = w.Checkbox(desc="foo", layout=description_layout)
         self.box = w.HBox([spray])
 
     def display(self):
         from IPython.core.display import display
+
         display(self.box)
