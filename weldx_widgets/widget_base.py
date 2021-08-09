@@ -3,9 +3,7 @@ import abc
 from IPython.core.display import display
 from ipywidgets import Output
 
-# from panel.widgets import Output
-
-from widget_factory import layout_generic_output
+from .widget_factory import layout_generic_output
 
 
 class WidgetBase(abc.ABC):

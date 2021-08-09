@@ -7,7 +7,7 @@ import xarray as xr
 from libo.io.yaskawa import create_csm
 from libo.utils import split_by_trigger, get_data_transformation
 
-from weldx_widgets.widget_base import WidgetSimpleOutput
+from .widget_base import WidgetSimpleOutput
 import numpy as np
 
 __all__ = ["WidgetScans"]
