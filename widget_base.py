@@ -1,7 +1,8 @@
 import abc
 
 from IPython.core.display import display
-from ipywidgets import Output, Widget
+from ipywidgets import Output
+#from panel.widgets import Output
 
 from widget_factory import layout_generic_output
 
@@ -32,11 +33,11 @@ class WidgetSimpleOutput(WidgetBase):
     def display(self):
         display(*(self.out, ))
 
-    def __init__(self, out=None, **kwargs):
+    def __init__(self, out=None):
         if out is None:
             out = Output(layout=layout_generic_output)
         self.out = out
-        super(WidgetSimpleOutput, self).__init__(kwargs=kwargs)
+        super(WidgetSimpleOutput, self).__init__()
 
     def set_visible(self, state: bool):
         # FIXME: doesnt work!

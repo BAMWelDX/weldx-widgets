@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import panel as pn
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import weldx
@@ -80,6 +81,8 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
         return box
 
     def _create_plot(self):
+        #from panel.pane . plot import Matplotlib
+        from panel.pane import Matplotlib
         with self.out:
             self.fig, self.ax = plt.subplots(1, 1, figsize=(5, 4), dpi=100)
             canvas = self.fig.canvas
@@ -87,6 +90,7 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
             canvas.header_visible = False
             canvas.footer_visible = False
             canvas.resizable = False
+            self.pn_mpl = Matplotlib(self.fig)
             #plt.show(self.fig)
 
     def _create_groove_dropdown(self):

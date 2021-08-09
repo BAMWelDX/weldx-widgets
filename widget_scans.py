@@ -10,9 +10,9 @@ from libo.utils import split_by_trigger, build_scan_data, get_data_transformatio
 from widget_base import WidgetSimpleOutput
 import numpy as np
 
-
+# TODO: handle both cases, parameterstudie (mehrere schweißungen auf einem werkstück) und einzel schweißung!
 class WidgetScans(WidgetSimpleOutput):
-    def __init__(self, mh24_file, tool_file, scans_dir, max_scans=None):
+    def __init__(self, mh24_file, tool_file, scans_dir, single_weld=False, max_scans=None):
         super(WidgetScans, self).__init__()
 
         self.mh24_file = Path(mh24_file)
@@ -23,6 +23,7 @@ class WidgetScans(WidgetSimpleOutput):
         assert self.tool_file.exists()
 
         self.max_scans = max_scans
+        self.single_weld = single_weld
         coords = ["X", "Y", "Z"]
         channels = ["trigScan1_prog", "trigSchweissen", "naht_NR", "schw_NR", "trigLLT1"] \
             + [f"UF_{c}" for c in coords] + coords
@@ -58,14 +59,21 @@ class WidgetScans(WidgetSimpleOutput):
 
     def _vorher_nachher_scans_an_csm(self, mh_scan_list):
         scans = []
+        # TODO: handle self.single_weld (different pattern needed).
+        if self.single_weld:
+            mh_scan_list_i = iter(mh_scan_list[1:self.max_scans:2])
+        else:
+            mh_scan_list_i = iter(mh_scan_list[1:self.max_scans])
 
-        for mh_scan in mh_scan_list[1:self.max_scans:2]:
+        for mh_scan in mh_scan_list_i:
             naht_nr = int(mh_scan.naht_NR.max().values)
             schw_nr = int(mh_scan.schw_NR.max().values)
             pattern = f"LLT1_WID*_N{naht_nr:03d}_L001_R001_S{schw_nr}_*.nc"
-            scans_g = self.scans_dir.glob(pattern)
+            print(pattern)
+            scans_list = list(self.scans_dir.glob(pattern))
+            assert len(scans_list) == 1
 
-            SCAN_file = list(scans_g)[0]
+            SCAN_file = scans_list[0]
             scan = xr.load_dataset(SCAN_file)
 
             res = self._build_scan_data(mh_scan, scan)
@@ -77,12 +85,14 @@ class WidgetScans(WidgetSimpleOutput):
 
     def display(self):
         # renders all pairs of scans and tcp movements.
-        self.csm.plot(
-            backend="k3d",
-            coordinate_systems=["user_frame"]
-            + [f"n{x}" for x in range(1, self.max_scans)],
-            data_sets=self.scans,
-        )
+        with self.out:
+            self.csm.plot(
+                backend="k3d",
+                coordinate_systems=["user_frame"]
+                + [f"n{x}" for x in range(1, self.max_scans
+                                          if self.max_scans else len(self.scans))],
+                data_sets=self.scans,
+            )
 
     def _build_scan_data(self,
                          mh_scan, scan: xr.Dataset,
@@ -120,7 +130,6 @@ class WidgetScans(WidgetSimpleOutput):
         # build and reshape scan data ------------------------------------------------------
         data, triangle_indices = self._reshape_scan_data(scan, lcs)
 
-        # TODO: are these values still doing what we intend, if we slice the input data?
         data[(data[:, 2] < -250), 2] = np.nan  # simple outliner removal
         data[(data[:, 2] > 50), 2] = np.nan  # simple outliner removal
         sd = weldx.SpatialData(
@@ -159,11 +168,10 @@ class WidgetScans(WidgetSimpleOutput):
         transformed = weldx.util.xr_matmul(
             lcs.orientation, data_arr, dims_a=["c", "v"], dims_b=["c"], dims_out=["c"]
         )
-        # TODO: input params!
-        n_slice=slice(450, 800, 5),
-        p_slice=slice(None, None, 3),
+        # TODO: input param!
+        n_slice = slice(450, 800)
         transformed = transformed + lcs.coordinates.rename({"time": "p"})
-        transformed = transformed.isel(n=n_slice, p=p_slice)
+        transformed = transformed.isel(n=n_slice)
 
         ds = transformed.to_dataset(dim="c")
 
@@ -197,4 +205,4 @@ if __name__ == "__main__":
     TOOL_file = p_base / "MH24_TOOL.CND"
     MH24_file = list((base / "MAIN").glob("*_MH24_MAIN_AutoSave.txt.gz"))[0]
 
-    WidgetScans(MH24_file, TOOL_file, base / "SCAN")
+    WidgetScans(MH24_file, TOOL_file, base / "SCAN").display()
