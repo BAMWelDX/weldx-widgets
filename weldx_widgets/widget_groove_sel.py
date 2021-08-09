@@ -4,18 +4,18 @@ import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import weldx
 from IPython.display import clear_output, display
-from ipywidgets import Button, HBox, Label, VBox
+from ipywidgets import Button, HBox, Label, VBox, HTML
 from weldx.constants import WELDX_QUANTITY as Q_
 from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
 
+from weldx_widgets.generic import show_only_exception_message
+from weldx_widgets.widget_base import WidgetSimpleOutput
 from weldx_widgets.widget_factory import (
     hbox_float_text_creator,
     plot_layout,
     button_layout,
     description_layout,
 )
-from weldx_widgets.widget_base import WidgetSimpleOutput
-from weldx_widgets.generic import show_only_exception_message
 
 
 def get_code_numbers():
@@ -60,7 +60,12 @@ class WidgetGrooveSelection(WidgetSimpleOutput):
         # create rest
         groove_selection = VBox([self.groove_type_dropdown, self.selected_values_vbox])
         self.boxed_widgets = VBox(
-            [HBox([groove_selection, self.out]), self.save_button, self.button_o]
+            [
+                HTML("<h3>ISO 9692-1 Groove selection</h3>"),
+                HBox([groove_selection, self.out]),
+                self.save_button,
+                self.button_o,
+            ]
         )
 
         # set initial state
