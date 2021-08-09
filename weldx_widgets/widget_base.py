@@ -1,12 +1,12 @@
 import abc
 
 from IPython.core.display import display
-from ipywidgets import Output
+from ipywidgets import Output, HBox
 
 from .widget_factory import layout_generic_output
 
 
-class WidgetBase(abc.ABC):
+class WidgetBase(HBox):
     """Base class for weldx widgets."""
 
     def copy(self):
@@ -36,7 +36,7 @@ class WidgetSimpleOutput(WidgetBase):
         if out is None:
             out = Output(layout=layout_generic_output)
         self.out = out
-        super(WidgetSimpleOutput, self).__init__()
+        super(WidgetSimpleOutput, self).__init__(children=[self.out])
 
     def set_visible(self, state: bool):
         # FIXME: doesnt work!
