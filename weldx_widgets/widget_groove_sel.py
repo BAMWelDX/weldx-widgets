@@ -15,6 +15,7 @@ from weldx_widgets.widget_factory import (
     description_layout,
 )
 from weldx_widgets.widget_base import WidgetSimpleOutput
+from weldx_widgets.generic import show_only_exception_message
 
 
 def get_code_numbers():
@@ -167,7 +168,6 @@ class WidgetGrooveSelection(WidgetSimpleOutput):
             # TODO: replot can be avoided (e.g. set_xydata?)
             self.ax.lines = []
             # self.ax.texts = []
-            from generic import show_only_exception_message
 
             with show_only_exception_message():
                 self.groove_obj.plot(line_style="-", ax=self.ax)
