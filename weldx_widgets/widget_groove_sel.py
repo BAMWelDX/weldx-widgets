@@ -15,7 +15,8 @@ from weldx_widgets.widget_factory import (
     plot_layout,
     button_layout,
     description_layout,
-    make_title, layout_generic_output,
+    make_title,
+    layout_generic_output,
 )
 
 
@@ -201,9 +202,9 @@ class WidgetGrooveSelectionTCPMovement:
         self.groove_sel = WidgetGrooveSelection()
 
         epsilon = 1
-        #self.weld_speed = hbox_float_text_creator(
+        # self.weld_speed = hbox_float_text_creator(
         #    "Weld speed", value=20, min=epsilon, unit="mm/s"
-        #)
+        # )
         self.seam_length = hbox_float_text_creator(
             "Seam length", value=300, min=epsilon, unit="mm"
         )
@@ -215,7 +216,7 @@ class WidgetGrooveSelectionTCPMovement:
         )
         self.additional_params = (
             placeholder,
-            #self.weld_speed,
+            # self.weld_speed,
             self.seam_length,
             self.tcp_y,
             self.tcp_z,
