@@ -1,5 +1,5 @@
 import ipywidgets as widgets
-from ipywidgets import HBox, Label, Text, Layout
+from ipywidgets import HBox, Label, Text, Layout, HTML
 
 from weldx import Q_
 
@@ -57,3 +57,7 @@ class FloatWithUnit(WidgetMyBox):
     @float_value.setter
     def float_value(self, value):
         self._float.value = value
+
+
+def make_title(text, heading_level=3):
+    return HTML(f"<h{heading_level}>{text}</h{heading_level}>")
