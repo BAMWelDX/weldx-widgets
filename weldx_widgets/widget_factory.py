@@ -11,11 +11,11 @@ description_layout = Layout(width="30%", height="30px")
 layout_generic_output = Layout(width="50%", height="300px")
 
 
-def hbox_float_text_creator(text, unit, value=7.5, min=0, max=None):
+def hbox_float_text_creator(text, unit, value=7.5, min=0):
     hbox = HBox(
         [
             Label(text + " :", layout=description_layout),
-            widgets.BoundedFloatText(value=value, min=min, max=max, layout=textbox_layout),
+            widgets.BoundedFloatText(value=value, min=min, layout=textbox_layout),
             Text(value=unit, placeholder="unit", layout=textbox_layout),
         ]
     )
