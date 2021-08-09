@@ -15,7 +15,7 @@ layout_generic_output = Layout(width="50%", height="300px")
 
 def hbox_float_text_creator(text, unit, value=7.5, min=0, make_box=True):
     children = [
-        Label(text + " :", layout=description_layout),
+        Label(text, layout=description_layout),
         widgets.BoundedFloatText(value=value, min=min, layout=textbox_layout),
         Text(value=unit, placeholder="unit", layout=textbox_layout),
     ]

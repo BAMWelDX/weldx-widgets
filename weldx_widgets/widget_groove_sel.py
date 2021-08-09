@@ -143,7 +143,7 @@ class WidgetGrooveSelection(WidgetMyHBox):
         groove_type_dropdown = widgets.Dropdown(
             options=groove_list,
             value=groove_list[1],
-            description="Groove type :",
+            description="Groove type",
         )
 
         # connect value observers
@@ -165,12 +165,12 @@ class WidgetGrooveSelection(WidgetMyHBox):
             groove_params["groove_type"] = selection
             for child in self.groove_params_vbox.children:
                 child_0 = child.children[0]
-                if child_0.value[:-2] == "code_number":
-                    groove_params[child_0.value[:-2]] = child.children[1].value
+                if child_0.value == "code_number":
+                    groove_params[child_0.value] = child.children[1].value
                 else:
                     magnitude = child.children[1].value
                     unit = child.children[2].value
-                    groove_params[child_0.value[:-2]] = Q_(magnitude, unit)
+                    groove_params[child_0.value] = Q_(magnitude, unit)
 
             self.groove_obj = get_groove(**groove_params)
             # TODO: replot can be avoided (e.g. set_xydata?)
