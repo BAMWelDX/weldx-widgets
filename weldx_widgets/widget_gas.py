@@ -1,9 +1,8 @@
 from weldx.asdf.tags.weldx.aws import GasComponent, ShieldingGasType, \
     ShieldingGasForProcedure
-from widget_factory import description_layout
+from weldx_widgets.widget_factory import description_layout
 
-from widget_base import WidgetSimpleOutput
-import ipywidgets as w
+from weldx_widgets.widget_base import WidgetSimpleOutput
 from weldx import Q_
 import panel as pn
 

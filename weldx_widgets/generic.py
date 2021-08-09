@@ -3,7 +3,7 @@ from functools import partial
 
 from IPython import get_ipython
 
-from widget_base import WidgetSimpleOutput
+from weldx_widgets.widget_base import WidgetSimpleOutput
 import ipywidgets as w
 from ipyfilechooser import FileChooser
 

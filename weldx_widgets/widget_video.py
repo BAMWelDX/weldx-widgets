@@ -1,6 +1,6 @@
 from jpy_video import Video
 
-from widget_base import WidgetSimpleOutput
+from weldx_widgets.widget_base import WidgetSimpleOutput
 
 
 class WidgetVideo(WidgetSimpleOutput):

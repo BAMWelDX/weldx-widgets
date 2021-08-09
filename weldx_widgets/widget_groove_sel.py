@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import panel as pn
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import weldx
@@ -9,9 +8,9 @@ from ipywidgets import Button, HBox, Label, VBox
 from weldx.constants import WELDX_QUANTITY as Q_
 from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
 
-from widget_factory import hbox_float_text_creator, plot_layout, button_layout, \
+from weldx_widgets.widget_factory import hbox_float_text_creator, plot_layout, button_layout, \
     description_layout
-from widget_base import WidgetSimpleOutput
+from weldx_widgets.widget_base import WidgetSimpleOutput
 
 # Layouts
 # TODO: not global? can cause ugly side effects, better use a factory.

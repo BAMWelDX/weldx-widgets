@@ -2,7 +2,7 @@ import weldx
 from matplotlib import pylab as plt
 from weldx.constants import WELDX_UNIT_REGISTRY as ureg
 
-from widget_base import WidgetSimpleOutput
+from weldx_widgets.widget_base import WidgetSimpleOutput
 
 _DEFAUL_FIGWIDTH = 10
 

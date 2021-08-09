@@ -1,10 +1,10 @@
 import ipywidgets as w
 from weldx import GmawProcess, Q_
-from widget_base import WidgetSimpleOutput
+from weldx_widgets.widget_base import WidgetSimpleOutput
 from matplotlib import pylab as plt
 import weldx
 
-from widget_factory import description_layout
+from weldx_widgets.widget_factory import description_layout
 
 
 def parplot(par, t, name, ax):

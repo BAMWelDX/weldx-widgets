@@ -1,13 +1,13 @@
 from pathlib import Path
-from typing import Union, Tuple
+from typing import Tuple
 
 import libo
 import weldx
 import xarray as xr
 from libo.io.yaskawa import create_csm
-from libo.utils import split_by_trigger, build_scan_data, get_data_transformation
+from libo.utils import split_by_trigger, get_data_transformation
 
-from widget_base import WidgetSimpleOutput
+from weldx_widgets.widget_base import WidgetSimpleOutput
 import numpy as np
 
 # TODO: handle both cases, parameterstudie (mehrere schweißungen auf einem werkstück) und einzel schweißung!
