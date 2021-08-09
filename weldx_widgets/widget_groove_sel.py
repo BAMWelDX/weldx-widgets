@@ -16,9 +16,6 @@ from weldx_widgets.widget_factory import (
 )
 from weldx_widgets.widget_base import WidgetSimpleOutput
 
-# Layouts
-# TODO: not global? can cause ugly side effects, better use a factory.
-
 
 def get_code_numbers():
     """The FFGroove type defines multiple code numbers"""
@@ -43,10 +40,10 @@ def get_code_numbers():
 
 # TODO: nice group layout for all widgets
 # TODO: reset button parameters (defaults).
-class GrooveSelectionWidget(WidgetSimpleOutput):
+class WidgetGrooveSelection(WidgetSimpleOutput):
     # TODO: filename/WeldxFile as input arg?
     def __init__(self):
-        super(GrooveSelectionWidget, self).__init__()
+        super(WidgetGrooveSelection, self).__init__()
 
         # TODO: put all widgets in out, not just the plot!
         self.out.layout = plot_layout
@@ -193,7 +190,7 @@ class GrooveSelectionWidget(WidgetSimpleOutput):
 
 class WidgetGrooveSelectionTCPMovement:
     def __init__(self):
-        self.groove_sel = GrooveSelectionWidget()
+        self.groove_sel = WidgetGrooveSelection()
 
         # TODO: add input fields for weld speed, seam length, tcp offsets (x, y, z). At libo lab we only use (y,z)
         epsilon = 1
@@ -207,4 +204,4 @@ class WidgetGrooveSelectionTCPMovement:
 
     def display(self):
         self.groove_sel.display()
-        # display( *(self.weld_speed, self.seam_length))
+        display(*(self.weld_speed, self.seam_length))

@@ -10,6 +10,9 @@ from libo.utils import split_by_trigger, get_data_transformation
 from weldx_widgets.widget_base import WidgetSimpleOutput
 import numpy as np
 
+__all__ = ["WidgetScans"]
+
+
 # TODO: handle both cases, parameterstudie (mehrere schweißungen auf einem werkstück) und einzel schweißung!
 class WidgetScans(WidgetSimpleOutput):
     def __init__(
