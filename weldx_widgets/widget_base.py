@@ -3,10 +3,8 @@ import abc
 from IPython.core.display import display
 from ipywidgets import Output, HBox
 
-from .widget_factory import layout_generic_output
 
-
-class WidgetBase(HBox):
+class WidgetBase(abc.ABC):
     """Base class for weldx widgets."""
 
     def copy(self):
@@ -34,6 +32,7 @@ class WidgetSimpleOutput(WidgetBase):
 
     def __init__(self, out=None):
         if out is None:
+            from .widget_factory import layout_generic_output
             out = Output(layout=layout_generic_output)
         self.out = out
         super(WidgetSimpleOutput, self).__init__(children=[self.out])
@@ -41,3 +40,19 @@ class WidgetSimpleOutput(WidgetBase):
     def set_visible(self, state: bool):
         # FIXME: doesnt work!
         self.out.layout.visible = bool(state)
+
+
+def metaclass_resolver(*classes):
+    metaclass = tuple(set(type(cls) for cls in classes))
+    metaclass = metaclass[0] if len(metaclass)==1 \
+                else type("_".join(mcls.__name__ for mcls in metaclass), metaclass, {})   # class M_C
+    return metaclass("_".join(cls.__name__ for cls in classes), classes, {})              # class C
+
+
+class WidgetMyBox(metaclass_resolver(HBox, WidgetBase)):
+
+    def display(self):
+        super(WidgetMyBox, self).display()
+
+    def set_visible(self):
+        self.layout.visible = False
