@@ -1,7 +1,7 @@
 import abc
 
 from IPython.core.display import display
-from ipywidgets import Output, HBox
+from ipywidgets import Output, HBox, VBox
 
 
 class WidgetBase(abc.ABC):
@@ -33,6 +33,7 @@ class WidgetSimpleOutput(WidgetBase):
     def __init__(self, out=None):
         if out is None:
             from .widget_factory import layout_generic_output
+
             out = Output(layout=layout_generic_output)
         self.out = out
         super(WidgetSimpleOutput, self).__init__(children=[self.out])
@@ -44,15 +45,25 @@ class WidgetSimpleOutput(WidgetBase):
 
 def metaclass_resolver(*classes):
     metaclass = tuple(set(type(cls) for cls in classes))
-    metaclass = metaclass[0] if len(metaclass)==1 \
-                else type("_".join(mcls.__name__ for mcls in metaclass), metaclass, {})   # class M_C
-    return metaclass("_".join(cls.__name__ for cls in classes), classes, {})              # class C
+    metaclass = (
+        metaclass[0]
+        if len(metaclass) == 1
+        else type("_".join(mcls.__name__ for mcls in metaclass), metaclass, {})
+    )  # class M_C
+    return metaclass("_".join(cls.__name__ for cls in classes), classes, {})  # class C
 
 
-class WidgetMyBox(metaclass_resolver(HBox, WidgetBase)):
-
+class WidgetMyHBox(metaclass_resolver(HBox, WidgetBase)):
     def display(self):
-        super(WidgetMyBox, self).display()
+        super(WidgetMyHBox, self).display()
+
+    def set_visible(self):
+        self.layout.visible = False
+
+
+class WidgetMyVBox(metaclass_resolver(VBox, WidgetBase)):
+    def display(self):
+        super(WidgetMyVBox, self).display()
 
     def set_visible(self):
         self.layout.visible = False
