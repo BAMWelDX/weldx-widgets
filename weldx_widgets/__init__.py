@@ -18,4 +18,4 @@ __all__ = [
     WidgetGasSelection,
     WidgetSimpleGasSelection,
 ]
-__all__ = map(str, (x.__name__ for x in  __all__))
+__all__ = map(str, (x.__name__ for x in __all__))
