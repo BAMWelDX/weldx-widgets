@@ -3,7 +3,7 @@ from functools import partial
 
 from IPython import get_ipython
 
-from weldx_widgets.widget_base import WidgetSimpleOutput
+from weldx_widgets.widget_base import WidgetSimpleOutput, WidgetMyHBox
 import ipywidgets as w
 from ipyfilechooser import FileChooser
 
@@ -53,3 +53,14 @@ class WidgetSaveButton(WidgetSimpleOutput):
     @path.setter
     def path(self, value):
         self.file_chooser.default_path = value
+
+
+class WidgetTimeSeries(WidgetMyHBox):
+
+    # TODO: handle math-expr
+    def __init__(self, base_unit, time_unit):
+        self.base_unit = 0
+        self.data = (TS(data=Q_([40.0, 20.0], "V"), time=Q_([0.0, 10.0], "s")),)
+
+    def to_tree(self):
+        return {"timeseries": self.timeseries}

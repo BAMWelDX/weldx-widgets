@@ -1,10 +1,12 @@
 import ipywidgets as w
 from weldx import GmawProcess, Q_
-from weldx_widgets.widget_base import WidgetSimpleOutput
+
+from weldx_widgets.generic import WidgetTimeSeries
+from weldx_widgets.widget_base import WidgetMyHBox
 from matplotlib import pylab as plt
 import weldx
 
-from weldx_widgets.widget_factory import description_layout
+from weldx_widgets.widget_factory import description_layout, FloatWithUnit, make_title
 
 
 def parplot(par, t, name, ax):
@@ -92,14 +94,50 @@ def gmaw_procs():
     )
 
 
-class WidgetGMAW(WidgetSimpleOutput):
+class ProcessSpray(WidgetMyHBox):
     def __init__(self):
-        super(WidgetGMAW, self).__init__()
+        self.wire_feedrate = (
+            FloatWithUnit(text="Wire feedrate", value=10, unit="m/min"),
+        )
+        self.voltage = WidgetTimeSeries(
+            data=Q_([40.0, 20.0], "V"), time=Q_([0.0, 10.0], "s")
+        )
+        self.impedance = FloatWithUnit(text="Impendance", value=10, unit="percent")
+        self.characteristic = FloatWithUnit("characteristic", value=5, unit="V/A")
 
-        # with self.out:
-        #     plot_gmaw(
-        #         gmaw,
-        #     )
+        super(ProcessSpray, self).__init__(
+            children=[
+                make_title("Spray process parameters"),
+                self.wire_feedrate,
+                self.voltage,
+                self.impedance,
+                self.characteristic,
+            ]
+        )
+
+
+class ProcessPulse:
+    pass
+
+
+"""
+class GmawProcess:
+  Container class for all GMAW processes.
+
+    base_process: str
+    manufacturer: str
+    power_source: str
+    parameters: Dict[str, TimeSeries]
+    tag: str = None
+    meta: dict = None
+    """
+
+
+class WidgetGMAW(WidgetMyHBox):
+    def __init__(self):
+        # drahtvorschub     wx_unit: "m/s"
+
+        super(WidgetGMAW, self).__init__()
 
         # choose between pulse or spray
         spray = w.Checkbox(desc="foo", layout=description_layout)
