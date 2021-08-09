@@ -3,7 +3,7 @@ from ipywidgets import HBox, Label, Text, Layout, HTML
 
 from weldx import Q_
 
-from weldx_widgets.widget_base import WidgetMyBox
+from weldx_widgets.widget_base import WidgetMyHBox
 
 plot_layout = Layout(width="60%", height="550px")
 button_layout = Layout(width="200px", height="50px")
@@ -25,7 +25,7 @@ def hbox_float_text_creator(text, unit, value=7.5, min=0, make_box=True):
     return children
 
 
-class FloatWithUnit(WidgetMyBox):
+class FloatWithUnit(WidgetMyHBox):
     def __init__(self, text, unit, value, min):
         self._label, self._float, self._unit = hbox_float_text_creator(
             text, unit, value, min, make_box=False
