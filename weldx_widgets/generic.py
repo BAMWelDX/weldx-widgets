@@ -7,6 +7,8 @@ from weldx_widgets.widget_base import WidgetSimpleOutput
 import ipywidgets as w
 from ipyfilechooser import FileChooser
 
+__all__ = ["WidgetSaveButton"]
+
 
 @contextlib.contextmanager
 def show_only_exception_message():
