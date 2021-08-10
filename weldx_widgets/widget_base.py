@@ -60,3 +60,9 @@ class WidgetSimpleOutput(WidgetMyHBox):
             out = Output(layout=layout_generic_output)
         self.out = out
         super(WidgetSimpleOutput, self).__init__(children=[self.out])
+
+    def __enter__(self):
+        return self.out.__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self.out.__exit__(exc_type, exc_val, exc_tb)
