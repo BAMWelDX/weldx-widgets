@@ -13,6 +13,11 @@ description_layout = Layout(width="30%", height="30px")
 layout_generic_output = Layout(width="50%", height="300px")
 
 
+def copy_layout(layout):
+    # TODO: this is very primitive!
+    return Layout(height=layout.height, width=layout.width)
+
+
 def hbox_float_text_creator(text, unit, value=7.5, min=0, make_box=True):
     children = [
         Label(text, layout=description_layout),
@@ -23,6 +28,18 @@ def hbox_float_text_creator(text, unit, value=7.5, min=0, make_box=True):
         return HBox(children=children)
 
     return children
+
+
+class WidgetLabeledTextInput(WidgetMyHBox):
+    def __init__(self, label_text, prefilled_text=None):
+        self.label = Label(label_text, layout=description_layout)
+        self.text = Text(value=prefilled_text, layout=textbox_layout)
+        children = [self.label, self.text]
+        super(WidgetLabeledTextInput, self).__init__(children=children)
+
+    @property
+    def text_value(self):
+        return self.text.value
 
 
 class FloatWithUnit(WidgetMyHBox):
@@ -51,8 +68,8 @@ class FloatWithUnit(WidgetMyHBox):
         self._unit.value = str(Q_(value))
 
     @property
-    def float_value(self):
-        return self._float.value
+    def float_value(self) -> float:
+        return float(self._float.value)
 
     @float_value.setter
     def float_value(self, value):

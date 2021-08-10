@@ -2,10 +2,12 @@ import contextlib
 from functools import partial
 
 from IPython import get_ipython
-
-from weldx_widgets.widget_base import WidgetSimpleOutput, WidgetMyHBox
-import ipywidgets as w
 from ipyfilechooser import FileChooser
+from ipywidgets import HBox, Button
+
+from weldx_widgets import WidgetLabeledTextInput
+from weldx_widgets.widget_base import WidgetSimpleOutput, WidgetMyVBox
+from weldx_widgets.widget_factory import textbox_layout, copy_layout
 
 __all__ = ["WidgetSaveButton"]
 
@@ -55,12 +57,56 @@ class WidgetSaveButton(WidgetSimpleOutput):
         self.file_chooser.default_path = value
 
 
-class WidgetTimeSeries(WidgetMyHBox):
+class WidgetTimeSeries(WidgetMyVBox):
 
     # TODO: handle math-expr
-    def __init__(self, base_unit, time_unit):
-        self.base_unit = 0
-        self.data = (TS(data=Q_([40.0, 20.0], "V"), time=Q_([0.0, 10.0], "s")),)
+    def __init__(self, base_unit, time_unit="s", base_data="40, 20", time_data="0, 10"):
+        layout_prefilled_text = copy_layout(textbox_layout)
+        layout_prefilled_text.width = "300px"
 
-    def to_tree(self):
-        return {"timeseries": self.timeseries}
+        self.base_data = WidgetLabeledTextInput(
+            label_text="Base data expr", prefilled_text=base_data
+        )
+        self.time_data = WidgetLabeledTextInput(
+            label_text="Time data expr", prefilled_text=time_data
+        )
+        self.base_data.text.layout = layout_prefilled_text
+        self.time_data.text.layout = layout_prefilled_text
+
+        self.time_unit = WidgetLabeledTextInput(
+            label_text="Time unit", prefilled_text=time_unit
+        )
+        self.base_unit = WidgetLabeledTextInput(
+            label_text="Base unit", prefilled_text=base_unit
+        )
+
+        self.button = Button(description="eval")
+        self.button.on_click(self.to_tree)
+        self.out = WidgetSimpleOutput()
+        children = [
+            HBox([self.base_data, self.base_unit]),
+            HBox([self.time_data, self.time_unit]),
+            self.button,
+            self.out,
+        ]
+        super(WidgetTimeSeries, self).__init__(children=children)
+
+    def to_tree(self, *args, **kwargs):
+        from weldx import TimeSeries, Q_
+
+        with self.out:
+            # TODO: eval - the root of evil!
+            ts = TimeSeries(
+                data=Q_(
+                    eval(self.base_data.text_value), units=self.base_unit.text_value
+                ),
+                time=Q_(
+                    eval(self.time_data.text_value), units=self.time_unit.text_value
+                ),
+            )
+        return {"timeseries": ts}
+
+
+if __name__ == "__main__":
+    w = WidgetTimeSeries("V", "s")
+    print(w.to_tree())
