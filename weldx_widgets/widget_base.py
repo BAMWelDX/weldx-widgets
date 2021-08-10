@@ -25,24 +25,6 @@ class WidgetBase(abc.ABC):
         self.display()
 
 
-# TODO: preferably we should derive some ipywidgets container...
-class WidgetSimpleOutput(WidgetBase):
-    def display(self):
-        display(*(self.out,))
-
-    def __init__(self, out=None):
-        if out is None:
-            from .widget_factory import layout_generic_output
-
-            out = Output(layout=layout_generic_output)
-        self.out = out
-        super(WidgetSimpleOutput, self).__init__(children=[self.out])
-
-    def set_visible(self, state: bool):
-        # FIXME: doesnt work!
-        self.out.layout.visible = bool(state)
-
-
 def metaclass_resolver(*classes):
     metaclass = tuple(set(type(cls) for cls in classes))
     metaclass = (
@@ -57,8 +39,9 @@ class WidgetMyHBox(metaclass_resolver(HBox, WidgetBase)):
     def display(self):
         super(WidgetMyHBox, self).display()
 
-    def set_visible(self):
-        self.layout.visible = False
+    def set_visible(self, state: bool):
+        # FIXME: doesnt work!
+        self.layout.visible = bool(state)
 
 
 class WidgetMyVBox(metaclass_resolver(VBox, WidgetBase)):
@@ -67,3 +50,13 @@ class WidgetMyVBox(metaclass_resolver(VBox, WidgetBase)):
 
     def set_visible(self):
         self.layout.visible = False
+
+
+class WidgetSimpleOutput(WidgetMyHBox):
+    def __init__(self, out=None):
+        if out is None:
+            from .widget_factory import layout_generic_output
+
+            out = Output(layout=layout_generic_output)
+        self.out = out
+        super(WidgetSimpleOutput, self).__init__(children=[self.out])
