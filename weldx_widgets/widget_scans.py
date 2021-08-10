@@ -83,7 +83,6 @@ class WidgetScans(WidgetSimpleOutput):
             naht_nr = int(mh_scan.naht_NR.max().values)
             schw_nr = int(mh_scan.schw_NR.max().values)
             pattern = f"LLT1_WID*_N{naht_nr:03d}_L001_R001_S{schw_nr}_*.nc"
-            #print(pattern)
             scans_list = list(self.scans_dir.glob(pattern))
             assert len(scans_list) == 1
 
