@@ -4,8 +4,10 @@ from typing import Tuple
 import libo
 import weldx
 import xarray as xr
+from ipywidgets import IntProgress
 from libo.io.yaskawa import create_csm
 from libo.utils import split_by_trigger, get_data_transformation
+from tqdm.auto import tqdm
 
 from .widget_base import WidgetSimpleOutput
 import numpy as np
@@ -29,6 +31,10 @@ class WidgetScans(WidgetSimpleOutput):
 
         self.max_scans = max_scans
         self.single_weld = single_weld
+
+        with self.out:
+            self.progress = IntProgress()
+
         coords = ["X", "Y", "Z"]
         channels = (
             ["trigScan1_prog", "trigSchweissen", "naht_NR", "schw_NR", "trigLLT1"]
@@ -65,15 +71,19 @@ class WidgetScans(WidgetSimpleOutput):
         scans = []
         # TODO: handle self.single_weld (different pattern needed).
         if self.single_weld:
-            mh_scan_list_i = iter(mh_scan_list[1 : self.max_scans : 2])
+            _slice = slice(1, self.max_scans, 2)
+            n = len(mh_scan_list[_slice])
+            mh_scan_list_i = iter(mh_scan_list[_slice])
         else:
-            mh_scan_list_i = iter(mh_scan_list[1 : self.max_scans])
+            _slice = slice(1, self.max_scans)
+            mh_scan_list_i = iter(mh_scan_list[_slice])
+            n = len(mh_scan_list[_slice])
 
-        for mh_scan in mh_scan_list_i:
+        for mh_scan in tqdm(mh_scan_list_i, total=n, desc="process scan data"):
             naht_nr = int(mh_scan.naht_NR.max().values)
             schw_nr = int(mh_scan.schw_NR.max().values)
             pattern = f"LLT1_WID*_N{naht_nr:03d}_L001_R001_S{schw_nr}_*.nc"
-            print(pattern)
+            #print(pattern)
             scans_list = list(self.scans_dir.glob(pattern))
             assert len(scans_list) == 1
 
