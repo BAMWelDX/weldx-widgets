@@ -81,6 +81,10 @@ class WeldxImportExport(abc.ABC):
     def get_schema_path(self) -> Path:
         return get_schema_path(self.schema)
 
+    def validate(self, tree):
+        # should be implemented such that we can validate both input and output.
+        pass
+
     @abc.abstractmethod
     def from_tree(self, tree: dict):
         pass
