@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
-import weldx
-from IPython.display import clear_output, display
+from IPython.display import clear_output
 from ipywidgets import Button, HBox, Label, VBox, HTML, Layout, Output
+
+import weldx
 from weldx.constants import WELDX_QUANTITY as Q_
 from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
-
 from weldx_widgets.generic import show_only_exception_message
-from weldx_widgets.widget_base import WidgetMyHBox, WidgetMyVBox
+from weldx_widgets.widget_base import WeldxImportExport
+from weldx_widgets.widget_base import WidgetMyVBox
 from weldx_widgets.widget_factory import (
     hbox_float_text_creator,
     plot_layout,
@@ -18,6 +19,11 @@ from weldx_widgets.widget_factory import (
     make_title,
     layout_generic_output,
 )
+
+__all__ = [
+    "WidgetGrooveSelection",
+    "WidgetGrooveSelectionTCPMovement",
+]
 
 
 def get_code_numbers():
@@ -43,7 +49,8 @@ def get_code_numbers():
 
 # TODO: nice group layout for all widgets
 # TODO: reset button parameters (defaults).
-class WidgetGrooveSelection(WidgetMyVBox):
+class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
+
     # TODO: filename/WeldxFile as input arg?
     def __init__(self):
         self.out = Output(layout=layout_generic_output)
@@ -78,6 +85,16 @@ class WidgetGrooveSelection(WidgetMyVBox):
         self._update_params_to_selection(dict(new=self.groove_type_dropdown.value))
         self._update_plot(None)
         super(WidgetGrooveSelection, self).__init__(children=children)
+
+    @property
+    def schema(self) -> str:
+        pass
+
+    def from_tree(self, tree: dict):
+        pass
+
+    def to_tree(self) -> dict:
+        pass
 
     def _create_save_button(self):
         self.button_o = widgets.Output()
