@@ -7,7 +7,7 @@ from weldx_widgets.widget_base import WidgetMyHBox
 
 plot_layout = Layout(width="60%", height="550px")
 button_layout = Layout(width="200px", height="50px")
-textbox_layout = Layout(width="15%", height="30px")
+textbox_layout = Layout(width="50px", height="30px")  # used for units
 description_layout = Layout(width="30%", height="30px")
 
 layout_generic_output = Layout(width="50%", height="300px")
@@ -40,6 +40,10 @@ class WidgetLabeledTextInput(WidgetMyHBox):
     @property
     def text_value(self):
         return self.text.value
+
+    @text_value.setter
+    def text_value(self, value):
+        self.text.value = value
 
 
 class FloatWithUnit(WidgetMyHBox):
