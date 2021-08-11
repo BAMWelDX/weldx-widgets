@@ -1,7 +1,11 @@
 import abc
+import functools
+from pathlib import Path
 
 from IPython.core.display import display
 from ipywidgets import Output, HBox, VBox
+
+from weldx.asdf.util import get_schema_path
 
 
 class WidgetBase(abc.ABC):
@@ -23,9 +27,9 @@ class WidgetBase(abc.ABC):
         if not hasattr(self, "layout"):
             raise NotImplementedError
         if state:
-            visibility = 'visible'
+            visibility = "visible"
         else:
-            visibility = 'hidden'
+            visibility = "hidden"
         self.layout.visibility = visibility
 
     def _ipython_display_(self):
@@ -64,3 +68,23 @@ class WidgetSimpleOutput(WidgetMyHBox):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         return self.out.__exit__(exc_type, exc_val, exc_tb)
+
+
+class WeldxImportExport(abc.ABC):
+    @property
+    @abc.abstractmethod
+    def schema(self) -> str:
+        """this schema is used to validate input and output"""
+        pass
+
+    @functools.lru_cache
+    def get_schema_path(self) -> Path:
+        return get_schema_path(self.schema)
+
+    @abc.abstractmethod
+    def from_tree(self, tree: dict):
+        pass
+
+    @abc.abstractmethod
+    def to_tree(self) -> dict:
+        pass
