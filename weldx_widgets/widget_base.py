@@ -12,14 +12,21 @@ class WidgetBase(abc.ABC):
 
         return deepcopy(self)
 
-    @abc.abstractmethod
     def display(self):
         """initial drawing of the widget."""
-        pass
+        if not hasattr(self, "_ipython_display_"):
+            raise NotImplementedError
+        self._ipython_display_()
 
-    @abc.abstractmethod
     def set_visible(self, state: bool):
         """toggle visibility."""
+        if not hasattr(self, "layout"):
+            raise NotImplementedError
+        if state:
+            visibility = 'visible'
+        else:
+            visibility = 'hidden'
+        self.layout.visibility = visibility
 
     def _ipython_display_(self):
         self.display()
@@ -36,20 +43,11 @@ def metaclass_resolver(*classes):
 
 
 class WidgetMyHBox(metaclass_resolver(HBox, WidgetBase)):
-    def display(self):
-        super(WidgetMyHBox, self).display()
-
-    def set_visible(self, state: bool):
-        # FIXME: doesnt work!
-        self.layout.visible = bool(state)
+    pass
 
 
 class WidgetMyVBox(metaclass_resolver(VBox, WidgetBase)):
-    def display(self):
-        super(WidgetMyVBox, self).display()
-
-    def set_visible(self):
-        self.layout.visible = False
+    pass
 
 
 class WidgetSimpleOutput(WidgetMyHBox):
