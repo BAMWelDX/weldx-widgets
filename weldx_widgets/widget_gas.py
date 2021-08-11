@@ -8,7 +8,7 @@ from weldx.asdf.tags.weldx.aws import (
 )
 from weldx_widgets.widget_factory import description_layout
 
-from weldx_widgets.widget_base import WidgetMyHBox, WidgetMyVBox
+from weldx_widgets.widget_base import WidgetMyHBox, WidgetMyVBox, WeldxImportExport
 from weldx import Q_
 
 __all__ = [
@@ -18,7 +18,11 @@ __all__ = [
 
 
 class WidgetSimpleGasSelection(WidgetMyHBox):
-    """Models a simple gas component."""
+    """Models a simple gas component.
+
+    A gas component is a list of gases (element, percentage)
+    TODO: this is currently wrongly implemented...
+    """
 
     gas_list = ["Argon", "CO2", "Helium", "Hydrogen", "Oxygen", None]
 
@@ -70,7 +74,8 @@ class WidgetSimpleGasSelection(WidgetMyHBox):
         return dict(gas_component=gas_type)
 
 
-class WidgetGasSelection(WidgetMyVBox):
+class WidgetGasSelection(WidgetMyVBox, WeldxImportExport):
+
     gas_usages = ("Torch shielding gas", "Backing gas", "Trailing shielding gas")
     schema_names = ("use_torch_shielding_gas", "use_backing_gas", "use_trailing_gas")
 
@@ -161,8 +166,15 @@ class WidgetGasSelection(WidgetMyVBox):
                 **self.trailing_gas.to_tree(),
                 common_name="TG",
             )
-        # TODO: wrap inside a dict according to schema!
-        return {"gas_for_procedure": gas_for_procedure}
+        return {"shielding_gas": gas_for_procedure}
+
+    def from_tree(self, tree: dict):
+        sg = tree["shielding_gas"]
+        # self._use_torch_shielding_gas = sg["use_torch_shielding_gas"]
+
+    @property
+    def schema(self) -> str:
+        pass
 
 
 if __name__ == "__main__":
