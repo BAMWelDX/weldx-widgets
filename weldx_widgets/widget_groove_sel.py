@@ -9,7 +9,7 @@ from weldx.constants import WELDX_QUANTITY as Q_
 from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
 
 from weldx_widgets.generic import show_only_exception_message
-from weldx_widgets.widget_base import WidgetMyHBox
+from weldx_widgets.widget_base import WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
     hbox_float_text_creator,
     plot_layout,
@@ -43,10 +43,9 @@ def get_code_numbers():
 
 # TODO: nice group layout for all widgets
 # TODO: reset button parameters (defaults).
-class WidgetGrooveSelection(WidgetMyHBox):
+class WidgetGrooveSelection(WidgetMyVBox):
     # TODO: filename/WeldxFile as input arg?
     def __init__(self):
-        super(WidgetGrooveSelection, self).__init__()
         self.out = Output(layout=layout_generic_output)
 
         # TODO: put all widgets in out, not just the plot!
@@ -68,18 +67,17 @@ class WidgetGrooveSelection(WidgetMyHBox):
                 VBox([]),  # additional parameters (e.g. weld speed).
             ]
         )
-        self.boxed_widgets = VBox(
-            [
-                make_title("ISO 9692-1 Groove selection", 3),
-                HBox([self.groove_selection, self.out]),
-                self.save_button,
-                self.button_o,
-            ]
-        )
+        children = [
+            make_title("ISO 9692-1 Groove selection", 3),
+            HBox([self.groove_selection, self.out]),
+            self.save_button,
+            self.button_o,
+        ]
 
         # set initial state
         self._update_params_to_selection(dict(new=self.groove_type_dropdown.value))
         self._update_plot(None)
+        super(WidgetGrooveSelection, self).__init__(children=children)
 
     def _create_save_button(self):
         self.button_o = widgets.Output()
@@ -193,20 +191,13 @@ class WidgetGrooveSelection(WidgetMyHBox):
             )
         ]
 
-    def display(self):
-        display(self.boxed_widgets)
 
-
+# TODO: should also derive from widget, restructure.
 class WidgetGrooveSelectionTCPMovement:
     def __init__(self):
         self.groove_sel = WidgetGrooveSelection()
-
-        epsilon = 1
-        # self.weld_speed = hbox_float_text_creator(
-        #    "Weld speed", value=20, min=epsilon, unit="mm/s"
-        # )
         self.seam_length = hbox_float_text_creator(
-            "Seam length", value=300, min=epsilon, unit="mm"
+            "Seam length", value=300, min=0, unit="mm"
         )
         self.tcp_y = hbox_float_text_creator("TCP-y", unit="mm")
         self.tcp_z = hbox_float_text_creator("TCP-z", unit="mm")
@@ -216,7 +207,6 @@ class WidgetGrooveSelectionTCPMovement:
         )
         self.additional_params = (
             placeholder,
-            # self.weld_speed,
             self.seam_length,
             self.tcp_y,
             self.tcp_z,
