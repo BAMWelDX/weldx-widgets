@@ -3,6 +3,7 @@ from .generic import WidgetSaveButton, WidgetTimeSeries
 from .widget_scans import WidgetScans
 from .widget_groove_sel import WidgetGrooveSelection, WidgetGrooveSelectionTCPMovement
 from .widget_gas import WidgetGasSelection, WidgetSimpleGasSelection
+from .widget_gmaw import WidgetGMAW
 
 __all__ = [
     WidgetScans,
@@ -13,6 +14,7 @@ __all__ = [
     WidgetTimeSeries,
     WidgetLabeledTextInput,
     WidgetSaveButton,
+    WidgetGMAW,
     FloatWithUnit,  # TODO: rename
 ]
 __all__ = map(str, (x.__name__ for x in __all__))
