@@ -5,6 +5,7 @@ from IPython import get_ipython
 from ipyfilechooser import FileChooser
 from ipywidgets import HBox, Label
 
+import weldx
 from weldx_widgets import WidgetLabeledTextInput
 from weldx_widgets.widget_base import (
     WidgetSimpleOutput,
@@ -69,8 +70,7 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
     def schema(self) -> str:
         return "time_series-1.0.0"
 
-    def from_tree(self, tree: dict):
-        pass
+
 
     # TODO: handle math-expr
     def __init__(
@@ -100,7 +100,7 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         super(WidgetTimeSeries, self).__init__(children=children)
         self.layout.border = "2px solid green"  # TODO: debug code
 
-    def to_tree(self, *args, **kwargs):
+    def to_tree(self):
         from weldx import TimeSeries, Q_
 
         # TODO: eval - the root of evil!
@@ -108,10 +108,32 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
             data=Q_(eval(self.base_data.text_value), units=self.base_unit.text_value),
             time=Q_(eval(self.time_data.text_value), units=self.time_unit.text_value),
         )
-        print(ts)
         return {"timeseries": ts}
 
+    def from_tree(self, tree: dict):
+        ts: weldx.TimeSeries = tree["timeseries"]
+        if ts.time is not None:
+            foo = ", ".join(str(x) for x in ts.time.as_timedelta().seconds)
+            self.time_data.text_value = f"[{foo}]"
+        else:
+            self.time_data.text_value = ""
 
-if __name__ == "__main__":
-    w = WidgetTimeSeries("V", "s")
-    print(w.to_tree())
+        self.base_data.text_value = repr(list(ts.data.magnitude))
+        self.base_unit.text_value = format(ts.data.units, "~")
+
+
+def test_import_export():
+    import weldx
+    import pandas as pd
+    data = [42, 23, 12]
+    time = [0, 2, 4]
+    ts = weldx.TimeSeries(weldx.Q_(data, "m"),
+                          time=pd.TimedeltaIndex(time, unit="s"))
+    w = WidgetTimeSeries("m")
+    w.from_tree(dict(timeseries=ts))
+    assert w.base_unit.text_value == "m"
+    assert w.base_data.text_value == str(data)
+    assert w.time_data.text_value == str(time)
+
+    ts2 = w.to_tree()
+    assert ts2["timeseries"] == ts
