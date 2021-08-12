@@ -242,7 +242,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
 
         process = dict(
             welding_process=welding_process,
-            shielding_gas=self.gas.to_tree(),
+            shielding_gas=self.gas.to_tree()["shielding_gas"],
             weld_speed=TimeSeries(Q_(45, "cm/min")),
             welding_wire=self.welding_wire.to_tree(),
         )
