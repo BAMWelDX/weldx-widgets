@@ -47,7 +47,7 @@ class WidgetLabeledTextInput(WidgetMyHBox):
 
 
 class FloatWithUnit(WidgetMyHBox):
-    def __init__(self, text, unit, value, min=0):
+    def __init__(self, text, unit, value=0, min=0):
         self._label, self._float, self._unit = hbox_float_text_creator(
             text, unit, value, min, make_box=False
         )
@@ -78,6 +78,10 @@ class FloatWithUnit(WidgetMyHBox):
     @float_value.setter
     def float_value(self, value):
         self._float.value = value
+
+    @property
+    def quantity(self) -> Q_:
+        return Q_(self.float_value, self.unit)
 
 
 def make_title(text, heading_level=3):
