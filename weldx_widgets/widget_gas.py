@@ -26,10 +26,11 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
     """Models a simple gas component.
 
     A gas component is a list of gases (element, percentage)
-    TODO: this is currently wrongly implemented...
     """
 
     gas_list = ["Argon", "CO2", "Helium", "Hydrogen", "Oxygen"]
+    _asdf_names = ['argon', 'carbon dioxide', 'helium', 'hydrogen', 'oxygen']
+    _mapping = {gui_name:_asdf_name for gui_name, _asdf_name in zip(gas_list, _asdf_names)}
 
     def __init__(self, index=0):
         # create first gas dropdown, with buttons to delete and add gases.
@@ -89,7 +90,7 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
 
     def to_tree(self):
         gas_comp = [
-            GasComponent(element, Q_(int(widget.children[1].value), "percent"))
+            GasComponent(self._mapping[element], Q_(int(widget.children[1].value), "percent"))
             for element, widget in self.components.items()
         ]
         return dict(gas_component=gas_comp)
