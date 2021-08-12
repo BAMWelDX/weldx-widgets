@@ -10,7 +10,7 @@ from weldx_widgets import WidgetLabeledTextInput
 from weldx_widgets.widget_base import (
     WidgetSimpleOutput,
     WidgetMyVBox,
-    WeldxImportExport,
+    WeldxImportExport, WidgetMyHBox,
 )
 from weldx_widgets.widget_factory import textbox_layout, copy_layout
 
@@ -33,20 +33,14 @@ def show_only_exception_message():
     ip.showtraceback = old_state
 
 
-# TODO: allow save and load with a switch!
-class WidgetSaveButton(WidgetSimpleOutput):
-    def __init__(self, desc="Save to", filename="out.txt", path=None):
-        super(WidgetSaveButton, self).__init__()
+class WidgetSaveButton(WidgetMyHBox):
+    def __init__(self, desc="Save to", filename="out.wx", path='.'):
+        from weldx_widgets.widget_factory import button_layout
 
-        with self.out:
-            self.file_chooser = FileChooser(path=path, filename=filename)
-            self.button = Button(desc=desc)
+        self.file_chooser = FileChooser(path=path, filename=filename)
+        self.button = Button(description=desc, layout=button_layout)
 
-        self.file_chooser.observe(self._chose_file, "selected_file")  # TODO: or value?
-
-    def _chose_file(self):
-        # TODO: pre-validate the path, e.g. writeable.
-        pass
+        super(WidgetSaveButton, self).__init__(children=(self.file_chooser, self.button))
 
     @property
     def desc(self):
@@ -58,11 +52,7 @@ class WidgetSaveButton(WidgetSimpleOutput):
 
     @property
     def path(self):
-        return self.file_chooser.selected_path
-
-    @path.setter
-    def path(self, value):
-        self.file_chooser.default_path = value
+        return self.file_chooser.selected
 
 
 class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
@@ -96,7 +86,6 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         if title:
             children.insert(0, Label(title))
         super(WidgetTimeSeries, self).__init__(children=children)
-        self.layout.border = "2px solid green"  # TODO: debug code
 
     def to_tree(self):
         from weldx import TimeSeries, Q_
