@@ -152,7 +152,8 @@ class ProcessSpray(WidgetMyVBox):
                       characteristic=self.characteristic.quantity,
                       )
         tag = "CLOOS/spray"
-        process = GmawProcess(manufacturer=manufacturer, power_source=power_source,
+        process = GmawProcess(base_process="spray",
+                              manufacturer=manufacturer, power_source=power_source,
                               parameters=params, tag=tag)
         return dict(process=process)
 
@@ -208,6 +209,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
 
         children = [
             make_title("GMAW process parameters"),
+            make_title("Shielding gas", 4),
             self.gas,
             self.welding_wire,
             # self.weld_speed, # TODO: speed is given by feedrate and groove!
