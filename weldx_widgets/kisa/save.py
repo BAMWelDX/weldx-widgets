@@ -1,7 +1,7 @@
 import typing
 
 import ipywidgets as w
-from util import invoke_next_notebook
+from ipywidgets import Output
 
 import weldx_widgets
 import weldx_widgets.widget_base
@@ -57,7 +57,6 @@ def build_url(board: str, parameters: dict = None, invoke=True) -> str:
 
     if parameters:
         params_encoded = urlencode(parameters)
-        #print("params encoded", params_encoded)
         url += f"?{params_encoded}"
 
     if invoke:
@@ -65,13 +64,11 @@ def build_url(board: str, parameters: dict = None, invoke=True) -> str:
     return url
 
 
-def invoke_next_notebook(notebook, params=''):
+def invoke_next_notebook(notebook, params=None):
     import webbrowser
-    from urllib import parse
+    url = build_url(notebook, parameters=params, invoke=False)
 
-    params_ = parse.urlencode(params)
-
-    webbrowser.open_new_tab(f"http://{server}:{port}/voila/render/{notebook}?{params_}")
+    webbrowser.open_new_tab(url)
 
 
 class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
@@ -85,25 +82,24 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
                  status: str,
                  collect_data_from: typing.List[
                      weldx_widgets.widget_base.WeldxImportExport],
-                 next_notebook_desc: str = "invoke next step",
+                 next_notebook_desc: str = "2. invoke next step",
                  ):
         self.status = status
         self.collect_data_from = collect_data_from
-        self.out = WidgetSimpleOutput()
-
-        btn_next = w.Button(description=next_notebook_desc)
-        btn_next.on_click(lambda _: (invoke_next_notebook(
+        self.out = Output()
+        from weldx_widgets.widget_factory import button_layout
+        self.btn_next = w.Button(description=next_notebook_desc, layout=button_layout)
+        self.btn_next.on_click(lambda _: (invoke_next_notebook(
             next_notebook, params=dict(file=str(filename)))
         )
-                          )
-        self.save_button = weldx_widgets.WidgetSaveButton(self.filename, )
-        self.save_button.button.on_click = self.on_save
-        self.filename = filename
+        )
+        self.save_button = weldx_widgets.WidgetSaveButton(desc="1. Save", filename=filename)
+        self.save_button.button.on_click(self.on_save)
+        #self.filename = filename
 
         children = [weldx_widgets.widget_factory.make_title("Save results"),
                     self.save_button,
                     self.out,
-                    w.HTML("<hr>"),
                     self.btn_next]
         super(SaveAndNext, self).__init__(children=children)
 
@@ -115,7 +111,8 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
     def filename(self, value):
         self.save_button.path = value
 
-    def on_save(self, *args, **kwargs):
+    def on_save(self, _):
+        print("on_save")
         # TODO: error handling, e.g. to_tree() is not yet ready etc.
         result = dict()
         for widget in self.collect_data_from:
@@ -123,5 +120,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         result["wx_user"] = {
             "KISA": {"status": self.status}
         }
+        assert self.filename
         with weldx.WeldxFile(self.filename, tree=result, mode="rw") as fh, self.out:
+            print("tree:", result)
             fh.show_asdf_header(True)
