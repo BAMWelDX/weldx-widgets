@@ -5,7 +5,7 @@ from ipywidgets import Dropdown
 from matplotlib import pylab as plt
 
 import weldx
-from weldx import GmawProcess, Q_
+from weldx import GmawProcess, Q_, TimeSeries
 from weldx_widgets import WidgetGasSelection
 from weldx_widgets.generic import WidgetTimeSeries
 from weldx_widgets.widget_base import WidgetMyVBox, WeldxImportExport
@@ -33,7 +33,7 @@ def plot_gmaw(gmaw, t):
     pars = gmaw.parameters
     n = len(pars)
 
-    fig, ax = plt.subplots(nrows=n, sharex="all", figsize=(_DEFAUL_FIGWIDTH, 2 * n))
+    fig, ax = plt.subplots(nrows=n, sharex="all", figsize=(_DEFAULT_FIGWIDTH, 2 * n))
     for i, k in enumerate(pars):
         parplot(pars[k], t, k, ax[i])
     ax[-1].set_xlabel(f"time / s")
@@ -44,129 +44,117 @@ def plot_gmaw(gmaw, t):
     return fig, ax
 
 
-def gmaw_procs():
-    # spray arc processes
-    params_spray = dict(
-        wire_feedrate=Q_(10.0, "m/min"),
-        voltage=TS(data=Q_([40.0, 20.0], "V"), time=Q_([0.0, 10.0], "s")),
-        impedance=Q_(10.0, "percent"),
-        characteristic=Q_(5, "V/A"),
-    )
-    process_spray = GmawProcess(
-        "spray", "CLOOS", "Quinto", params_spray, tag="CLOOS/spray_arc"
-    )
-
-    # pulsed arc processes
-    # U, I modulation:
-    params_pulse = dict(
-        wire_feedrate=Q_(10.0, "m/min"),
-        pulse_voltage=Q_(40.0, "V"),
-        pulse_duration=Q_(5.0, "ms"),
-        pulse_frequency=Q_(100.0, "Hz"),
-        base_current=Q_(60.0, "A"),
-    )
-    process_pulse = GmawProcess(
-        "pulse",
-        "CLOOS",
-        "Quinto",
-        params_pulse,
-        tag="CLOOS/pulse",
-        meta={"modulation": "UI"},
-    )
-
-    # I, I modulation
-    params_pulse_II = dict(
-        wire_feedrate=Q_(10.0, "m/min"),
-        pulse_current=Q_(0.3, "kA"),
-        pulse_duration=Q_(5.0, "ms"),
-        pulse_frequency=Q_(100.0, "Hz"),
-        base_current=Q_(60.0, "A"),
-    )
-    process_pulse_II = GmawProcess(
-        "pulse",
-        "CLOOS",
-        "Quinto",
-        params_pulse_II,
-        tag="CLOOS/pulse",
-        meta={"modulation": "II"},
-    )
-
-
-# TODO: define base process parameters
-class BaseProcess:
-    def __init__(self, base_process="spray"):
-        # if base_process
+class BaseProcess(WidgetMyVBox):
+    def __init__(self):
         self.manufacturer = WidgetLabeledTextInput("Manufacturer", "Fronius")
         self.power_source = WidgetLabeledTextInput("Power source", "TPS 500i")
+        self.wire_feedrate = FloatWithUnit(
+            text="Wire feed rate", value=10, min=0, unit="m/min"
+        )
+        children = [
+            self.manufacturer,
+            self.power_source,
+            self.wire_feedrate,
+        ]
+        super(BaseProcess, self).__init__(children=children)
+
+    def to_tree(self):
+        return dict(manufacturer=self.manufacturer.text_value,
+                    powersource=self.power_source.text_value,
+                    wire_feedrate=self.wire_feedrate.quantity,
+                    )
+
+    def from_tree(self, tree):
+        raise NotImplementedError
 
 
-def create_widget_from_yaml(
-    schema_pattern="process/terms*",
-    process="spray",
-):
-    import yaml
-    from weldx.asdf.util import get_schema_path
+class PulsedProcess(WidgetMyVBox):
+    def __init__(self, kind="UI"):
+        self.base_process = BaseProcess()
+        self.pulse_duration = FloatWithUnit("Pulse duration", value=5.0, unit="ms")
+        self.pulse_frequency = FloatWithUnit("Pulse frequency", value=100.0, unit="Hz")
+        self.base_current = FloatWithUnit("Base current", value=60.0, unit="A")
 
-    s = get_schema_path(schema_pattern)
-    with open(s) as fh:
-        schema = yaml.safe_load(fh)
+        if kind == "UI":
+            self.pulsed_dim = FloatWithUnit("Pulse voltage", "V", 40)
+        elif kind == "II":
+            self.pulsed_dim = FloatWithUnit("Pulse current", "A", 300)
+        else:
+            raise ValueError(f"unknown kind: {kind}")
+        self.kind = kind
+        self.tag = "CLOOS/pulse"
+        self.meta = {"modulation": self.kind}
 
-    w = WidgetMyVBox()
-    children = [make_title(f"{process} parameters")]
+        children = [
+            make_title(f"Pulsed ({self.kind}) process parameters"),
+            self.base_process,
+            self.pulse_duration,
+            self.pulse_frequency,
+            self.base_current,
+            self.pulsed_dim
+        ]
+        super(PulsedProcess, self).__init__(children=children)
 
-    # required by process
-    def get_required(proc):
-        return proc["properties"]["parameters"]["required"]
+    def to_tree(self):
+        base_params = self.base_process.to_tree()
+        manufacturer = base_params.pop("manufacturer")
+        power_source = base_params.pop("powersource")
+        # these params have to be quantities
+        params = dict(**base_params,
+                      pulse_duration=self.pulse_duration.quantity,
+                      pulse_frequency=self.pulse_frequency.quantity,
+                      base_current=self.base_current.quantity,
+                      )
+        if self.kind == "UI":
+            params["pulse_voltage"] = self.pulsed_dim.quantity
+        else:
+            params["pulse_current"] = self.pulsed_dim.quantity
 
-    if process == "spray":
-        required = get_required(schema["process"][process])
-    elif process in ("UI", "II"):
-        required = get_required(schema["process"]["pulse"][process])
-    else:
-        raise ValueError("unknown process", process)
-
-    params = schema["parameters"]
-    widget_by_param_name = {}
-    for k, v in params.items():
-        if not "time_series" in v["tag"]:
-            raise NotImplementedError("handles time series tag only atm.")
-
-        if k not in required:
-            continue
-        label_text = f"{k[0].upper()}{k[1:].replace('_', ' ')}"
-        wx_unit = v["wx_unit"]
-        tooltip = v["description"]
-        # TODO: it would be nice to know, if a TS is meant to be a scalar or really time-dependent.
-        w_child = WidgetTimeSeries(time_unit="s", base_unit=wx_unit, title=label_text)
-        w.tooltip = tooltip
-        children.append(w_child)
-        widget_by_param_name[k] = w_child
-
-    w.children = children
-    w.params = widget_by_param_name
-    return w
+        process = GmawProcess(
+            base_process="pulse",
+            manufacturer=manufacturer,
+            power_source=power_source,
+            parameters=params,
+            tag="CLOOS/pulse",  # TODO: tag should match manufacturer
+            meta={"modulation": self.kind},
+        )
+        return dict(process=process)
 
 
 class ProcessSpray(WidgetMyVBox):
     def __init__(self):
-        self.wire_feedrate = FloatWithUnit(
-            text="Wire feedrate", value=10, min=0, unit="m/min"
-        )
+        self.base_process = BaseProcess()
         self.voltage = WidgetTimeSeries(
             base_data="40.0, 20.0", base_unit="V", time_data="0.0, 10.0", time_unit="s"
         )
         self.impedance = FloatWithUnit(text="Impendance", value=10, unit="percent")
-        self.characteristic = FloatWithUnit("characteristic", value=5, unit="V/A")
+        self.characteristic = FloatWithUnit("Characteristic", value=5, unit="V/A")
+        self.tag = "CLOOS/spray_arc"
 
         super(ProcessSpray, self).__init__(
             children=[
                 make_title("Spray process parameters"),
-                self.wire_feedrate,
+                self.base_process,
                 self.voltage,
                 self.impedance,
                 self.characteristic,
             ]
         )
+
+    def to_tree(self):
+        base_params = self.base_process.to_tree()
+        manufacturer = base_params.pop("manufacturer")
+        power_source = base_params.pop("powersource")
+        # these params have to be quantities
+        params = dict(**base_params,
+                      voltage=self.voltage.to_tree()["timeseries"],
+                      impedance=self.impedance.quantity,
+                      characteristic=self.characteristic.quantity,
+                      )
+        tag = "CLOOS/spray"
+        process = GmawProcess(manufacturer=manufacturer, power_source=power_source,
+                              parameters=params, tag=tag)
+        return dict(process=process)
 
 
 class WidgetWire(WidgetMyVBox):
@@ -188,7 +176,7 @@ class WidgetWire(WidgetMyVBox):
 
     def to_tree(self):
         return {
-            "diameter": Q_(self.diameter.float_value, self.diameter.unit),
+            "diameter": self.diameter.quantity,
             "class": self.wire_class.text_value,
             # TODO:
             "wx_user": {"manufacturer": "WDI", "charge id": "00349764"},
@@ -196,24 +184,24 @@ class WidgetWire(WidgetMyVBox):
 
 
 class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
+    translate = {
+        "Spray": "spray",
+        "Pulsed (UI)": "UI",
+        "Pulsed (II)": "II",
+        "CMT": NotImplemented,
+    }
+
     @property
     def schema(self) -> str:
         raise
 
     def __init__(self):
         self.process_type = Dropdown(
-            options=[
-                "Spray",
-                "Pulsed (UI)",
-                "Pulsed (II)",
-                "CMT",
-            ],
+            options=list(self.translate.keys()),
             index=0,
             description="Process type",
-            # layout=
         )
         self.process_type.observe(self._create_process_widgets, names="value")
-
         self.gas = WidgetGasSelection()
         self.welding_process = WidgetMyVBox()
         self.welding_wire = WidgetWire()
@@ -223,8 +211,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
             self.gas,
             self.welding_wire,
             # self.weld_speed, # TODO: speed is given by feedrate and groove!
-            self.
-            # TODO: if no groove is given?
+            # TODO: if no groove is given? here we dont know about the groove!
             self.process_type,
             self.welding_process,
         ]
@@ -235,32 +222,31 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
 
     def _create_process_widgets(self, change):
         new = change["new"]
-        translate = {
-            "Spray": "spray",
-            "Pulsed (UI)": "UI",
-            "Pulsed (II)": "II",
-            "CMT": NotImplemented,
-        }
-        arg = translate[new]
+        arg = self.translate[new]
         box = self._cached_process_widgets(arg)
         self.welding_process.children = (box,)
 
-    @lru_cache(maxsize=4)
+    @lru_cache(maxsize=3)
     def _cached_process_widgets(self, process):
-        return create_widget_from_yaml(process=process)
+        if process == "spray":
+            return ProcessSpray()
 
-    def to_tree(self):
-        return dict(
-            process=dict(
-                welding_wire=self.welding_wire.to_tree(),
-                welding_speed=self.welding_speed.to,
-                welding_process=self.welding_process.to_tree(),
-                shielding_gas=self.gas.to_tree(),
-            )
-        )
+        return PulsedProcess(kind=process)
 
     def from_tree(self, tree: dict):
-        pass
+        raise NotImplementedError
+
+    def to_tree(self):
+        widget_process = self.welding_process.children[0]
+        welding_process = widget_process.to_tree()["process"]
+
+        process = dict(
+            welding_process=welding_process,
+            shielding_gas=self.gas.to_tree(),
+            weld_speed=TimeSeries(Q_(45, "cm/min")),
+            welding_wire=self.welding_wire.to_tree(),
+        )
+        return process
 
 
 @pytest.mark.parametrize("process", ["spray", "UI", "II"])

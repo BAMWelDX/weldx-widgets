@@ -3,7 +3,7 @@ from functools import partial
 
 from IPython import get_ipython
 from ipyfilechooser import FileChooser
-from ipywidgets import HBox, Label
+from ipywidgets import HBox, Label, Button
 
 import weldx
 from weldx_widgets import WidgetLabeledTextInput
@@ -40,7 +40,7 @@ class WidgetSaveButton(WidgetSimpleOutput):
 
         with self.out:
             self.file_chooser = FileChooser(path=path, filename=filename)
-            self.button = w.Button(desc=desc)
+            self.button = Button(desc=desc)
 
         self.file_chooser.observe(self._chose_file, "selected_file")  # TODO: or value?
 
@@ -69,8 +69,6 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
     @property
     def schema(self) -> str:
         return "time_series-1.0.0"
-
-
 
     # TODO: handle math-expr
     def __init__(
