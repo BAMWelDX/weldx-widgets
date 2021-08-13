@@ -19,13 +19,33 @@ from weldx_widgets.widget_factory import (
     button_layout,
     description_layout,
     make_title,
-    layout_generic_output, FloatWithUnit,
+    layout_generic_output, FloatWithUnit, WidgetLabeledTextInput,
 )
 
 __all__ = [
     "WidgetGrooveSelection",
     "WidgetGrooveSelectionTCPMovement",
 ]
+
+
+class WidgetMetal(WidgetMyVBox):
+    def __init__(self):
+        self.common_name = WidgetLabeledTextInput("Common name", "S355J2+N")
+        self.standard = WidgetLabeledTextInput("Standard", 'DIN EN 10225-2:2011')
+        self.thickness = FloatWithUnit("Thickness", value=30, unit="mm")
+        children = [
+            make_title("Base metal"),
+            self.common_name,
+            self.standard,
+            self.thickness
+        ]
+        super(WidgetMetal, self).__init__(children=children)
+
+    def to_tree(self):
+        return dict(common_name=self.common_name.text_value,
+                    standard=self.standard.text_value,
+                    thickness=self.thickness.quantity,
+                    )
 
 
 def get_code_numbers():
@@ -223,26 +243,27 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         # TODO: compute weld speed accordingly to chosen groove area!
         # TODO: consider setting it read-only??
         self.weld_speed = FloatWithUnit("weld speed", value=6, unit="mm/s")
-
+        self.base_metal = WidgetMetal()
         self.additional_params = (
             make_title("Welding parameters", 4),
             self.seam_length,
             self.weld_speed,
             self.tcp_y,
             self.tcp_z,
+            self.base_metal,
         )
         # add our parameters to our instance of WidgetGrooveSelection.
         self.groove_sel.groove_selection.children += self.additional_params
         self.csm = None
-        self.out = WidgetSimpleOutput(width="100%", height="30px")
+        self.out = WidgetSimpleOutput(height="800px", width="600px")
         self.out.set_visible(False)
-        self.plot_button = Button(description="Plot", layout=button_layout)
+        self.plot_button = Button(description="3D Plot", layout=button_layout)
         self.plot_button.on_click(self.create_csm_and_plot)
 
         children = [
             self.groove_sel,
-            self.out,
             self.plot_button,
+            self.out,
         ]
 
         super(WidgetGrooveSelectionTCPMovement, self).__init__(children=children,
@@ -264,10 +285,10 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         trace_raster_width = Q_(30, "mm")  # space between profiles in mm
 
         # TODO: show 2d data?
-        geometry_data_sp = geometry.rasterize(
-            profile_raster_width=profile_raster_width,
-            trace_raster_width=trace_raster_width
-        )
+        # geometry_data_sp = geometry.rasterize(
+        #     profile_raster_width=profile_raster_width,
+        #     trace_raster_width=trace_raster_width
+        # )
 
         # crete a new coordinate system manager with default base coordinate system
         csm = weldx.CoordinateSystemManager("base")
@@ -308,7 +329,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
                                                time=[t_start, t_end])
 
         csm.add_cs(
-            coordinate_system_name="tcp_wire", reference_system_name="workpiece",
+            coordinate_system_name="TCP design", reference_system_name="workpiece",
             lcs=tcp_wire
         )
 
@@ -316,11 +337,40 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         # def display_csm(self):
         self.out.set_visible(True)
+        self.out.out.clear_output()
+        # TODO: close older figures to regain resources!
         with self.out:
             ax = self.csm.plot(
-                coordinate_systems=["tcp_wire"],
+                coordinate_systems=["TCP design"],
                 # colors=color_dict,
                 limits=[(0, 140), (-5, 5), (0, 12)],
                 show_vectors=False,
                 show_wireframe=True,
             )
+
+    def to_tree(self):
+        """
+          The workpiece is defined by two properties:
+          - the base metal type
+          - the workpiece geometry defined by the combination of
+            - the groove shape (following ISO 9692-1)
+            - the total seam length
+
+          workpiece:
+            base_metal: {common_name: S355J2+N, standard: 'DIN EN 10225-2:2011'}
+            geometry:
+              groove_shape: !<tag:weldx.bam.de:weldx/groove/iso_9692_1_2013_12/VGroove-1.0.0>
+                t: !unit/quantity-1.1.0 {unit: millimeter, value: 5}
+                alpha: !unit/quantity-1.1.0 {unit: degree, value: 50}
+                b: !unit/quantity-1.1.0 {unit: millimeter, value: 1}
+                c: !unit/quantity-1.1.0 {unit: millimeter, value: 1}
+                code_number: ['1.3', '1.5']
+              seam_length: !unit/quantity-1.1.0 {unit: millimeter, value: 300}
+
+        """
+        geometry = dict(groove_shape=self.groove_sel.groove_obj, seam_length=self.seam_length.quantity)
+        base_metal = dict(common_name="S355J2+N", standard="DIN EN 10225-2:2011")
+        workpiece = dict(base_metal=base_metal, geometry=geometry)
+
+        tree = dict(workpiece=workpiece)
+        return tree
