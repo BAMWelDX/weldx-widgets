@@ -113,12 +113,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
     def filename(self):
         return self.save_button.path
 
-    @filename.setter
-    def filename(self, value):
-        self.save_button.path = value
-
     def on_save(self, _):
-        print("on_save")
         # TODO: error handling, e.g. to_tree() is not yet ready etc.
         result = dict()
         for widget in self.collect_data_from:
@@ -127,7 +122,14 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
             "KISA": {"status": self.status}
         }
         assert self.filename
-        from pprint import pprint as print
-        with weldx.WeldxFile(self.filename, tree=result, mode="rw") as fh, self.out:
-            print("tree: %s" % result)
-            fh.show_asdf_header(True)
+        with weldx.WeldxFile(self.filename, mode="rw", sync=True) as fh, self.out:
+            print("old keys:", tuple(fh.keys()))
+            fh.update(**result)
+            #fh.show_asdf_header(False, False)
+
+        # check data has been written
+        with weldx.WeldxFile(self.filename, mode="r") as wx, self.out:
+            print("new keys:", tuple(wx.keys()))
+            A = set(result.keys())
+            B = set(wx.data.keys())
+            assert A.issubset(B)
