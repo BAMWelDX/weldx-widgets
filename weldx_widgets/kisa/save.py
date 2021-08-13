@@ -1,3 +1,4 @@
+import pathlib
 import typing
 
 import ipywidgets as w
@@ -83,19 +84,24 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
                  collect_data_from: typing.List[
                      weldx_widgets.widget_base.WeldxImportExport],
                  next_notebook_desc: str = "2. invoke next step",
+                 next_notebook_params=None,
                  ):
         self.status = status
         self.collect_data_from = collect_data_from
         self.out = Output()
         from weldx_widgets.widget_factory import button_layout
         self.btn_next = w.Button(description=next_notebook_desc, layout=button_layout)
+        if next_notebook_params is None:
+            next_notebook_params = dict()
         self.btn_next.on_click(lambda _: (invoke_next_notebook(
-            next_notebook, params=dict(file=str(filename)))
+            next_notebook, params=dict(file=str(filename), **next_notebook_params))
         )
         )
-        self.save_button = weldx_widgets.WidgetSaveButton(desc="1. Save", filename=filename)
+        path = str(pathlib.Path(filename).parent)
+        self.save_button = weldx_widgets.WidgetSaveButton(desc="1. Save",
+                                                          filename=filename,
+                                                          path=path)
         self.save_button.button.on_click(self.on_save)
-        #self.filename = filename
 
         children = [weldx_widgets.widget_factory.make_title("Save results"),
                     self.save_button,
@@ -121,6 +127,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
             "KISA": {"status": self.status}
         }
         assert self.filename
+        from pprint import pprint as print
         with weldx.WeldxFile(self.filename, tree=result, mode="rw") as fh, self.out:
-            print("tree:", result)
+            print("tree: %s" % result)
             fh.show_asdf_header(True)
