@@ -371,6 +371,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         geometry = dict(groove_shape=self.groove_sel.groove_obj, seam_length=self.seam_length.quantity)
         base_metal = dict(common_name="S355J2+N", standard="DIN EN 10225-2:2011")
         workpiece = dict(base_metal=base_metal, geometry=geometry)
-
-        tree = dict(workpiece=workpiece)
+        if self.csm is None:
+            self.create_csm_and_plot()
+        tree = dict(workpiece=workpiece, TCP=self.csm)
         return tree
