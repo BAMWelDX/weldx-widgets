@@ -42,10 +42,12 @@ class WidgetMeasurement(WidgetSimpleOutput):
 
         n = len(measurement)
 
+        # TODO: plot m-chain?
+
         with self.out:
-            self.fig, self.ax = plt.subplots(
+            self.fig, self.axes = plt.subplots(
                 nrows=n,
                 sharex="all",
                 figsize=(_DEFAUL_FIGWIDTH, 2.5 * n),
             )
-            plot_measurements(measurement, axes=self.ax)
+            plot_measurements(measurement, axes=self.axes)
