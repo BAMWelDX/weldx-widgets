@@ -1,7 +1,10 @@
 import abc
+import functools
+from pathlib import Path
 
-from IPython.core.display import display
-from ipywidgets import Output, HBox, VBox
+from ipywidgets import Output, HBox, VBox, Layout
+
+from weldx.asdf.util import get_schema_path
 
 
 class WidgetBase(abc.ABC):
@@ -12,14 +15,21 @@ class WidgetBase(abc.ABC):
 
         return deepcopy(self)
 
-    @abc.abstractmethod
     def display(self):
         """initial drawing of the widget."""
-        pass
+        if not hasattr(self, "_ipython_display_"):
+            raise NotImplementedError
+        self._ipython_display_()
 
-    @abc.abstractmethod
     def set_visible(self, state: bool):
         """toggle visibility."""
+        if not hasattr(self, "layout"):
+            raise NotImplementedError
+        if state:
+            visibility = "visible"
+        else:
+            visibility = "hidden"
+        self.layout.visibility = visibility
 
     def _ipython_display_(self):
         self.display()
@@ -35,28 +45,78 @@ def metaclass_resolver(*classes):
     return metaclass("_".join(cls.__name__ for cls in classes), classes, {})  # class C
 
 
-class WidgetMyHBox(metaclass_resolver(HBox, WidgetBase)):
-    def display(self):
-        super(WidgetMyHBox, self).display()
+border_debug_style = ""  # 2px dashed green"
+margin = ""  # "10px"
 
-    def set_visible(self, state: bool):
-        # FIXME: doesnt work!
-        self.layout.visible = bool(state)
+
+class WidgetMyHBox(metaclass_resolver(HBox, WidgetBase)):
+    def __init__(self, *args, **kwargs):
+        if "layout" in kwargs:
+            layout = kwargs["layout"]
+        else:
+            layout = Layout()
+            kwargs["layout"] = layout
+        layout.border = border_debug_style
+        layout.margin = margin
+
+        super(WidgetMyHBox, self).__init__(*args, **kwargs)
 
 
 class WidgetMyVBox(metaclass_resolver(VBox, WidgetBase)):
-    def display(self):
-        super(WidgetMyVBox, self).display()
+    def __init__(self, *args, **kwargs):
+        if "layout" in kwargs:
+            layout = kwargs["layout"]
+        else:
+            layout = Layout()
+            kwargs["layout"] = layout
+        layout.border = border_debug_style
+        layout.margin = margin
 
-    def set_visible(self):
-        self.layout.visible = False
+        super(WidgetMyVBox, self).__init__(*args, **kwargs)
 
 
 class WidgetSimpleOutput(WidgetMyHBox):
-    def __init__(self, out=None):
+    def __init__(self, out=None, height=None, width=None):
         if out is None:
-            from .widget_factory import layout_generic_output
-
-            out = Output(layout=layout_generic_output)
+            from .widget_factory import layout_generic_output, copy_layout
+            if height or width:
+                layout = copy_layout(layout_generic_output)
+                if height:
+                    layout.height = height
+                if width:
+                    layout.width = width
+            else:
+                layout = layout_generic_output
+            out = Output(layout=layout)
         self.out = out
-        super(WidgetSimpleOutput, self).__init__(children=[self.out])
+        super(WidgetSimpleOutput, self).__init__(children=[self.out], layout=layout)
+
+    def __enter__(self):
+        return self.out.__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self.out.__exit__(exc_type, exc_val, exc_tb)
+
+
+class WeldxImportExport(abc.ABC):
+    @property
+    @abc.abstractmethod
+    def schema(self) -> str:
+        """this schema is used to validate input and output"""
+        pass
+
+    @functools.lru_cache
+    def get_schema_path(self) -> Path:
+        return get_schema_path(self.schema)
+
+    def validate(self, tree):
+        # should be implemented such that we can validate both input and output.
+        pass
+
+    @abc.abstractmethod
+    def from_tree(self, tree: dict):
+        pass
+
+    @abc.abstractmethod
+    def to_tree(self) -> dict:
+        pass

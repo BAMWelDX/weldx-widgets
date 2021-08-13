@@ -2,22 +2,50 @@ from __future__ import annotations
 
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
-import weldx
-from IPython.display import clear_output, display
+import pandas as pd
+from IPython.display import clear_output
 from ipywidgets import Button, HBox, Label, VBox, HTML, Layout, Output
+
+import weldx
 from weldx.constants import WELDX_QUANTITY as Q_
 from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
-
 from weldx_widgets.generic import show_only_exception_message
-from weldx_widgets.widget_base import WidgetMyHBox
+from weldx_widgets.widget_base import WeldxImportExport, WidgetSimpleOutput, \
+    WidgetMyHBox
+from weldx_widgets.widget_base import WidgetMyVBox
 from weldx_widgets.widget_factory import (
     hbox_float_text_creator,
     plot_layout,
     button_layout,
     description_layout,
     make_title,
-    layout_generic_output,
+    layout_generic_output, FloatWithUnit, WidgetLabeledTextInput,
 )
+
+__all__ = [
+    "WidgetGrooveSelection",
+    "WidgetGrooveSelectionTCPMovement",
+]
+
+
+class WidgetMetal(WidgetMyVBox):
+    def __init__(self):
+        self.common_name = WidgetLabeledTextInput("Common name", "S355J2+N")
+        self.standard = WidgetLabeledTextInput("Standard", 'DIN EN 10225-2:2011')
+        self.thickness = FloatWithUnit("Thickness", value=30, unit="mm")
+        children = [
+            make_title("Base metal"),
+            self.common_name,
+            self.standard,
+            self.thickness
+        ]
+        super(WidgetMetal, self).__init__(children=children)
+
+    def to_tree(self):
+        return dict(common_name=self.common_name.text_value,
+                    standard=self.standard.text_value,
+                    thickness=self.thickness.quantity,
+                    )
 
 
 def get_code_numbers():
@@ -43,13 +71,11 @@ def get_code_numbers():
 
 # TODO: nice group layout for all widgets
 # TODO: reset button parameters (defaults).
-class WidgetGrooveSelection(WidgetMyHBox):
+class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
+
     # TODO: filename/WeldxFile as input arg?
     def __init__(self):
-        super(WidgetGrooveSelection, self).__init__()
         self.out = Output(layout=layout_generic_output)
-
-        # TODO: put all widgets in out, not just the plot!
         self.out.layout = plot_layout
         self.groove_obj = None  # current groove object
         self.hbox_dict = None  # TODO: better name
@@ -57,30 +83,42 @@ class WidgetGrooveSelection(WidgetMyHBox):
         # create figure for groove visualization
         self._create_plot()
 
-        self.groove_params_vbox = VBox([])
+        self.groove_params_vbox = WidgetMyVBox([])
         self.groove_type_dropdown = self._create_groove_dropdown()
-        self.save_button = self._create_save_button()
+        # self.save_button = self._create_save_button()
         # create rest
-        self.groove_selection = VBox(
+        self.groove_selection = WidgetMyVBox(
             [
                 self.groove_type_dropdown,
                 self.groove_params_vbox,
-                VBox([]),  # additional parameters (e.g. weld speed).
+                WidgetMyVBox([]),  # additional parameters (e.g. weld speed).
             ]
         )
-        self.boxed_widgets = VBox(
-            [
-                make_title("ISO 9692-1 Groove selection", 3),
-                HBox([self.groove_selection, self.out]),
-                self.save_button,
-                self.button_o,
-            ]
-        )
+        children = [
+            make_title("ISO 9692-1 Groove selection", 3),
+            WidgetMyHBox(children=[self.groove_selection, self.out]),
+            # self.save_button,
+            # self.button_o,
+        ]
 
         # set initial state
         self._update_params_to_selection(dict(new=self.groove_type_dropdown.value))
         self._update_plot(None)
+        super(WidgetGrooveSelection, self).__init__(children=children,
+                                                    layout=Layout(width="100%"))
 
+    @property
+    def schema(self) -> str:
+        pass
+
+    def from_tree(self, tree: dict):
+        self.groove_obj = tree["groove"]
+        # TODO: update fields according to data in new groove obj!
+
+    def to_tree(self) -> dict:
+        return dict(groove=self.groove_obj)
+
+    # TODO: replace with SAveButton widget
     def _create_save_button(self):
         self.button_o = widgets.Output()
         self.filename = widgets.Text("groove.weldx", layout=description_layout)
@@ -187,42 +225,153 @@ class WidgetGrooveSelection(WidgetMyHBox):
             slider
             for key, slider in self.hbox_dict.items()
             if key
-            in (
-                _groove_name_to_type[selection]._mapping[x]
-                for x in _groove_name_to_type[selection]._mapping
-            )
+               in (
+                   _groove_name_to_type[selection]._mapping[x]
+                   for x in _groove_name_to_type[selection]._mapping
+               )
         ]
 
-    def display(self):
-        display(self.boxed_widgets)
 
-
-class WidgetGrooveSelectionTCPMovement:
+class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     def __init__(self):
         self.groove_sel = WidgetGrooveSelection()
-
-        epsilon = 1
-        # self.weld_speed = hbox_float_text_creator(
-        #    "Weld speed", value=20, min=epsilon, unit="mm/s"
-        # )
-        self.seam_length = hbox_float_text_creator(
-            "Seam length", value=300, min=epsilon, unit="mm"
+        self.seam_length = FloatWithUnit(
+            "Seam length", value=300, min=0, unit="mm"
         )
-        self.tcp_y = hbox_float_text_creator("TCP-y", unit="mm")
-        self.tcp_z = hbox_float_text_creator("TCP-z", unit="mm")
-
-        placeholder = HBox(
-            [HTML("<h4>Welding parameters</h4>", layout=Layout(width="100%"))]
-        )
+        self.tcp_y = FloatWithUnit("TCP-y", unit="mm")
+        self.tcp_z = FloatWithUnit("TCP-z", unit="mm")
+        # TODO: compute weld speed accordingly to chosen groove area!
+        # TODO: consider setting it read-only??
+        self.weld_speed = FloatWithUnit("weld speed", value=6, unit="mm/s")
+        self.base_metal = WidgetMetal()
         self.additional_params = (
-            placeholder,
-            # self.weld_speed,
+            make_title("Welding parameters", 4),
             self.seam_length,
+            self.weld_speed,
             self.tcp_y,
             self.tcp_z,
+            self.base_metal,
         )
         # add our parameters to our instance of WidgetGrooveSelection.
         self.groove_sel.groove_selection.children += self.additional_params
+        self.csm = None
+        self.out = WidgetSimpleOutput(height="800px", width="600px")
+        self.out.set_visible(False)
+        self.plot_button = Button(description="3D Plot", layout=button_layout)
+        self.plot_button.on_click(self.create_csm_and_plot)
 
-    def display(self):
-        self.groove_sel.display()
+        children = [
+            self.groove_sel,
+            self.plot_button,
+            self.out,
+        ]
+
+        super(WidgetGrooveSelectionTCPMovement, self).__init__(children=children,
+                                                               layout=Layout(width="100%"))
+
+    def create_csm_and_plot(self, *args, **kwargs):
+        # TODO: only create once and then update the csm!
+
+        # create a linear trace segment a the complete weld seam trace
+        trace_segment = weldx.LinearHorizontalTraceSegment(self.seam_length.quantity)
+        trace = weldx.Trace(trace_segment)
+
+        # create 3d workpiece geometry from the groove profile and trace objects
+        geometry = weldx.Geometry(
+            self.groove_sel.groove_obj.to_profile(width_default=Q_(5, "mm")), trace)
+
+        # rasterize geometry
+        profile_raster_width = Q_(2, "mm")  # resolution of each profile in mm
+        trace_raster_width = Q_(30, "mm")  # space between profiles in mm
+
+        # TODO: show 2d data?
+        # geometry_data_sp = geometry.rasterize(
+        #     profile_raster_width=profile_raster_width,
+        #     trace_raster_width=trace_raster_width
+        # )
+
+        # crete a new coordinate system manager with default base coordinate system
+        csm = weldx.CoordinateSystemManager("base")
+
+        # add the workpiece coordinate system
+        csm.add_cs(
+            coordinate_system_name="workpiece",
+            reference_system_name="base",
+            lcs=trace.coordinate_system,
+        )
+
+        # add the geometry data of the specimen
+        csm.assign_data(
+            geometry.spatial_data(profile_raster_width, trace_raster_width),
+            "specimen",
+            "workpiece",
+        )
+
+        tcp_y = self.tcp_y.float_value
+        tcp_z = self.tcp_z.float_value
+        # tcp_start_point = Q_([5.0, 0.0, 2.0], "mm")
+        # tcp_end_point = Q_([self.seam_length.float_value - 5.0, 0.0, 2.0], "mm")
+        tcp_start_point = Q_([5.0, tcp_y, tcp_z], "mm")
+        tcp_end_point = Q_([self.seam_length.float_value - 5.0, tcp_y, tcp_z], "mm")
+
+        v_weld = self.weld_speed.quantity
+        s_weld = (tcp_end_point - tcp_start_point)[0]  # length of the weld
+        t_weld = s_weld / v_weld
+
+        t_start = pd.Timedelta("0s")
+        t_end = pd.Timedelta(str(t_weld))
+
+        rot = weldx.WXRotation.from_euler("x", 180, degrees=True)
+
+        coords = [tcp_start_point.magnitude, tcp_end_point.magnitude]
+
+        tcp_wire = weldx.LocalCoordinateSystem(coordinates=coords, orientation=rot,
+                                               time=[t_start, t_end])
+
+        csm.add_cs(
+            coordinate_system_name="TCP design", reference_system_name="workpiece",
+            lcs=tcp_wire
+        )
+
+        self.csm = csm
+
+        # def display_csm(self):
+        self.out.set_visible(True)
+        self.out.out.clear_output()
+        # TODO: close older figures to regain resources!
+        with self.out:
+            ax = self.csm.plot(
+                coordinate_systems=["TCP design"],
+                # colors=color_dict,
+                limits=[(0, 140), (-5, 5), (0, 12)],
+                show_vectors=False,
+                show_wireframe=True,
+            )
+
+    def to_tree(self):
+        """
+          The workpiece is defined by two properties:
+          - the base metal type
+          - the workpiece geometry defined by the combination of
+            - the groove shape (following ISO 9692-1)
+            - the total seam length
+
+          workpiece:
+            base_metal: {common_name: S355J2+N, standard: 'DIN EN 10225-2:2011'}
+            geometry:
+              groove_shape: !<tag:weldx.bam.de:weldx/groove/iso_9692_1_2013_12/VGroove-1.0.0>
+                t: !unit/quantity-1.1.0 {unit: millimeter, value: 5}
+                alpha: !unit/quantity-1.1.0 {unit: degree, value: 50}
+                b: !unit/quantity-1.1.0 {unit: millimeter, value: 1}
+                c: !unit/quantity-1.1.0 {unit: millimeter, value: 1}
+                code_number: ['1.3', '1.5']
+              seam_length: !unit/quantity-1.1.0 {unit: millimeter, value: 300}
+
+        """
+        geometry = dict(groove_shape=self.groove_sel.groove_obj, seam_length=self.seam_length.quantity)
+        base_metal = dict(common_name="S355J2+N", standard="DIN EN 10225-2:2011")
+        workpiece = dict(base_metal=base_metal, geometry=geometry)
+        if self.csm is None:
+            self.create_csm_and_plot()
+        tree = dict(workpiece=workpiece, TCP=self.csm)
+        return tree

@@ -4,12 +4,11 @@ from typing import Tuple
 import libo
 import weldx
 import xarray as xr
-from ipywidgets import IntProgress
 from libo.io.yaskawa import create_csm
 from libo.utils import split_by_trigger, get_data_transformation
 from tqdm.auto import tqdm
 
-from .widget_base import WidgetSimpleOutput
+from weldx_widgets.widget_base import WidgetSimpleOutput
 import numpy as np
 
 __all__ = ["WidgetScans"]
@@ -32,15 +31,6 @@ class WidgetScans(WidgetSimpleOutput):
         self.max_scans = max_scans
         self.single_weld = single_weld
 
-        with self.out:
-            self.progress = IntProgress()
-
-        coords = ["X", "Y", "Z"]
-        channels = (
-            ["trigScan1_prog", "trigSchweissen", "naht_NR", "schw_NR", "trigLLT1"]
-            + [f"UF_{c}" for c in coords]
-            + coords
-        )
         mh24_ds = libo.io.tc3.read_txt(mh24_file, channels=None, engine="c")
         mh24_ds = libo.io.tc3.to_xarray(mh24_ds)
 
@@ -83,7 +73,6 @@ class WidgetScans(WidgetSimpleOutput):
             naht_nr = int(mh_scan.naht_NR.max().values)
             schw_nr = int(mh_scan.schw_NR.max().values)
             pattern = f"LLT1_WID*_N{naht_nr:03d}_L001_R001_S{schw_nr}_*.nc"
-            #print(pattern)
             scans_list = list(self.scans_dir.glob(pattern))
             assert len(scans_list) == 1
 
