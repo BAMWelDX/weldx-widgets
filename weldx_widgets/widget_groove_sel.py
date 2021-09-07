@@ -97,8 +97,6 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         children = [
             make_title("ISO 9692-1 Groove selection", 3),
             WidgetMyHBox(children=[self.groove_selection, self.out]),
-            # self.save_button,
-            # self.button_o,
         ]
 
         # set initial state
@@ -156,6 +154,8 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
             for groove in _groove_name_to_type
             for attr in _groove_name_to_type[groove]._mapping.values()
         }
+
+        # TODO: formatting, first letter upper case, replace _ with space
 
         # create dict with hboxes of all attributes
         self.hbox_dict = dict()
@@ -255,7 +255,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         # add our parameters to our instance of WidgetGrooveSelection.
         self.groove_sel.groove_selection.children += self.additional_params
         self.csm = None
-        self.out = WidgetSimpleOutput(height="800px", width="600px")
+        self.out = WidgetSimpleOutput(height="800px", width="auto")
         self.out.set_visible(False)
         self.plot_button = Button(description="3D Plot", layout=button_layout)
         self.plot_button.on_click(self.create_csm_and_plot)
@@ -269,7 +269,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         super(WidgetGrooveSelectionTCPMovement, self).__init__(children=children,
                                                                layout=Layout(width="100%"))
 
-    def create_csm_and_plot(self, *args, **kwargs):
+    def create_csm_and_plot(self, button, plot=True, **kwargs):
         # TODO: only create once and then update the csm!
 
         # create a linear trace segment a the complete weld seam trace
@@ -335,17 +335,22 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         self.csm = csm
 
-        # def display_csm(self):
+        if plot:
+            self.plot()
+
+    def plot(self):
         self.out.set_visible(True)
         self.out.out.clear_output()
         # TODO: close older figures to regain resources!
+        # TODO: can old figures be updated?
         with self.out:
-            ax = self.csm.plot(
+            self.csm.plot(
                 coordinate_systems=["TCP design"],
                 # colors=color_dict,
-                limits=[(0, 140), (-5, 5), (0, 12)],
+                #limits=[(0, 140), (-5, 5), (0, 12)],
                 show_vectors=False,
-                show_wireframe=True,
+                show_wireframe=False,
+                backend="k3d",
             )
 
     def to_tree(self):
@@ -372,6 +377,10 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         base_metal = dict(common_name="S355J2+N", standard="DIN EN 10225-2:2011")
         workpiece = dict(base_metal=base_metal, geometry=geometry)
         if self.csm is None:
-            self.create_csm_and_plot()
-        tree = dict(workpiece=workpiece, TCP=self.csm)
+            self.create_csm_and_plot(button=None, plot=False)
+        # the single_pass_weld_schema expects the "TCP" key to be a LCS
+        # TODO: has it any consequence later on, that we drop the reference to the CSM?
+        tree = dict(workpiece=workpiece, coordinates=self.csm,
+                    TCP=self.csm.get_cs("TCP design", "workpiece"),
+                    )
         return tree

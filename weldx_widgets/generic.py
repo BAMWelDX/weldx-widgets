@@ -8,7 +8,6 @@ from ipywidgets import HBox, Label, Button
 import weldx
 from weldx_widgets import WidgetLabeledTextInput
 from weldx_widgets.widget_base import (
-    WidgetSimpleOutput,
     WidgetMyVBox,
     WeldxImportExport,
     WidgetMyHBox,
