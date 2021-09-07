@@ -8,9 +8,9 @@ from ipywidgets import HBox, Label, Button
 import weldx
 from weldx_widgets import WidgetLabeledTextInput
 from weldx_widgets.widget_base import (
-    WidgetSimpleOutput,
     WidgetMyVBox,
-    WeldxImportExport, WidgetMyHBox,
+    WeldxImportExport,
+    WidgetMyHBox,
 )
 from weldx_widgets.widget_factory import textbox_layout, copy_layout
 
@@ -34,13 +34,17 @@ def show_only_exception_message():
 
 
 class WidgetSaveButton(WidgetMyHBox):
-    def __init__(self, desc="Save to", filename="out.wx", path='.'):
+    def __init__(self, desc="Save to", filename="out.wx", path=".", file_pattern=None):
         from weldx_widgets.widget_factory import button_layout
 
-        self.file_chooser = FileChooser(path=path, filename=filename)
+        self.file_chooser = FileChooser(
+            path=path, filename=filename, file_pattern=file_pattern
+        )
         self.button = Button(description=desc, layout=button_layout)
 
-        super(WidgetSaveButton, self).__init__(children=(self.file_chooser, self.button))
+        super(WidgetSaveButton, self).__init__(
+            children=(self.file_chooser, self.button)
+        )
 
     @property
     def desc(self):
@@ -112,10 +116,10 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
 def test_import_export():
     import weldx
     import pandas as pd
+
     data = [42, 23, 12]
     time = [0, 2, 4]
-    ts = weldx.TimeSeries(weldx.Q_(data, "m"),
-                          time=pd.TimedeltaIndex(time, unit="s"))
+    ts = weldx.TimeSeries(weldx.Q_(data, "m"), time=pd.TimedeltaIndex(time, unit="s"))
     w = WidgetTimeSeries("m")
     w.from_tree(dict(timeseries=ts))
     assert w.base_unit.text_value == "m"

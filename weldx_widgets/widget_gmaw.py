@@ -228,7 +228,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         box = self._cached_process_widgets(arg)
         self.welding_process.children = (box,)
 
-    @lru_cache(maxsize=3)
+    @lru_cache(maxsize=len(translate))
     def _cached_process_widgets(self, process):
         if process == "spray":
             return ProcessSpray()
@@ -242,19 +242,10 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         widget_process = self.welding_process.children[0]
         welding_process = widget_process.to_tree()["process"]
 
-        process = dict(
+        process = dict(process=dict(
             welding_process=welding_process,
             shielding_gas=self.gas.to_tree()["shielding_gas"],
             weld_speed=TimeSeries(Q_(45, "cm/min")),
             welding_wire=self.welding_wire.to_tree(),
-        )
+        ))
         return process
-
-
-@pytest.mark.parametrize("process", ["spray", "UI", "II"])
-def test_create_widget_from_schema(process):
-    create_widget_from_yaml(process=process)
-
-
-def test_widget_gmaw():
-    WidgetGMAW()

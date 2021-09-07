@@ -102,11 +102,12 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
                                                           filename=filename,
                                                           path=path)
         self.save_button.button.on_click(self.on_save)
+        self.save_button.children += (self.btn_next, )
 
         children = [weldx_widgets.widget_factory.make_title("Save results"),
                     self.save_button,
                     self.out,
-                    self.btn_next]
+                    ]
         super(SaveAndNext, self).__init__(children=children)
 
     @property
