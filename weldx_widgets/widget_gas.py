@@ -1,20 +1,17 @@
-import enum
+from ipywidgets import HBox, Dropdown, IntSlider, Button, Output, Layout
 
-from docutils.nodes import description
-
-from weldx_widgets.widget_factory import FloatWithUnit, make_title, \
-    WidgetLabeledTextInput
-
-from ipywidgets import Checkbox, HBox, Dropdown, IntSlider, VBox, Layout, HTML, Button
-from weldx.asdf.tags.weldx.aws import (
+from weldx import Q_
+from weldx.tags.aws import (
     GasComponent,
     ShieldingGasType,
     ShieldingGasForProcedure,
 )
-from weldx_widgets.widget_factory import description_layout
-
-from weldx_widgets.widget_base import WidgetMyHBox, WidgetMyVBox, WeldxImportExport
-from weldx import Q_
+from weldx_widgets.widget_base import WidgetMyVBox
+from weldx_widgets.widget_factory import (
+    FloatWithUnit,
+    description_layout,
+    button_layout,
+)
 
 __all__ = [
     "WidgetSimpleGasSelection",
@@ -29,17 +26,27 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
     """
 
     gas_list = ["Argon", "CO2", "Helium", "Hydrogen", "Oxygen"]
-    _asdf_names = ['argon', 'carbon dioxide', 'helium', 'hydrogen', 'oxygen']
-    _mapping = {gui_name:_asdf_name for gui_name, _asdf_name in zip(gas_list, _asdf_names)}
+    _asdf_names = ["argon", "carbon dioxide", "helium", "hydrogen", "oxygen"]
+    _mapping = {
+        gui_name: _asdf_name for gui_name, _asdf_name in zip(gas_list, _asdf_names)
+    }
 
-    def __init__(self, index=0):
+    def __init__(self, index=0, percentage=100):
         # create first gas dropdown, with buttons to delete and add gases.
-        gas = self._create_gas_dropdown(index, percentage=100)
+        gas = self._create_gas_dropdown(index, percentage=percentage)
+        self.initial_percentage = percentage
         self.components = {self.gas_list[index]: gas}
 
-        super(WidgetSimpleGasSelection, self).__init__(
-            children=[gas]
+        self.out = Output(
+            layout=Layout(
+                width="auto", height="80px", display="none", border="2px solid"
+            )
         )
+
+        button_add = Button(description="Add gas component")
+        button_add.on_click(self._add_gas_comp)
+
+        super(WidgetSimpleGasSelection, self).__init__(children=[button_add, gas])
 
     def _create_gas_dropdown(self, index=0, percentage=100):
         gas_dropdown = Dropdown(
@@ -50,18 +57,20 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
             style={"description_width": "initial"},
         )
 
-        percentage = IntSlider(start=0, end=100, value=percentage, desc="percentage")
+        percentage = IntSlider(
+            start=0, end=100, value=percentage, description="percentage"
+        )
+        percentage.observe(self._check, type="change")
 
         self.gas_selection = gas_dropdown
 
-        button_add = Button(description="+")
-        button_add.on_click(self._add_gas_comp)
+        button_del = Button(description="delete", layout=button_layout)
 
-        button_del = Button(description="-")
-        box = HBox((gas_dropdown, percentage, button_add, button_del))
+        box = HBox((gas_dropdown, percentage, button_del))
 
         # delete button
         from functools import partial
+
         handler = partial(self._del_gas_comp, box_to_delete=box)
         button_del.on_click(handler)
 
@@ -76,24 +85,37 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
         self.children = new_children
 
     def _add_gas_comp(self, change):
-        # find gas which not yet added
-        # create gas dropdown
+        # find gas which was not yet added
         not_chosen = list(set(self.gas_list) - set(self.components.keys()))
         if len(not_chosen) == 0:
             return
         gas_name = not_chosen[0]
         index_first_avail = self.gas_list.index(gas_name)
-        box = self._create_gas_dropdown(index_first_avail)
+        box = self._create_gas_dropdown(index_first_avail, percentage=0)
 
         self.children += (box,)
         self.components[gas_name] = box
 
+    def _check(self, value):
+        gas_components = self.to_tree()["gas_component"]
+        if not sum(g.gas_percentage for g in gas_components) == 100:
+            with self.out:
+                print(
+                    "Check percentages, all components should sum up to 100!"
+                )  # , file=sys.stderr)
+        else:
+            # remove output, if everything is alright.
+            self.out.clear_output()
+            self.out.layout.display = "none"
+
     def to_tree(self):
-        gas_comp = [
-            GasComponent(self._mapping[element], Q_(int(widget.children[1].value), "percent"))
+        gas_components = [
+            GasComponent(
+                self._mapping[element], Q_(int(widget.children[1].value), "percent")
+            )
             for element, widget in self.components.items()
         ]
-        return dict(gas_component=gas_comp)
+        return dict(gas_component=gas_components)
 
 
 class WidgetShieldingGas(WidgetMyVBox):
@@ -110,10 +132,10 @@ class WidgetShieldingGas(WidgetMyVBox):
         gas_for_proc = ShieldingGasForProcedure(
             use_torch_shielding_gas=True,
             torch_shielding_gas=ShieldingGasType(
-                **self.gas_components.to_tree(),
-                common_name="SG"
+                **self.gas_components.to_tree(), common_name="SG"
             ),
-            torch_shielding_gas_flowrate=self.flowrate.quantity)
+            torch_shielding_gas_flowrate=self.flowrate.quantity,
+        )
         return dict(shielding_gas=gas_for_proc)
 
 
