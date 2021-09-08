@@ -1,15 +1,12 @@
 from pathlib import Path
 from typing import Tuple
 
-import libo
-import weldx
+import numpy as np
 import xarray as xr
-from libo.io.yaskawa import create_csm
-from libo.utils import split_by_trigger, get_data_transformation
 from tqdm.auto import tqdm
 
+import weldx
 from weldx_widgets.widget_base import WidgetSimpleOutput
-import numpy as np
 
 __all__ = ["WidgetScans"]
 
@@ -30,9 +27,11 @@ class WidgetScans(WidgetSimpleOutput):
 
         self.max_scans = max_scans
         self.single_weld = single_weld
+        from libo.io.tc3 import read_txt, to_xarray
 
-        mh24_ds = libo.io.tc3.read_txt(mh24_file, channels=None, engine="c")
-        mh24_ds = libo.io.tc3.to_xarray(mh24_ds)
+        mh24_ds = read_txt(mh24_file, channels=None)
+        mh24_ds = to_xarray(mh24_ds)
+        from libo.utils import split_by_trigger
 
         mh_scan_list = split_by_trigger(mh24_ds, "trigScan1_prog")
         mh_schweiss_list = split_by_trigger(mh24_ds, "trigSchweissen")
@@ -121,6 +120,8 @@ class WidgetScans(WidgetSimpleOutput):
         weldx.SpatialData
             The scan data transformed into default user_frame
         """
+        from libo.io.yaskawa import create_csm
+        from libo.utils import get_data_transformation
 
         # load tool CSM --------------------------------------------------------------
         csm_tool = create_csm(self.tool_file)
@@ -136,7 +137,7 @@ class WidgetScans(WidgetSimpleOutput):
 
         lcs = get_data_transformation(mh_scan)
 
-        # build and reshape scan data ------------------------------------------------------
+        # build and reshape scan data -------------------------------------------------
         data, triangle_indices = self._reshape_scan_data(scan, lcs)
 
         data[(data[:, 2] < -250), 2] = np.nan  # simple outliner removal
