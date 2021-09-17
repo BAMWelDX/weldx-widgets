@@ -47,22 +47,6 @@ jobs:
         with:
           options: "--check --diff --verbose"
 
-  mypy:
-    name: mypy
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: pip installs
-        run: pip install mypy
-      - name: run mypy
-        run: |
-          mypy --install-types --non-interactive .
-
   pre-commit:
     runs-on: ubuntu-latest
     steps:
