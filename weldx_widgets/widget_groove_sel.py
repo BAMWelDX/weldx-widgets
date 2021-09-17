@@ -1,10 +1,11 @@
+"""Widgets to select groove type and tcp movement."""
 from __future__ import annotations
 
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import pandas as pd
 from IPython.display import clear_output
-from ipywidgets import HTML, Button, HBox, Label, Layout, Output, VBox
+from ipywidgets import Button, HBox, Label, Layout, Output, VBox
 
 import weldx
 from weldx.constants import WELDX_QUANTITY as Q_
@@ -34,6 +35,8 @@ __all__ = [
 
 
 class WidgetMetal(WidgetMyVBox):
+    """Widget to select metal type and parameters."""
+
     def __init__(self):
         self.common_name = WidgetLabeledTextInput("Common name", "S355J2+N")
         self.standard = WidgetLabeledTextInput("Standard", "DIN EN 10225-2:2011")
@@ -47,6 +50,7 @@ class WidgetMetal(WidgetMyVBox):
         super(WidgetMetal, self).__init__(children=children)
 
     def to_tree(self):
+        """Return metal parameters."""
         return dict(
             common_name=self.common_name.text_value,
             standard=self.standard.text_value,
@@ -55,13 +59,13 @@ class WidgetMetal(WidgetMyVBox):
 
 
 def get_code_numbers():
-    """The FFGroove type defines multiple code numbers"""
+    """Return FFGroove code numbers."""
     from weldx.welding.groove.iso_9692_1 import FFGroove
 
     try:
         a = FFGroove.__annotations__
         return a["code_number"].__args__
-    except:
+    except AttributeError:
         return [
             "1.12",
             "1.13",
@@ -78,6 +82,7 @@ def get_code_numbers():
 # TODO: nice group layout for all widgets
 # TODO: reset button parameters (defaults).
 class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
+    """Widget to select groove type."""
 
     # TODO: filename/WeldxFile as input arg?
     def __init__(self):
@@ -114,13 +119,17 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
     @property
     def schema(self) -> str:
-        pass
+        """Return schema."""
+        raise NotImplementedError
 
     def from_tree(self, tree: dict):
+        """Fill widget from tree."""
         self.groove_obj = tree["groove"]
+        raise NotImplementedError
         # TODO: update fields according to data in new groove obj!
 
     def to_tree(self) -> dict:
+        """Return groove parameters."""
         return dict(groove=self.groove_obj)
 
     # TODO: replace with SAveButton widget
@@ -240,6 +249,8 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
 
 class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
+    """Widget to combine groove type and tcp movement."""
+
     def __init__(self):
         self.groove_sel = WidgetGrooveSelection()
         self.seam_length = FloatWithUnit("Seam length", value=300, min=0, unit="mm")
@@ -276,6 +287,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         )
 
     def create_csm_and_plot(self, button, plot=True, **kwargs):
+        """Create coordinates system manager containing TCP movement."""
         # TODO: only create once and then update the csm!
 
         # create a linear trace segment a the complete weld seam trace
@@ -348,6 +360,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
             self.plot()
 
     def plot(self):
+        """Visualize the tcp design movement."""
         self.out.set_visible(True)
         self.out.out.clear_output()
         # TODO: close older figures to regain resources!
@@ -362,26 +375,8 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
                 backend="k3d",
             )
 
-    def to_tree(self):
-        """
-        The workpiece is defined by two properties:
-        - the base metal type
-        - the workpiece geometry defined by the combination of
-          - the groove shape (following ISO 9692-1)
-          - the total seam length
-
-        workpiece:
-          base_metal: {common_name: S355J2+N, standard: 'DIN EN 10225-2:2011'}
-          geometry:
-            groove_shape: !<tag:weldx.bam.de:weldx/groove/iso_9692_1_2013_12/VGroove-1.0.0>
-              t: !unit/quantity-1.1.0 {unit: millimeter, value: 5}
-              alpha: !unit/quantity-1.1.0 {unit: degree, value: 50}
-              b: !unit/quantity-1.1.0 {unit: millimeter, value: 1}
-              c: !unit/quantity-1.1.0 {unit: millimeter, value: 1}
-              code_number: ['1.3', '1.5']
-            seam_length: !unit/quantity-1.1.0 {unit: millimeter, value: 300}
-
-        """
+    def to_tree(self) -> dict:
+        """Return the workpiece, coordinates and TCP movement."""
         geometry = dict(
             groove_shape=self.groove_sel.groove_obj,
             seam_length=self.seam_length.quantity,
