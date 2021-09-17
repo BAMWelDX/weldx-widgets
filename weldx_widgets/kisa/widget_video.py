@@ -1,9 +1,13 @@
+"""Wraps around a sophisticated video player."""
 from jpy_video import Video
 
 from weldx_widgets.widget_base import WidgetSimpleOutput
 
 
+# TODO: eventually we do not need this.
 class WidgetVideo(WidgetSimpleOutput):
+    """Creates a video widget."""
+
     def __init__(self, video_path):
         super(WidgetVideo, self).__init__()
 

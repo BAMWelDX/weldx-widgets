@@ -1,9 +1,10 @@
+"""Widget showing scanner results."""
 from pathlib import Path
 from typing import Tuple
 
 import numpy as np
 import xarray as xr
-from tqdm.auto import tqdm
+from tqdm.autonotebook import tqdm
 
 import weldx
 from weldx_widgets.widget_base import WidgetSimpleOutput
@@ -11,12 +12,29 @@ from weldx_widgets.widget_base import WidgetSimpleOutput
 __all__ = ["WidgetScans"]
 
 
-# TODO: handle both cases, parameterstudie (mehrere schweißungen auf einem werkstück) und einzel schweißung!
+# TODO: handle both cases, parameterstudie (mehrere schweißungen auf einem werkstück)
+# und einzel schweißung!
 class WidgetScans(WidgetSimpleOutput):
+    """Extracts triggers and scan data from given files and visualizes it.
+
+    Parameters
+    ----------
+    mh24_file :
+        path to twincat main file.
+    tool_file :
+        path to yaskawa tool file.
+    scans_dir :
+        path to scan directory.
+    single_weld :
+        Just one scan, or multiple?
+    max_scans :
+        limit for scans to read in/visualize.
+    """
+
     def __init__(
         self, mh24_file, tool_file, scans_dir, single_weld=False, max_scans=None
     ):
-        super(WidgetScans, self).__init__()
+        super(WidgetScans, self).__init__(width="100%", height="800 px")
 
         self.mh24_file = Path(mh24_file)
         self.tool_file = Path(tool_file)
@@ -27,10 +45,10 @@ class WidgetScans(WidgetSimpleOutput):
 
         self.max_scans = max_scans
         self.single_weld = single_weld
-        from libo.io.tc3 import read_txt, to_xarray
 
-        mh24_ds = read_txt(mh24_file, channels=None)
-        mh24_ds = to_xarray(mh24_ds)
+        from cached_io import read_cached_txt
+
+        mh24_ds = read_cached_txt(mh24_file)
         from libo.utils import split_by_trigger
 
         mh_scan_list = split_by_trigger(mh24_ds, "trigScan1_prog")
@@ -67,38 +85,58 @@ class WidgetScans(WidgetSimpleOutput):
             _slice = slice(1, self.max_scans)
             mh_scan_list_i = iter(mh_scan_list[_slice])
             n = len(mh_scan_list[_slice])
+        self._max_heights = []
+        with self.out:
+            for mh_scan in tqdm(mh_scan_list_i, total=n, desc="process scan data"):
+                naht_nr = int(mh_scan.naht_NR.max().values)
+                schw_nr = int(mh_scan.schw_NR.max().values)
+                pattern = f"LLT1_WID*_N{naht_nr:03d}_L001_R001_S{schw_nr}_*.nc"
+                scans_list = list(self.scans_dir.glob(pattern))
+                assert len(scans_list) == 1
 
-        for mh_scan in tqdm(mh_scan_list_i, total=n, desc="process scan data"):
-            naht_nr = int(mh_scan.naht_NR.max().values)
-            schw_nr = int(mh_scan.schw_NR.max().values)
-            pattern = f"LLT1_WID*_N{naht_nr:03d}_L001_R001_S{schw_nr}_*.nc"
-            scans_list = list(self.scans_dir.glob(pattern))
-            assert len(scans_list) == 1
+                SCAN_file = scans_list[0]
+                scan = xr.load_dataset(SCAN_file)
 
-            SCAN_file = scans_list[0]
-            scan = xr.load_dataset(SCAN_file)
-
-            res = self._build_scan_data(mh_scan, scan)
-            scan_name = f"scan_N{naht_nr}_S{schw_nr}"
-            scans.append(scan_name)
-            res = self.csm.transform_data(res, "user_frame", f"n_start{naht_nr}")
-            self.csm.assign_data(res, scan_name, f"n_start{naht_nr}")
+                res = self._build_scan_data(mh_scan, scan)
+                scan_name = f"scan_N{naht_nr}_S{schw_nr}"
+                scans.append(scan_name)
+                res = self.csm.transform_data(res, "user_frame", f"n_start{naht_nr}")
+                # determine max value and store it for later display
+                # TODO: max should return use only z-dimension
+                max_height = res.coordinates.max(dim="n")
+                print(max_height)
+                self._max_heights.append(max_height[2])
+                self.csm.assign_data(res, scan_name, f"n_start{naht_nr}")
+                self.csm.assign_data(
+                    max_height, scan_name + "max_h", f"n_start{naht_nr}"
+                )
         self.scans = scans
 
     def display(self):
-        # renders all pairs of scans and tcp movements.
+        """Render all pairs of scans and tcp movements."""
+        scans = [
+            f"n{x}"
+            for x in range(1, self.max_scans - 1 if self.max_scans else len(self.scans))
+        ]
+        self.out.clear_output()
         with self.out:
             self.csm.plot(
                 backend="k3d",
-                coordinate_systems=["user_frame"]
-                + [
-                    f"n{x}"
-                    for x in range(
-                        1, self.max_scans if self.max_scans else len(self.scans)
-                    )
-                ],
+                coordinate_systems=["user_frame"] + scans,
                 data_sets=self.scans,
+                axes_equal=True,
             )
+            # from matplotlib.pylab import plot
+
+            # plot(self._max_heights)
+            # TODO: add maximum height points and descriptions
+            # import k3d
+
+            # for i, max_ in enumerate(self._max_heights):
+            #     max_heights = k3d.points(
+            #         positions=max_.T, point_size=3, name="max height %i" % i
+            #     )
+            #     vis.plot += max_heights
 
     def _build_scan_data(
         self,
@@ -154,14 +192,15 @@ class WidgetScans(WidgetSimpleOutput):
         ds: xr.Dataset,
         lcs: weldx.LocalCoordinateSystem,
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Transform data gathered by LLT Dashboard into userframe coordinates
+        """Transform data gathered by LLT Dashboard into userframe coordinates.
 
         Parameters
         ----------
         ds:
             scan-dataset produced by LLT Dashboard
         lcs:
-            LocalCoordinateSystem that describes the movement of the LLT Scanner during scan
+            LocalCoordinateSystem that describes the movement of
+            the LLT Scanner during scan.
 
         Returns
         -------
@@ -215,4 +254,4 @@ if __name__ == "__main__":
     TOOL_file = p_base / "MH24_TOOL.CND"
     MH24_file = list((base / "MAIN").glob("*_MH24_MAIN_AutoSave.txt.gz"))[0]
 
-    WidgetScans(MH24_file, TOOL_file, base / "SCAN").display()
+    WidgetScans(MH24_file, TOOL_file, base / "SCAN", max_scans=4).display()

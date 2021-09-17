@@ -1,18 +1,18 @@
+"""Generic widgets."""
 import contextlib
 from functools import partial
 
-from IPython import get_ipython
 from ipyfilechooser import FileChooser
-from ipywidgets import HBox, Label, Button
+from IPython import get_ipython
+from ipywidgets import Button, HBox, Label
 
 import weldx
-from weldx_widgets import WidgetLabeledTextInput
-from weldx_widgets.widget_base import (
-    WidgetMyVBox,
-    WeldxImportExport,
-    WidgetMyHBox,
+from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
+from weldx_widgets.widget_factory import (
+    WidgetLabeledTextInput,
+    copy_layout,
+    textbox_layout,
 )
-from weldx_widgets.widget_factory import textbox_layout, copy_layout
 
 __all__ = [
     "WidgetSaveButton",
@@ -34,6 +34,8 @@ def show_only_exception_message():
 
 
 class WidgetSaveButton(WidgetMyHBox):
+    """Widget to select an output file and save it."""
+
     def __init__(self, desc="Save to", filename="out.wx", path=".", file_pattern=None):
         from weldx_widgets.widget_factory import button_layout
 
@@ -48,6 +50,7 @@ class WidgetSaveButton(WidgetMyHBox):
 
     @property
     def desc(self):
+        """Save button description."""
         return self.button.desc
 
     @desc.setter
@@ -56,12 +59,16 @@ class WidgetSaveButton(WidgetMyHBox):
 
     @property
     def path(self):
+        """Return selected file."""
         return self.file_chooser.selected
 
 
 class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
+    """Preliminary time series editing widget."""
+
     @property
     def schema(self) -> str:
+        """Return schema to validate data against."""
         return "time_series-1.0.0"
 
     # TODO: handle math-expr
@@ -91,8 +98,9 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
             children.insert(0, Label(title))
         super(WidgetTimeSeries, self).__init__(children=children)
 
-    def to_tree(self):
-        from weldx import TimeSeries, Q_
+    def to_tree(self) -> dict:
+        """Get mapping of input fields."""
+        from weldx import Q_, TimeSeries
 
         # TODO: eval - the root of evil!
         ts = TimeSeries(
@@ -102,6 +110,7 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         return {"timeseries": ts}
 
     def from_tree(self, tree: dict):
+        """Read in data from given dict."""
         ts: weldx.TimeSeries = tree["timeseries"]
         if ts.time is not None:
             foo = ", ".join(str(x) for x in ts.time.as_timedelta().seconds)
@@ -114,8 +123,9 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
 
 
 def test_import_export():
-    import weldx
     import pandas as pd
+
+    import weldx
 
     data = [42, 23, 12]
     time = [0, 2, 4]
