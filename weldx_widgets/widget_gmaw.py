@@ -5,14 +5,14 @@ from ipywidgets import Dropdown
 from matplotlib import pylab as plt
 
 import weldx
-from weldx import GmawProcess, Q_, TimeSeries
+from weldx import Q_, GmawProcess, TimeSeries
 from weldx_widgets import WidgetGasSelection
 from weldx_widgets.generic import WidgetTimeSeries
-from weldx_widgets.widget_base import WidgetMyVBox, WeldxImportExport
+from weldx_widgets.widget_base import WeldxImportExport, WidgetMyVBox
 from weldx_widgets.widget_factory import (
     FloatWithUnit,
-    make_title,
     WidgetLabeledTextInput,
+    make_title,
 )
 
 
@@ -59,10 +59,11 @@ class BaseProcess(WidgetMyVBox):
         super(BaseProcess, self).__init__(children=children)
 
     def to_tree(self):
-        return dict(manufacturer=self.manufacturer.text_value,
-                    powersource=self.power_source.text_value,
-                    wire_feedrate=self.wire_feedrate.quantity,
-                    )
+        return dict(
+            manufacturer=self.manufacturer.text_value,
+            powersource=self.power_source.text_value,
+            wire_feedrate=self.wire_feedrate.quantity,
+        )
 
     def from_tree(self, tree):
         raise NotImplementedError
@@ -91,7 +92,7 @@ class PulsedProcess(WidgetMyVBox):
             self.pulse_duration,
             self.pulse_frequency,
             self.base_current,
-            self.pulsed_dim
+            self.pulsed_dim,
         ]
         super(PulsedProcess, self).__init__(children=children)
 
@@ -100,11 +101,12 @@ class PulsedProcess(WidgetMyVBox):
         manufacturer = base_params.pop("manufacturer")
         power_source = base_params.pop("powersource")
         # these params have to be quantities
-        params = dict(**base_params,
-                      pulse_duration=self.pulse_duration.quantity,
-                      pulse_frequency=self.pulse_frequency.quantity,
-                      base_current=self.base_current.quantity,
-                      )
+        params = dict(
+            **base_params,
+            pulse_duration=self.pulse_duration.quantity,
+            pulse_frequency=self.pulse_frequency.quantity,
+            base_current=self.base_current.quantity,
+        )
         if self.kind == "UI":
             params["pulse_voltage"] = self.pulsed_dim.quantity
         else:
@@ -146,15 +148,20 @@ class ProcessSpray(WidgetMyVBox):
         manufacturer = base_params.pop("manufacturer")
         power_source = base_params.pop("powersource")
         # these params have to be quantities
-        params = dict(**base_params,
-                      voltage=self.voltage.to_tree()["timeseries"],
-                      impedance=self.impedance.quantity,
-                      characteristic=self.characteristic.quantity,
-                      )
+        params = dict(
+            **base_params,
+            voltage=self.voltage.to_tree()["timeseries"],
+            impedance=self.impedance.quantity,
+            characteristic=self.characteristic.quantity,
+        )
         tag = "CLOOS/spray"
-        process = GmawProcess(base_process="spray",
-                              manufacturer=manufacturer, power_source=power_source,
-                              parameters=params, tag=tag)
+        process = GmawProcess(
+            base_process="spray",
+            manufacturer=manufacturer,
+            power_source=power_source,
+            parameters=params,
+            tag=tag,
+        )
         return dict(process=process)
 
 
@@ -242,10 +249,12 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         widget_process = self.welding_process.children[0]
         welding_process = widget_process.to_tree()["process"]
 
-        process = dict(process=dict(
-            welding_process=welding_process,
-            shielding_gas=self.gas.to_tree()["shielding_gas"],
-            weld_speed=TimeSeries(Q_(45, "cm/min")),
-            welding_wire=self.welding_wire.to_tree(),
-        ))
+        process = dict(
+            process=dict(
+                welding_process=welding_process,
+                shielding_gas=self.gas.to_tree()["shielding_gas"],
+                weld_speed=TimeSeries(Q_(45, "cm/min")),
+                welding_wire=self.welding_wire.to_tree(),
+            )
+        )
         return process

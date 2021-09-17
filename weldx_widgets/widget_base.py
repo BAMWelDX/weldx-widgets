@@ -2,7 +2,7 @@ import abc
 import functools
 from pathlib import Path
 
-from ipywidgets import Output, HBox, VBox, Layout
+from ipywidgets import HBox, Layout, Output, VBox
 
 from weldx.asdf.util import get_schema_path
 
@@ -78,7 +78,8 @@ class WidgetMyVBox(metaclass_resolver(VBox, WidgetBase)):
 class WidgetSimpleOutput(WidgetMyHBox):
     def __init__(self, out=None, height=None, width=None):
         if out is None:
-            from .widget_factory import layout_generic_output, copy_layout
+            from .widget_factory import copy_layout, layout_generic_output
+
             if height or width:
                 layout = copy_layout(layout_generic_output)
                 if height:

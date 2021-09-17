@@ -1,18 +1,14 @@
 import contextlib
 from functools import partial
 
-from IPython import get_ipython
 from ipyfilechooser import FileChooser
-from ipywidgets import HBox, Label, Button
+from IPython import get_ipython
+from ipywidgets import Button, HBox, Label
 
 import weldx
 from weldx_widgets import WidgetLabeledTextInput
-from weldx_widgets.widget_base import (
-    WidgetMyVBox,
-    WeldxImportExport,
-    WidgetMyHBox,
-)
-from weldx_widgets.widget_factory import textbox_layout, copy_layout
+from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
+from weldx_widgets.widget_factory import copy_layout, textbox_layout
 
 __all__ = [
     "WidgetSaveButton",
@@ -92,7 +88,7 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         super(WidgetTimeSeries, self).__init__(children=children)
 
     def to_tree(self):
-        from weldx import TimeSeries, Q_
+        from weldx import Q_, TimeSeries
 
         # TODO: eval - the root of evil!
         ts = TimeSeries(
@@ -114,8 +110,9 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
 
 
 def test_import_export():
-    import weldx
     import pandas as pd
+
+    import weldx
 
     data = [42, 23, 12]
     time = [0, 2, 4]

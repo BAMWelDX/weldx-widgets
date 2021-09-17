@@ -1,15 +1,14 @@
 import ipywidgets as widgets
-from ipywidgets import HBox, Label, Text, Layout, HTML
+from ipywidgets import HTML, HBox, Label, Layout, Text
 
 from weldx import Q_
-
 from weldx_widgets.widget_base import WidgetMyHBox
 
 plot_layout = Layout(width="60%", height="550px")
 button_layout = Layout(
-    #width="200px",
-    width='auto',
-    #height="50px",
+    # width="200px",
+    width="auto",
+    # height="50px",
 )
 textbox_layout = Layout(width="65px", height="30px")  # used for units
 description_layout = Layout(width="30%", height="30px")

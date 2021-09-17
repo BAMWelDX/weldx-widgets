@@ -11,7 +11,6 @@ from ipywidgets import Checkbox, Dropdown, HBox, IntSlider, Layout, Play, VBox, 
 
 from weldx import LocalCoordinateSystem, SpatialData, TimeSeries
 from weldx import geometry as geo
-
 from weldx.visualization.colors import (
     RGB_BLACK,
     RGB_BLUE,
