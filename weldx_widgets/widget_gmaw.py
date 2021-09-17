@@ -1,12 +1,12 @@
+"""Widget to edit weldx.GMAW process data."""
 from functools import lru_cache
 
-import pytest
 from ipywidgets import Dropdown
 from matplotlib import pylab as plt
 
 import weldx
 from weldx import Q_, GmawProcess, TimeSeries
-from weldx_widgets import WidgetGasSelection
+from weldx_widgets import WidgetShieldingGas
 from weldx_widgets.generic import WidgetTimeSeries
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyVBox
 from weldx_widgets.widget_factory import (
@@ -15,9 +15,11 @@ from weldx_widgets.widget_factory import (
     make_title,
 )
 
+_DEFAULT_FIGWIDTH = 12
+
 
 def parplot(par, t, name, ax):
-    """plot a single parameter into an axis"""
+    """Plot a single parameter into an axis."""
     ts = par.interp_time(t)
     x = weldx.util.pandas_time_delta_to_quantity(t)
     ax.plot(x.m, ts.data.m)
@@ -26,8 +28,7 @@ def parplot(par, t, name, ax):
 
 
 def plot_gmaw(gmaw, t):
-    """Plot a dictionary of parameters"""
-
+    """Plot a dictionary of parameters."""
     title = "\n".join([gmaw.manufacturer, gmaw.power_source, gmaw.base_process])
 
     pars = gmaw.parameters
@@ -36,7 +37,7 @@ def plot_gmaw(gmaw, t):
     fig, ax = plt.subplots(nrows=n, sharex="all", figsize=(_DEFAULT_FIGWIDTH, 2 * n))
     for i, k in enumerate(pars):
         parplot(pars[k], t, k, ax[i])
-    ax[-1].set_xlabel(f"time / s")
+    ax[-1].set_xlabel("time / s")
     ax[0].set_title(title, loc="left")
 
     # ipympl_style(fig)
@@ -45,6 +46,8 @@ def plot_gmaw(gmaw, t):
 
 
 class BaseProcess(WidgetMyVBox):
+    """Widget for base process."""
+
     def __init__(self):
         self.manufacturer = WidgetLabeledTextInput("Manufacturer", "Fronius")
         self.power_source = WidgetLabeledTextInput("Power source", "TPS 500i")
@@ -59,6 +62,7 @@ class BaseProcess(WidgetMyVBox):
         super(BaseProcess, self).__init__(children=children)
 
     def to_tree(self):
+        """Return base process parameters."""
         return dict(
             manufacturer=self.manufacturer.text_value,
             powersource=self.power_source.text_value,
@@ -66,10 +70,15 @@ class BaseProcess(WidgetMyVBox):
         )
 
     def from_tree(self, tree):
-        raise NotImplementedError
+        """Fill widget with tree data."""
+        self.manufacturer.text_value = tree["manufacturer"]
+        self.powersource.text_value = tree["powersource"]
+        self.wire_feedrate.text_value = tree["wire_feedrate"]
 
 
 class PulsedProcess(WidgetMyVBox):
+    """Widget for pulsed processes."""
+
     def __init__(self, kind="UI"):
         self.base_process = BaseProcess()
         self.pulse_duration = FloatWithUnit("Pulse duration", value=5.0, unit="ms")
@@ -97,6 +106,7 @@ class PulsedProcess(WidgetMyVBox):
         super(PulsedProcess, self).__init__(children=children)
 
     def to_tree(self):
+        """Return pulsed process parameters."""
         base_params = self.base_process.to_tree()
         manufacturer = base_params.pop("manufacturer")
         power_source = base_params.pop("powersource")
@@ -122,8 +132,14 @@ class PulsedProcess(WidgetMyVBox):
         )
         return dict(process=process)
 
+    def from_tree(self, tree):
+        """Fill parameters from tree."""
+        raise NotImplementedError
+
 
 class ProcessSpray(WidgetMyVBox):
+    """Widget for spray process."""
+
     def __init__(self):
         self.base_process = BaseProcess()
         self.voltage = WidgetTimeSeries(
@@ -144,6 +160,7 @@ class ProcessSpray(WidgetMyVBox):
         )
 
     def to_tree(self):
+        """Return spray process parameters."""
         base_params = self.base_process.to_tree()
         manufacturer = base_params.pop("manufacturer")
         power_source = base_params.pop("powersource")
@@ -166,6 +183,8 @@ class ProcessSpray(WidgetMyVBox):
 
 
 class WidgetWire(WidgetMyVBox):
+    """Widget for welding wire."""
+
     heading_level = 4
 
     def __init__(self):
@@ -183,6 +202,7 @@ class WidgetWire(WidgetMyVBox):
         super(WidgetWire, self).__init__(children=children)
 
     def to_tree(self):
+        """Return welding wire parameters."""
         return {
             "diameter": self.diameter.quantity,
             "class": self.wire_class.text_value,
@@ -192,6 +212,8 @@ class WidgetWire(WidgetMyVBox):
 
 
 class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
+    """Widget to handle gas metal arc welding process parameters."""
+
     translate = {
         "Spray": "spray",
         "Pulsed (UI)": "UI",
@@ -201,6 +223,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
 
     @property
     def schema(self) -> str:
+        """Return schema."""
         raise
 
     def __init__(self):
@@ -210,7 +233,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
             description="Process type",
         )
         self.process_type.observe(self._create_process_widgets, names="value")
-        self.gas = WidgetGasSelection()
+        self.gas = WidgetShieldingGas()
         self.welding_process = WidgetMyVBox()
         self.welding_wire = WidgetWire()
 
@@ -243,9 +266,11 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         return PulsedProcess(kind=process)
 
     def from_tree(self, tree: dict):
+        """Fill widget from tree."""
         raise NotImplementedError
 
     def to_tree(self):
+        """Return GMAW process parameters."""
         widget_process = self.welding_process.children[0]
         welding_process = widget_process.to_tree()["process"]
 
