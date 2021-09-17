@@ -1,6 +1,7 @@
-import os
+"""Widget to save the state of a WeldxFile and invoke the next step in the pipeline."""
 import pathlib
 import typing
+from os import environ as env
 from urllib.parse import parse_qs, urlencode
 
 import ipywidgets as w
@@ -11,9 +12,32 @@ import weldx_widgets
 import weldx_widgets.widget_base
 import weldx_widgets.widget_factory
 
+__all__ = [
+    "get_param_from_env",
+    "build_url",
+    "invoke_next_notebook",
+    "SaveAndNext",
+]
+
 
 def get_param_from_env(name=None, default=None) -> str:
-    query_string = os.environ.get("QUERY_STRING", "")
+    """Extract parameter from env.QUERY_STRING.
+
+    Parameters
+    ----------
+    name :
+        name of the parameter to extract.
+
+    default :
+        optional default value, if parameter is not set.
+
+    Returns
+    -------
+    str :
+        value of the requested parameter.
+
+    """
+    query_string = env.get("QUERY_STRING", "")
     parameters = parse_qs(query_string)
     if not name:
         name = "wid"
@@ -31,7 +55,22 @@ def get_param_from_env(name=None, default=None) -> str:
 
 
 def build_url(board: str, parameters: dict = None, invoke=True) -> str:
-    env = os.environ
+    """Build an URL with given parameters.
+
+    Parameters
+    ----------
+    board :
+        dash board to invoke next. May contain a relative path.
+    parameters :
+        optional parameters to encode.
+    invoke :
+        should the url be invoked in a web browser?
+
+    Returns
+    -------
+    str :
+        the built url.
+    """
     server = env.get("SERVER_NAME", "localhost")
     protocol = env.get("SERVER_PROTOCOL", "HTTP")
     if "HTTPS" in protocol:
@@ -62,6 +101,15 @@ def build_url(board: str, parameters: dict = None, invoke=True) -> str:
 
 
 def invoke_next_notebook(notebook, params=None):
+    """Invoke given notebook with parameters in a new browser tab.
+
+    Parameters
+    ----------
+    notebook :
+        relative path to a notebook.
+    params :
+        optional parameters.
+    """
     import webbrowser
 
     url = build_url(notebook, parameters=params, invoke=False)
@@ -70,8 +118,23 @@ def invoke_next_notebook(notebook, params=None):
 
 
 class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
-    """collects all the data from passed import/output widget list and stores it
+    """Collect all the data from passed import/output widget list and stores it.
 
+    Parameters
+    ----------
+    filename:
+        output file name.
+    next_notebook:
+        next dashboard/notebook to invoke.
+    status :
+        the file update will contain the new status.
+    collect_data_from :
+        a list of widgets to build a tree from.
+    next_notebook_params :
+        optional parameters for next dashboard.
+
+    Notes
+    -----
     The passed status will be set into the wx_user["kisa"]["status"] dict.
     """
 
@@ -118,9 +181,11 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
 
     @property
     def filename(self):
+        """Return output file name."""
         return self.save_button.path
 
     def on_save(self, _):
+        """Handle saving data to file."""
         # TODO: error handling, e.g. to_tree() is not yet ready etc.
         result = dict()
         for widget in self.collect_data_from:

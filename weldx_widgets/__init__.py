@@ -1,16 +1,14 @@
+"""Weldx widgets."""
 from .generic import WidgetSaveButton, WidgetTimeSeries
 from .widget_factory import FloatWithUnit, WidgetLabeledTextInput
-from .widget_gas import WidgetGasSelection, WidgetSimpleGasSelection
+from .widget_gas import WidgetShieldingGas
 from .widget_gmaw import WidgetGMAW
 from .widget_groove_sel import WidgetGrooveSelection, WidgetGrooveSelectionTCPMovement
-from .widget_scans import WidgetScans
 
 __all__ = [
-    WidgetScans,
     WidgetGrooveSelection,
     WidgetGrooveSelectionTCPMovement,
-    WidgetGasSelection,
-    WidgetSimpleGasSelection,
+    WidgetShieldingGas,
     WidgetTimeSeries,
     WidgetLabeledTextInput,
     WidgetSaveButton,
