@@ -1,5 +1,4 @@
-import sys
-
+"""Widgets to handle shielding gas selection."""
 from ipywidgets import Button, Dropdown, HBox, IntSlider, Layout, Output
 
 from weldx import Q_
@@ -11,10 +10,7 @@ from weldx_widgets.widget_factory import (
     description_layout,
 )
 
-__all__ = [
-    "WidgetSimpleGasSelection",
-    "WidgetGasSelection",
-]
+__all__ = ["WidgetShieldingGas"]
 
 
 class WidgetSimpleGasSelection(WidgetMyVBox):
@@ -105,7 +101,7 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
             self.out.clear_output()
             self.out.layout.display = "none"
 
-    def to_tree(self):
+    def to_tree(self) -> dict:
         gas_components = [
             GasComponent(
                 self._mapping[element], Q_(int(widget.children[1].value), "percent")
@@ -116,8 +112,10 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
 
 
 class WidgetShieldingGas(WidgetMyVBox):
+    """Widget to combine flow rate with a gas selection."""
 
-    # TODO: this could in principle be used multiple times for all positions, torch, trailing, backing
+    # TODO: this could in principle be used multiple times for all positions
+    #  e.g. torch, trailing, backing
     def __init__(self, position="torch"):
         self.flowrate = FloatWithUnit("Flow rate", "l/min", value=20)
         self.gas_components = WidgetSimpleGasSelection()
@@ -125,7 +123,8 @@ class WidgetShieldingGas(WidgetMyVBox):
         children = [self.gas_components, self.flowrate]
         super(WidgetShieldingGas, self).__init__(children=children)
 
-    def to_tree(self):
+    def to_tree(self) -> dict:
+        """Return weldx objects describing the shielding gas."""
         gas_for_proc = ShieldingGasForProcedure(
             use_torch_shielding_gas=True,
             torch_shielding_gas=ShieldingGasType(
@@ -136,8 +135,6 @@ class WidgetShieldingGas(WidgetMyVBox):
         return dict(shielding_gas=gas_for_proc)
 
 
-WidgetGasSelection = WidgetShieldingGas
-
-if __name__ == "__main__":
-    w = WidgetGasSelection()
-    print(w.to_tree())
+def test():
+    w = WidgetShieldingGas()
+    w.to_tree()
