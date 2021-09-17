@@ -1,19 +1,15 @@
+import os
 import pathlib
 import typing
+from urllib.parse import parse_qs, urlencode
 
 import ipywidgets as w
 from ipywidgets import Output
 
+import weldx
 import weldx_widgets
 import weldx_widgets.widget_base
 import weldx_widgets.widget_factory
-
-import weldx
-
-from weldx_widgets.widget_base import WidgetSimpleOutput
-
-from urllib.parse import parse_qs, urlencode
-import os
 
 
 def get_param_from_env(name=None, default=None) -> str:
@@ -67,6 +63,7 @@ def build_url(board: str, parameters: dict = None, invoke=True) -> str:
 
 def invoke_next_notebook(notebook, params=None):
     import webbrowser
+
     url = build_url(notebook, parameters=params, invoke=False)
 
     webbrowser.open_new_tab(url)
@@ -78,36 +75,45 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
     The passed status will be set into the wx_user["kisa"]["status"] dict.
     """
 
-    def __init__(self, filename,
-                 next_notebook: str,
-                 status: str,
-                 collect_data_from: typing.List[
-                     weldx_widgets.widget_base.WeldxImportExport],
-                 next_notebook_desc: str = "2. invoke next step",
-                 next_notebook_params=None,
-                 ):
+    def __init__(
+        self,
+        filename,
+        next_notebook: str,
+        status: str,
+        collect_data_from: typing.List[weldx_widgets.widget_base.WeldxImportExport],
+        next_notebook_desc: str = "2. invoke next step",
+        next_notebook_params=None,
+    ):
         self.status = status
         self.collect_data_from = collect_data_from
         self.out = Output()
         from weldx_widgets.widget_factory import button_layout
+
         self.btn_next = w.Button(description=next_notebook_desc, layout=button_layout)
         if next_notebook_params is None:
             next_notebook_params = dict()
-        self.btn_next.on_click(lambda _: (invoke_next_notebook(
-            next_notebook, params=dict(file=str(filename), **next_notebook_params))
+        self.btn_next.on_click(
+            lambda _: (
+                invoke_next_notebook(
+                    next_notebook,
+                    params=dict(file=str(filename), **next_notebook_params),
+                )
+            )
         )
+        fn_path = pathlib.Path(filename)
+        path = str(fn_path.parent)
+        fn = str(fn_path.name)
+        self.save_button = weldx_widgets.WidgetSaveButton(
+            desc="1. Save", filename=fn, path=path
         )
-        path = str(pathlib.Path(filename).parent)
-        self.save_button = weldx_widgets.WidgetSaveButton(desc="1. Save",
-                                                          filename=filename,
-                                                          path=path)
         self.save_button.button.on_click(self.on_save)
-        self.save_button.children += (self.btn_next, )
+        self.save_button.children += (self.btn_next,)
 
-        children = [weldx_widgets.widget_factory.make_title("Save results"),
-                    self.save_button,
-                    self.out,
-                    ]
+        children = [
+            weldx_widgets.widget_factory.make_title("Save results"),
+            self.save_button,
+            self.out,
+        ]
         super(SaveAndNext, self).__init__(children=children)
 
     @property
@@ -119,14 +125,12 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         result = dict()
         for widget in self.collect_data_from:
             result.update(widget.to_tree())
-        result["wx_user"] = {
-            "KISA": {"status": self.status}
-        }
+        result["wx_user"] = {"KISA": {"status": self.status}}
         assert self.filename
         with weldx.WeldxFile(self.filename, mode="rw", sync=True) as fh, self.out:
             print("old keys:", tuple(fh.keys()))
             fh.update(**result)
-            #fh.show_asdf_header(False, False)
+            # fh.show_asdf_header(False, False)
 
         # check data has been written
         with weldx.WeldxFile(self.filename, mode="r") as wx, self.out:
