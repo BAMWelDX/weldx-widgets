@@ -1,3 +1,4 @@
+"""Widget to wrap around a measurement."""
 from matplotlib import pylab as plt
 
 import weldx
@@ -9,7 +10,6 @@ _DEFAUL_FIGWIDTH = 10
 
 def plot_signal(signal, name, limits=None, ax=None):
     """Plot a single weldx signal."""
-
     data = signal.data
     time = weldx.util.pandas_time_delta_to_quantity(data.time)
 
@@ -27,6 +27,7 @@ def plot_measurements(
     axes,
     limits=None,
 ):
+    """Plot several measurements."""
     for i, measurement in enumerate(measurement_data):
         last_signal = measurement.measurement_chain.signals[-1]
         plot_signal(last_signal, measurement.name, ax=axes[i], limits=limits)
@@ -37,6 +38,8 @@ def plot_measurements(
 
 
 class WidgetMeasurement(WidgetSimpleOutput):
+    """Widget to wrap around a measurement."""
+
     def __init__(self, measurement: "weldx.measurement.Measurement"):
         super(WidgetMeasurement, self).__init__()
 
