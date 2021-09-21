@@ -5,22 +5,22 @@ from os import environ as env
 from urllib.parse import parse_qs, urlencode
 
 import ipywidgets as w
-from ipywidgets import Output
 
 import weldx
 import weldx_widgets
 import weldx_widgets.widget_base
 import weldx_widgets.widget_factory
+from weldx_widgets.widget_factory import button_layout
 
 __all__ = [
-    "get_param_from_env",
-    "build_url",
-    "invoke_next_notebook",
     "SaveAndNext",
+    "build_url",
+    "get_param_from_env",
+    "invoke_url",
 ]
 
 
-def get_param_from_env(name=None, default=None) -> str:
+def get_param_from_env(name, default=None) -> str:
     """Extract parameter from env.QUERY_STRING.
 
     Parameters
@@ -39,11 +39,9 @@ def get_param_from_env(name=None, default=None) -> str:
     """
     query_string = env.get("QUERY_STRING", "")
     parameters = parse_qs(query_string)
-    if not name:
-        name = "wid"
     try:
-        wid = parameters[name][0]
-    except KeyError:
+        value = parameters[name][0]
+    except KeyError:  # TODO: this can also raise something else, right?
         if default:
             return default
         else:
@@ -51,10 +49,10 @@ def get_param_from_env(name=None, default=None) -> str:
                 f"parameter '{name}' unset and no default provided."
                 f" Given parameters: {parameters}"
             )
-    return wid
+    return value
 
 
-def build_url(board: str, parameters: dict = None, invoke=True) -> str:
+def build_url(board: str, parameters: dict = None, invoke=True, out=None) -> str:
     """Build an URL with given parameters.
 
     Parameters
@@ -71,6 +69,9 @@ def build_url(board: str, parameters: dict = None, invoke=True) -> str:
     str :
         the built url.
     """
+    if invoke and not out:
+        raise ValueError("need output to invoke Javascript.")
+
     server = env.get("SERVER_NAME", "localhost")
     protocol = env.get("SERVER_PROTOCOL", "HTTP")
     if "HTTPS" in protocol:
@@ -96,25 +97,22 @@ def build_url(board: str, parameters: dict = None, invoke=True) -> str:
         url += f"?{params_encoded}"
 
     if invoke:
-        invoke_next_notebook(url)
+        invoke_url(url, out)
     return url
 
 
-def invoke_next_notebook(notebook, params=None):
-    """Invoke given notebook with parameters in a new browser tab.
+def invoke_url(url, out):
+    """Invoke url in new browser tab.
 
-    Parameters
-    ----------
-    notebook :
-        relative path to a notebook.
-    params :
-        optional parameters.
+    We cannot use python stdlib webbrowser here, because this code will be executed
+    on the server. So we impl this via Javascript.
     """
-    import webbrowser
+    from IPython.display import Javascript, clear_output, display
 
-    url = build_url(notebook, parameters=params, invoke=False)
-
-    webbrowser.open_new_tab(url)
+    with out:
+        clear_output()
+        js = Javascript(f'window.open("{url}");')
+        display(js)
 
 
 class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
@@ -149,20 +147,15 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
     ):
         self.status = status
         self.collect_data_from = collect_data_from
-        self.out = Output()
-        from weldx_widgets.widget_factory import button_layout
+        self.out = w.Output()
 
         self.btn_next = w.Button(description=next_notebook_desc, layout=button_layout)
         if next_notebook_params is None:
             next_notebook_params = dict()
-        self.btn_next.on_click(
-            lambda _: (
-                invoke_next_notebook(
-                    next_notebook,
-                    params=dict(file=str(filename), **next_notebook_params),
-                )
-            )
-        )
+        self.next_notebook_params = next_notebook_params
+        self.next_notebook = next_notebook
+        self.btn_next.on_click(self.on_next)
+
         fn_path = pathlib.Path(filename)
         path = str(fn_path.parent)
         fn = str(fn_path.name)
@@ -186,20 +179,44 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
 
     def on_save(self, _):
         """Handle saving data to file."""
+        from IPython.display import clear_output, display
+
         # TODO: error handling, e.g. to_tree() is not yet ready etc.
         result = dict()
         for widget in self.collect_data_from:
             result.update(widget.to_tree())
         result["wx_user"] = {"KISA": {"status": self.status}}
         assert self.filename
+        # open (existing) file and update it.
+        clear_output()
         with weldx.WeldxFile(self.filename, mode="rw", sync=True) as fh, self.out:
-            print("old keys:", tuple(fh.keys()))
             fh.update(**result)
-            # fh.show_asdf_header(False, False)
+            display(fh)
 
-        # check data has been written
-        with weldx.WeldxFile(self.filename, mode="r") as wx, self.out:
-            print("new keys:", tuple(wx.keys()))
-            A = set(result.keys())
-            B = set(wx.data.keys())
-            assert A.issubset(B)
+    def on_next(self, _):
+        """Invoke next notebook."""
+        build_url(
+            board=self.next_notebook,
+            parameters=dict(file=self.filename, **self.next_notebook_params),
+            invoke=True,
+            out=self.out,
+        )
+
+
+def test_on_save(tmpdir):
+    """Ensure data from input widget get serialized to desired output file."""
+
+    class simple_export:
+        def to_tree(self):
+            return {"data": 42}
+
+    out_file = str(tmpdir / "out")
+    status = "test"
+    w = SaveAndNext(
+        out_file, next_notebook="no", collect_data_from=[simple_export()], status=status
+    )
+    w.on_save(None)
+    # verify output
+    with weldx.WeldxFile(out_file) as wx:
+        assert wx["data"] == 42
+        assert wx["wx_user"]["KISA"]["status"] == status
