@@ -171,7 +171,7 @@ class ProcessSpray(WidgetMyVBox):
             impedance=self.impedance.quantity,
             characteristic=self.characteristic.quantity,
         )
-        tag = "CLOOS/spray"
+        tag = "CLOOS/spray_arc"
         process = GmawProcess(
             base_process="spray",
             manufacturer=manufacturer,
@@ -283,3 +283,16 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
             )
         )
         return process
+
+
+def test_to_tree():
+    """Ensure exporting works."""
+    w = WidgetGMAW()
+    weldx.WeldxFile(tree=w.to_tree(), mode="rw")
+
+
+def test_from_tree():
+    """Ensure reading in works."""
+    w = WidgetGMAW()
+    wx = weldx.WeldxFile(tree=w.to_tree(), mode="rw")
+    w.from_tree(wx.data)
