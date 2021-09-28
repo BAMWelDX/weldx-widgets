@@ -1,6 +1,7 @@
 """Generic widgets."""
 import contextlib
 from functools import partial
+from typing import Callable
 
 from ipyfilechooser import FileChooser
 from IPython import get_ipython
@@ -23,30 +24,47 @@ __all__ = [
 @contextlib.contextmanager
 def show_only_exception_message():
     ip = get_ipython()
-    old_state = ip.showtraceback
-    f = ip.showtraceback
-    tb = partial(f, exception_only=True)
-    ip.showtraceback = tb
+    if ip:
+        old_state = ip.showtraceback
+        f = ip.showtraceback
+        tb = partial(f, exception_only=True)
+        ip.showtraceback = tb
 
-    yield
+        yield
 
-    ip.showtraceback = old_state
+        ip.showtraceback = old_state
+    else:
+        yield
 
 
 class WidgetSaveButton(WidgetMyHBox):
     """Widget to select an output file and save it."""
 
-    def __init__(self, desc="Save to", filename="out.wx", path=".", file_pattern=None):
+    def __init__(
+        self,
+        desc="Save to",
+        filename="out.wx",
+        path=".",
+        file_pattern=None,
+        select_default=False,
+    ):
         from weldx_widgets.widget_factory import button_layout
 
         self.file_chooser = FileChooser(
-            path=path, filename=filename, file_pattern=file_pattern
+            path=path,
+            filename=filename,
+            file_pattern=file_pattern,
+            select_default=select_default,
         )
         self.button = Button(description=desc, layout=button_layout)
 
         super(WidgetSaveButton, self).__init__(
             children=(self.file_chooser, self.button)
         )
+
+    def set_handler(self, handler: Callable):
+        """Set action handler on save button click."""
+        self.button.on_click(handler)
 
     @property
     def desc(self):
@@ -58,6 +76,7 @@ class WidgetSaveButton(WidgetMyHBox):
         self.button.desc = value
 
     @property
+    # TODO: this should be named selected or better "value" to match ipywidgets style.
     def path(self):
         """Return selected file."""
         return self.file_chooser.selected

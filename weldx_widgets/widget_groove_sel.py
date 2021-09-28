@@ -15,12 +15,7 @@ from weldx import Geometry, SpatialData
 from weldx.constants import WELDX_QUANTITY as Q_
 from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
 from weldx_widgets.generic import WidgetSaveButton
-from weldx_widgets.widget_base import (
-    WeldxImportExport,
-    WidgetMyHBox,
-    WidgetMyVBox,
-    WidgetSimpleOutput,
-)
+from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
     FloatWithUnit,
     WidgetLabeledTextInput,
@@ -51,7 +46,7 @@ class WidgetSTLExport(WidgetMyVBox):
     data_formats = ["stl", "ply"]
 
     def __init__(self):
-        title = make_title("Export geometry to CAD file")
+        title = make_title("Export geometry to CAD file [optional]", heading_level=4)
 
         # if the format changes, we have to update the file_pattern mask
         # of the chooser of the save widget.
@@ -147,7 +142,7 @@ class WidgetMetal(WidgetMyVBox):
         self.standard = WidgetLabeledTextInput("Standard", "DIN EN 10225-2:2011")
         self.thickness = FloatWithUnit("Thickness", value=30, unit="mm")
         children = [
-            make_title("Base metal"),
+            make_title("Base metal", heading_level=4),
             self.common_name,
             self.standard,
             self.thickness,
@@ -343,6 +338,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     """Widget to combine groove type and tcp movement."""
 
     def __init__(self):
+        self.last_plot = None
         self.groove_sel = WidgetGrooveSelection()
         self.seam_length = FloatWithUnit("Seam length", value=300, min=0, unit="mm")
         self.tcp_y = FloatWithUnit("TCP-y", unit="mm")
@@ -352,6 +348,8 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         self.weld_speed = FloatWithUnit("weld speed", value=6, unit="mm/s")
         self.base_metal = WidgetMetal()
         self.geometry_export = WidgetSTLExport()
+        self.plot_button = Button(description="3D Plot", layout=button_layout)
+        self.plot_button.on_click(self.create_csm_and_plot)
         self.additional_params = (
             make_title("Welding parameters", 4),
             self.seam_length,
@@ -359,20 +357,21 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
             self.tcp_y,
             self.tcp_z,
             self.base_metal,
+            self.plot_button,
             self.geometry_export,
         )
         # add our parameters to our instance of WidgetGrooveSelection.
         self.groove_sel.groove_selection.children += self.additional_params
+
+        # csm 3d visualization
         self.csm = None
-        self.out = WidgetSimpleOutput(height="800px", width="auto")
-        self.out.set_visible(False)
-        self.plot_button = Button(description="3D Plot", layout=button_layout)
-        self.plot_button.on_click(self.create_csm_and_plot)
+        # self.out = WidgetSimpleOutput(height="800px", width="auto")
+        # self.out.set_visible(False)
 
         children = [
             self.groove_sel,
-            self.plot_button,  # TODO: we do not want a 100% width button here
-            self.out,
+            # self.plot_button,  # TODO: we do not want a 100% width button here
+            # self.out,
         ]
 
         super(WidgetGrooveSelectionTCPMovement, self).__init__(
@@ -458,11 +457,21 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
     def plot(self):
         """Visualize the tcp design movement."""
-        self.out.set_visible(True)
-        self.out.out.clear_output()
+        out = self.groove_sel.out
+        # self.out.out.clear_output()
         # TODO: close older figures to regain resources!
         # TODO: can old figures be updated?
-        with self.out:
+
+        # TODO: visualizer does not hold a reference to the k3d.Plot instance
+        # but we need that, to properly close the old figure.
+        # we could monkey patch into k3d.plot to capture the Plot instance,
+        # but that seems to hacky.
+        if self.last_plot is not None:
+            # {'output_type': 'display_data', 'data': {'text/plain': "Canvas(
+            del self.last_plot["data"]
+            # self.last_plot.close()
+
+        with out:
             self.csm.plot(
                 coordinate_systems=["TCP design"],
                 # colors=color_dict,
@@ -471,6 +480,8 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
                 show_wireframe=False,
                 backend="k3d",
             )
+            self.last_plot = out.outputs[-1]
+            # self.last_plot = list(vis._lcs_vis.values())[0]
 
     def to_tree(self) -> dict:
         """Return the workpiece, coordinates and TCP movement."""
@@ -486,7 +497,9 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         # TODO: has it any consequence later on, that we drop the reference to the CSM?
         tree = dict(
             workpiece=workpiece,
-            coordinates=self.csm,
+            # according to single_pass_weld schema of weldx we will add "coordinates"
+            # later on.
+            coordinates_design=self.csm,
             TCP=self.csm.get_cs("TCP design", "workpiece"),
         )
         return tree
