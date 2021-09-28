@@ -58,12 +58,13 @@ class WidgetLabeledTextInput(WidgetMyHBox):
 class FloatWithUnit(WidgetMyHBox):
     """Widget grouping a float with unit."""
 
-    def __init__(self, text, unit, value: float = 0.0, min=0):
+    def __init__(self, text, unit, value: float = 0.0, min=0, tooltip=None):
         self._label, self._float, self._unit = hbox_float_text_creator(
             text, unit, value, min, make_box=False
         )
         super(FloatWithUnit, self).__init__(
-            children=[self._label, self._float, self._unit]
+            children=[self._label, self._float, self._unit],
+            tooltip=tooltip,
         )
 
     @property
