@@ -1,16 +1,20 @@
 """Widgets to select groove type and tcp movement."""
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Union
+
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import pandas as pd
-from IPython.display import clear_output
-from ipywidgets import Button, HBox, Label, Layout, Output, VBox
+from IPython import get_ipython
+from ipywidgets import Button, Dropdown, HBox, Label, Layout, Output
 
 import weldx
+from weldx import Geometry, SpatialData
 from weldx.constants import WELDX_QUANTITY as Q_
 from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
-from weldx_widgets.generic import show_only_exception_message
+from weldx_widgets.generic import WidgetSaveButton
 from weldx_widgets.widget_base import (
     WeldxImportExport,
     WidgetMyHBox,
@@ -32,6 +36,107 @@ __all__ = [
     "WidgetGrooveSelection",
     "WidgetGrooveSelectionTCPMovement",
 ]
+
+
+class WidgetSTLExport(WidgetMyVBox):
+    """Exports SpatialData to selected CAD format.
+
+    Attributes
+    ----------
+    geometry :
+        `weldx.Geometry` or `weldx.SpatialData` to export. If not set, the save button
+        does nothing.
+    """
+
+    data_formats = ["stl", "ply"]
+
+    def __init__(self):
+        title = make_title("Export geometry to CAD file")
+
+        # if the format changes, we have to update the file_pattern mask
+        # of the chooser of the save widget.
+        default_format_index = 0
+        self.format = Dropdown(
+            options=WidgetSTLExport.data_formats,
+            index=default_format_index,
+            description="Data format",
+        )
+        self.format.observe(self._update_file_pattern, "value")
+        ext = self.data_formats[default_format_index]
+
+        self.save = WidgetSaveButton(
+            desc="Save",
+            filename=f"specimen.{ext}",
+            file_pattern=f"*.{ext}",
+            select_default=True,
+        )
+        self.save.set_handler(self._on_export_geometry)
+        # disable button initially, because we first need to have a geometry
+        self.save.button.disabled = True
+
+        self.profile_raster_width = FloatWithUnit(
+            "Profile raster width",
+            value=2,
+            unit="mm",
+            tooltip="Target distance between the individual points of a profile",
+        )
+        self.trace_raster_width = FloatWithUnit(
+            "Trace raster width",
+            value=30,
+            unit="mm",
+            tooltip="Target distance between the individual profiles on the trace",
+        )
+
+        children = [
+            title,
+            self.profile_raster_width,
+            self.trace_raster_width,
+            self.format,
+            self.save,
+        ]
+        super(WidgetSTLExport, self).__init__(children=children)
+        self.layout.border = "1px solid gray"
+        self.geometry = None
+
+    @property
+    def geometry(self) -> Union[SpatialData, Geometry]:
+        return self._geometry
+
+    @geometry.setter
+    def geometry(self, value):
+        self._geometry = value
+        if value is not None:
+            self.save.button.disabled = False
+
+    def _on_export_geometry(self, _):
+        if self.geometry is None:
+            print("no geo")
+            return
+        if not self.save.path:
+            print("no path")
+            return
+
+        if isinstance(self.geometry, Geometry):
+            print("dump Geometry")
+            self.geometry.to_file(
+                self.save.path,
+                self.profile_raster_width.quantity,
+                self.trace_raster_width.quantity,
+            )
+        elif isinstance(self.geometry, SpatialData):  # already rasterized
+            print("dump SpatialData")
+            self.geometry.to_file(self.save.path)
+        else:
+            raise RuntimeError(f"invalid geometry type {type(self.geometry)}")
+
+    def _update_file_pattern(self, change):
+        print("update file pattern")
+        dot_ext = f".{change['new']}"
+        self.save.file_chooser.filter_pattern = f"*{dot_ext}"
+        fn = Path(self.save.path).stem + dot_ext
+        self.save.file_chooser.default_filename = fn
+        self.save.file_chooser.refresh()
+        print("refershed")
 
 
 class WidgetMetal(WidgetMyVBox):
@@ -84,19 +189,18 @@ def get_code_numbers():
 class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
     """Widget to select groove type."""
 
-    # TODO: filename/WeldxFile as input arg?
     def __init__(self):
         self.out = Output(layout=layout_generic_output)
         self.out.layout = plot_layout
         self.groove_obj = None  # current groove object
-        self.hbox_dict = None  # TODO: better name
+        self.groove_params_dropdowns = None
 
         # create figure for groove visualization
         self._create_plot()
 
         self.groove_params_vbox = WidgetMyVBox([])
         self.groove_type_dropdown = self._create_groove_dropdown()
-        # self.save_button = self._create_save_button()
+
         # create rest
         self.groove_selection = WidgetMyVBox(
             [
@@ -132,28 +236,14 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         """Return groove parameters."""
         return dict(groove=self.groove_obj)
 
-    # TODO: replace with SAveButton widget
-    def _create_save_button(self):
-        self.button_o = widgets.Output()
-        self.filename = widgets.Text("groove.weldx", layout=description_layout)
-
-        def on_button_clicked(_):
-            # TODO: set output filename and save it!
-            with self.button_o:
-                clear_output()
-                tree = {"groove": self.groove_obj}
-                print("vis tree....")
-                with weldx.WeldxFile(tree=tree, mode="rw") as fh:
-                    fh.show_asdf_header(True, True)
-
-        # button
-        b = Button(description="Show as .yml File", layout=button_layout)
-        b.on_click(on_button_clicked)
-
-        box = VBox([self.filename, b, self.button_o])
-        return box
-
     def _create_plot(self):
+        # ensure we have the proper matplotlib backend.
+        get_ipython().run_line_magic("matplotlib", "widget")
+        # print("backend:", matplotlib.get_backend())
+
+        # TODO: fig size should match size of self.out see
+        #  https://stackoverflow.com/questions/61272384/how-to-resize-matplotlib
+        #  -figure-to-match-ipywidgets-output-size-automatically
         with self.out:
             self.fig, self.ax = plt.subplots(1, 1, figsize=(5, 4), dpi=100)
             canvas = self.fig.canvas
@@ -161,7 +251,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
             canvas.header_visible = False
             canvas.footer_visible = False
             canvas.resizable = False
-            # plt.show(self.fig)
+            plt.show(self.fig)
 
     def _create_groove_dropdown(self):
         # get all attribute mappings (human-readable names)
@@ -174,8 +264,8 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         # TODO: formatting, first letter upper case, replace _ with space
 
         # create dict with hboxes of all attributes
-        self.hbox_dict = dict()
-        hbox_dict = self.hbox_dict
+        self.groove_params_dropdowns = dict()
+        hbox_dict = self.groove_params_dropdowns
         for item in attrs:
             if item == "code_number":
                 dropdown = widgets.Dropdown(
@@ -215,31 +305,32 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
     def _update_plot(self, _):
         selection = self.groove_type_dropdown.value
-        with self.out:
-            groove_params = dict()
-            groove_params["groove_type"] = selection
-            for child in self.groove_params_vbox.children:
-                child_0 = child.children[0]
-                if child_0.value == "code_number":
-                    groove_params[child_0.value] = child.children[1].value
-                else:
-                    magnitude = child.children[1].value
-                    unit = child.children[2].value
-                    groove_params[child_0.value] = Q_(magnitude, unit)
+        groove_params = dict()
+        groove_params["groove_type"] = selection
+        for child in self.groove_params_vbox.children:
+            child_0 = child.children[0]
+            if child_0.value == "code_number":
+                groove_params[child_0.value] = child.children[1].value
+            else:
+                magnitude = child.children[1].value
+                unit = child.children[2].value
+                groove_params[child_0.value] = Q_(magnitude, unit)
 
-            self.groove_obj = get_groove(**groove_params)
-            # TODO: replot can be avoided (e.g. set_xydata?)
-            self.ax.lines = []
-            # self.ax.texts = []
+        self.groove_obj = get_groove(**groove_params)
 
-            with show_only_exception_message():
-                self.groove_obj.plot(line_style="-", ax=self.ax)
+        # TODO: re-plot can be avoided (e.g. set_xydata?)
+        self.ax.lines.clear()
+        # self.ax.texts = []
+
+        # with show_only_exception_message():
+        if True:
+            self.groove_obj.plot(line_style="-", ax=self.ax)
 
     def _update_params_to_selection(self, change):
         selection = change["new"]
         self.groove_params_vbox.children = [
             slider
-            for key, slider in self.hbox_dict.items()
+            for key, slider in self.groove_params_dropdowns.items()
             if key
             in (
                 _groove_name_to_type[selection]._mapping[x]
@@ -260,6 +351,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         # TODO: consider setting it read-only??
         self.weld_speed = FloatWithUnit("weld speed", value=6, unit="mm/s")
         self.base_metal = WidgetMetal()
+        self.geometry_export = WidgetSTLExport()
         self.additional_params = (
             make_title("Welding parameters", 4),
             self.seam_length,
@@ -267,6 +359,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
             self.tcp_y,
             self.tcp_z,
             self.base_metal,
+            self.geometry_export,
         )
         # add our parameters to our instance of WidgetGrooveSelection.
         self.groove_sel.groove_selection.children += self.additional_params
@@ -278,7 +371,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         children = [
             self.groove_sel,
-            self.plot_button,
+            self.plot_button,  # TODO: we do not want a 100% width button here
             self.out,
         ]
 
@@ -300,8 +393,8 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         )
 
         # rasterize geometry
-        profile_raster_width = Q_(2, "mm")  # resolution of each profile in mm
-        trace_raster_width = Q_(30, "mm")  # space between profiles in mm
+        profile_raster_width = self.geometry_export.profile_raster_width.quantity
+        trace_raster_width = self.geometry_export.trace_raster_width.quantity
 
         # TODO: show 2d data?
         # geometry_data_sp = geometry.rasterize(
@@ -310,7 +403,9 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         # )
 
         # crete a new coordinate system manager with default base coordinate system
-        csm = weldx.CoordinateSystemManager("base")
+        csm = weldx.CoordinateSystemManager(
+            "base", coordinate_system_manager_name="design"
+        )
 
         # add the workpiece coordinate system
         csm.add_cs(
@@ -320,11 +415,13 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         )
 
         # add the geometry data of the specimen
+        sp_specimen = geometry.spatial_data(profile_raster_width, trace_raster_width)
         csm.assign_data(
-            geometry.spatial_data(profile_raster_width, trace_raster_width),
+            sp_specimen,
             "specimen",
             "workpiece",
         )
+        self.geometry_export.geometry = sp_specimen
 
         tcp_y = self.tcp_y.float_value
         tcp_z = self.tcp_z.float_value
@@ -393,3 +490,10 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
             TCP=self.csm.get_cs("TCP design", "workpiece"),
         )
         return tree
+
+
+def test_groove_linear_sel_tcp_movement_export():
+    w = WidgetGrooveSelectionTCPMovement()
+    tree = w.to_tree()
+    # dump
+    weldx.WeldxFile(tree=tree, mode="rw")
