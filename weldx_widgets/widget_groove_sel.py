@@ -204,6 +204,8 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
                 WidgetMyVBox([]),  # additional parameters (e.g. weld speed).
             ]
         )
+        # left box with parameter should be small to leave more space for plots.
+        self.groove_selection.layout.width = "30%"
         children = [
             make_title("ISO 9692-1 Groove selection", 3),
             WidgetMyHBox(children=[self.groove_selection, self.out]),
@@ -347,6 +349,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         self.base_metal = WidgetMetal()
         self.geometry_export = WidgetCADExport()
         self.plot_button = Button(description="3D Plot", layout=button_layout)
+        self.plot_button.layout.width = "150px"
         self.plot_button.on_click(self.create_csm_and_plot)
         self.additional_params = (
             make_title("Welding parameters", 4),
@@ -363,13 +366,9 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         # csm 3d visualization
         self.csm = None
-        # self.out = WidgetSimpleOutput(height="800px", width="auto")
-        # self.out.set_visible(False)
 
         children = [
             self.groove_sel,
-            # self.plot_button,  # TODO: we do not want a 100% width button here
-            # self.out,
         ]
 
         super(WidgetGrooveSelectionTCPMovement, self).__init__(
@@ -456,30 +455,33 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     def plot(self):
         """Visualize the tcp design movement."""
         out = self.groove_sel.out
-        # self.out.out.clear_output()
-        # TODO: close older figures to regain resources!
-        # TODO: can old figures be updated?
 
-        # TODO: visualizer does not hold a reference to the k3d.Plot instance
-        # but we need that, to properly close the old figure.
-        # we could monkey patch into k3d.plot to capture the Plot instance,
-        # but that seems to hacky.
+        # clear previous output.
         if self.last_plot is not None:
-            # {'output_type': 'display_data', 'data': {'text/plain': "Canvas(
-            del self.last_plot["data"]
-            # self.last_plot.close()
+            self.last_plot.close()
 
-        with out:
-            self.csm.plot(
+        import warnings
+        from unittest import mock
+
+        from weldx_widgets.visualization.csm_k3d import (
+            CoordinateSystemManagerVisualizerK3D,
+        )
+
+        # TODO: once weldx-widgets matches a release of weldx, we can remove this
+        # monkey patching
+        with out, mock.patch(
+            "weldx.visualization.CoordinateSystemManagerVisualizerK3D",
+            CoordinateSystemManagerVisualizerK3D,
+        ), warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            vis = self.csm.plot(
                 coordinate_systems=["TCP design"],
-                # colors=color_dict,
                 # limits=[(0, 140), (-5, 5), (0, 12)],
                 show_vectors=False,
                 show_wireframe=False,
                 backend="k3d",
             )
-            self.last_plot = out.outputs[-1]
-            # self.last_plot = list(vis._lcs_vis.values())[0]
+            self.last_plot = vis
 
     def to_tree(self) -> dict:
         """Return the workpiece, coordinates and TCP movement."""
