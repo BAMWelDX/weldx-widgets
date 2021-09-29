@@ -33,7 +33,7 @@ __all__ = [
 ]
 
 
-class WidgetSTLExport(WidgetMyVBox):
+class WidgetCADExport(WidgetMyVBox):
     """Exports SpatialData to selected CAD format.
 
     Attributes
@@ -52,7 +52,7 @@ class WidgetSTLExport(WidgetMyVBox):
         # of the chooser of the save widget.
         default_format_index = 0
         self.format = Dropdown(
-            options=WidgetSTLExport.data_formats,
+            options=WidgetCADExport.data_formats,
             index=default_format_index,
             description="Data format",
         )
@@ -89,7 +89,7 @@ class WidgetSTLExport(WidgetMyVBox):
             self.format,
             self.save,
         ]
-        super(WidgetSTLExport, self).__init__(children=children)
+        super().__init__(children=children)
         self.layout.border = "1px solid gray"
         self.geometry = None
 
@@ -147,7 +147,7 @@ class WidgetMetal(WidgetMyVBox):
             self.standard,
             self.thickness,
         ]
-        super(WidgetMetal, self).__init__(children=children)
+        super().__init__(children=children)
 
     def to_tree(self):
         """Return metal parameters."""
@@ -212,9 +212,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         # set initial state
         self._update_params_to_selection(dict(new=self.groove_type_dropdown.value))
         self._update_plot(None)
-        super(WidgetGrooveSelection, self).__init__(
-            children=children, layout=Layout(width="100%")
-        )
+        super().__init__(children=children, layout=Layout(width="100%"))
 
     @property
     def schema(self) -> str:
@@ -347,7 +345,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         # TODO: consider setting it read-only??
         self.weld_speed = FloatWithUnit("weld speed", value=6, unit="mm/s")
         self.base_metal = WidgetMetal()
-        self.geometry_export = WidgetSTLExport()
+        self.geometry_export = WidgetCADExport()
         self.plot_button = Button(description="3D Plot", layout=button_layout)
         self.plot_button.on_click(self.create_csm_and_plot)
         self.additional_params = (
