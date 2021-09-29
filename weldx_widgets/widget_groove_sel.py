@@ -233,8 +233,9 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
     def _create_plot(self):
         # ensure we have the proper matplotlib backend.
-        get_ipython().run_line_magic("matplotlib", "widget")
-        # print("backend:", matplotlib.get_backend())
+        ip = get_ipython()
+        if ip:
+            ip.run_line_magic("matplotlib", "widget")
 
         # TODO: fig size should match size of self.out see
         #  https://stackoverflow.com/questions/61272384/how-to-resize-matplotlib
