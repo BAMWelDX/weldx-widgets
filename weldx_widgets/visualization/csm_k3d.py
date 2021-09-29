@@ -501,6 +501,10 @@ class CoordinateSystemManagerVisualizerK3D:
             grid_auto_fit=grid_auto_fit,
             grid=grid,
         )
+
+        # keep a reference to current plot widgets
+        self._plot = plot
+
         self._lcs_vis = {
             lcs_name: CoordinateSystemVisualizerK3D(
                 self._csm.get_cs(lcs_name, reference_system),
@@ -834,3 +838,8 @@ class CoordinateSystemManagerVisualizerK3D:
             lcs_vis.update_time_index(index)
         self._update_spatial_data()
         self._time_info.text = f"<b>time:</b> {self._time[index]}"
+
+    def close(self):
+        """Close this plot."""
+        self._plot.close()
+        self._controls.close()
