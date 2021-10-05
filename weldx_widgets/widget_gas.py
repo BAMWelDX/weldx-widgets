@@ -164,16 +164,3 @@ class WidgetShieldingGas(WidgetMyVBox):
         self.gas_components.from_tree(gas_components)
 
 
-def test_import_export():
-    w = WidgetShieldingGas()
-    # simulate adding a gas
-    w.gas_components.gas_selection.index = 3
-    w.gas_components._add_gas_comp(None)
-    percentages = (80, 20)
-    for i, (name, box) in enumerate(w.gas_components.components.items()):
-        box.children[1].value = percentages[i]
-    tree = w.to_tree()
-
-    w2 = WidgetShieldingGas()
-    w2.from_tree(tree)
-    assert w2.to_tree() == tree
