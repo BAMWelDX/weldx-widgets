@@ -162,5 +162,3 @@ class WidgetShieldingGas(WidgetMyVBox):
         self.flowrate.quantity = gas_for_proc.torch_shielding_gas_flowrate
         gas_components = dict(gas_component=gas_for_proc.torch_shielding_gas.gas_component)
         self.gas_components.from_tree(gas_components)
-
-
