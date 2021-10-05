@@ -1,4 +1,7 @@
 """Widgets to handle shielding gas selection."""
+from typing import List
+
+from bidict import bidict
 from ipywidgets import Button, Dropdown, HBox, IntSlider, Layout, Output
 
 from weldx import Q_
@@ -21,9 +24,9 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
 
     gas_list = ["Argon", "CO2", "Helium", "Hydrogen", "Oxygen"]
     _asdf_names = ["argon", "carbon dioxide", "helium", "hydrogen", "oxygen"]
-    _mapping = {
+    _mapping = bidict({
         gui_name: _asdf_name for gui_name, _asdf_name in zip(gas_list, _asdf_names)
-    }
+    })
 
     def __init__(self, index=0, percentage=100):
         # create first gas dropdown, with buttons to delete and add gases.
@@ -41,6 +44,10 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
         button_add.on_click(self._add_gas_comp)
 
         super(WidgetSimpleGasSelection, self).__init__(children=[button_add, gas])
+
+    def _clear(self):
+        self.children = [self.children[0]]
+        #self.components.clear()
 
     def _create_gas_dropdown(self, index=0, percentage=100):
         gas_dropdown = Dropdown(
@@ -110,6 +117,22 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
         ]
         return dict(gas_component=gas_components)
 
+    def from_tree(self, tree):
+        gc_list: List[GasComponent] = tree["gas_component"]
+        self._clear()
+        for gc in gc_list:
+            # create widget for gas element with percentage, then add to components dict
+            gas_name = gc.gas_chemical_name
+            mapped = self._mapping.inverse[gas_name]
+            index_first_avail = self.gas_list.index(mapped)
+
+            percentage = gc.gas_percentage.m
+
+            box = self._create_gas_dropdown(index_first_avail, percentage=percentage)
+
+            self.children += (box,)
+            self.components[mapped] = box
+
 
 class WidgetShieldingGas(WidgetMyVBox):
     """Widget to combine flow rate with a gas selection."""
@@ -134,7 +157,23 @@ class WidgetShieldingGas(WidgetMyVBox):
         )
         return dict(shielding_gas=gas_for_proc)
 
+    def from_tree(self, tree):
+        gas_for_proc: ShieldingGasForProcedure = tree["shielding_gas"]
+        self.flowrate.quantity = gas_for_proc.torch_shielding_gas_flowrate
+        gas_components = dict(gas_component=gas_for_proc.torch_shielding_gas.gas_component)
+        self.gas_components.from_tree(gas_components)
 
-def test():
+
+def test_import_export():
     w = WidgetShieldingGas()
-    w.to_tree()
+    # simulate adding a gas
+    w.gas_components.gas_selection.index = 3
+    w.gas_components._add_gas_comp(None)
+    percentages = (80, 20)
+    for i, (name, box) in enumerate(w.gas_components.components.items()):
+        box.children[1].value = percentages[i]
+    tree = w.to_tree()
+
+    w2 = WidgetShieldingGas()
+    w2.from_tree(tree)
+    assert w2.to_tree() == tree

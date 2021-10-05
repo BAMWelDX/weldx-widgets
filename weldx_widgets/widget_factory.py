@@ -99,6 +99,11 @@ class FloatWithUnit(WidgetMyHBox):
         """Return wrapped quantity of this float."""
         return Q_(self.float_value, self.unit)
 
+    @quantity.setter
+    def quantity(self, value):
+        self.float_value = value.magnitude
+        self.unit = value.units
+
 
 def make_title(text, heading_level=3):
     """Return an HTML formatted heading."""
