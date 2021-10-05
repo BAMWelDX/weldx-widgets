@@ -88,7 +88,7 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
     @property
     def schema(self) -> str:
         """Return schema to validate data against."""
-        return "time_series-1.0.0"
+        return "time_series"
 
     # TODO: handle math-expr
     def __init__(

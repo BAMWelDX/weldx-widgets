@@ -2,7 +2,7 @@
 import ipywidgets as widgets
 from ipywidgets import HTML, HBox, Label, Layout, Text
 
-from weldx import Q_
+from weldx import Q_, TimeSeries
 from weldx_widgets.widget_base import WidgetMyHBox
 
 plot_layout = Layout(width="60%", height="550px")
@@ -103,6 +103,10 @@ class FloatWithUnit(WidgetMyHBox):
     def quantity(self, value):
         self.float_value = value.magnitude
         self.unit = value.units
+
+    def as_time_series(self) -> TimeSeries:
+        """Wrap the quantity as weldx.TimeSeries."""
+        return TimeSeries(self.quantity)
 
 
 def make_title(text, heading_level=3):
