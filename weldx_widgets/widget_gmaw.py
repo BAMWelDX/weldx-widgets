@@ -1,5 +1,6 @@
 """Widget to edit weldx.GMAW process data."""
 from functools import lru_cache
+from typing import Union
 
 from bidict import bidict
 from ipywidgets import Dropdown
@@ -93,7 +94,7 @@ class BaseProcess(WidgetMyVBox):
         self.meta = process.meta
 
 
-class PulsedProcess(WidgetMyVBox):
+class ProcessPulsed(WidgetMyVBox):
     """Widget for pulsed processes."""
 
     def __init__(self, kind="UI"):
@@ -118,7 +119,7 @@ class PulsedProcess(WidgetMyVBox):
             self.base_current,
             self.pulsed_dim,
         ]
-        super(PulsedProcess, self).__init__(children=children)
+        super(ProcessPulsed, self).__init__(children=children)
 
     def to_tree(self):
         """Return pulsed process parameters."""
@@ -303,7 +304,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         self._welding_process.children = (box,)
 
     @property
-    def welding_process(self):
+    def welding_process(self) -> Union[ProcessSpray, ProcessPulsed]:
         """Return welding process widget."""
         return self._welding_process.children[0]
 
@@ -312,7 +313,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         if process == "spray":
             return ProcessSpray()
 
-        return PulsedProcess(kind=process)
+        return ProcessPulsed(kind=process)
 
     def from_tree(self, tree: dict):
         """Fill widget from tree."""
