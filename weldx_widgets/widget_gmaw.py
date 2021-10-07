@@ -85,11 +85,12 @@ class BaseProcess(WidgetMyVBox):
 
     def from_tree(self, tree):
         """Fill widget with tree data."""
-        # assert "process" in tree, tree
         process: GmawProcess = tree["welding_process"]
         self.manufacturer.text_value = process.manufacturer
         self.power_source.text_value = process.power_source
-        self.wire_feedrate.text_value = process.parameters["wire_feedrate"]
+        self.wire_feedrate.quantity = from_scalar_timeseries_to_q(
+            process.parameters["wire_feedrate"]
+        )
         self.tag = process.tag
         self.meta = process.meta
 
