@@ -309,7 +309,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         """Return welding process widget."""
         return self._welding_process.children[0]
 
-    @lru_cache(maxsize=len(translate))
+    @lru_cache(None)
     def _cached_process_widgets(self, process):
         if process == "spray":
             return ProcessSpray()
