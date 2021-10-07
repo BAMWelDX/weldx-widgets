@@ -1,9 +1,9 @@
 """Widget to edit weldx.GMAW process data."""
 from functools import lru_cache
 
+from bidict import bidict
 from ipywidgets import Dropdown
 from matplotlib import pylab as plt
-from bidict import bidict
 
 import weldx
 from weldx import Q_, GmawProcess, TimeSeries
@@ -47,6 +47,7 @@ def plot_gmaw(gmaw, t):
 
 
 def from_scalar_timeseries_to_q(ts: TimeSeries) -> Q_:
+    """Create a Quantity from the given series."""
     return Q_(ts.data, ts.units)
 
 
@@ -77,13 +78,14 @@ class BaseProcess(WidgetMyVBox):
             power_source=self.power_source.text_value,
             parameters=dict(wire_feedrate=self.wire_feedrate.quantity),
             tag=self.tag,
-            meta=self.meta
+            meta=self.meta,
         )
         return dict(process=process)
 
     def from_tree(self, tree):
         """Fill widget with tree data."""
-        process: GmawProcess = tree["process"]
+        # assert "process" in tree, tree
+        process: GmawProcess = tree["welding_process"]
         self.manufacturer.text_value = process.manufacturer
         self.power_source.text_value = process.power_source
         self.wire_feedrate.text_value = process.parameters["wire_feedrate"]
@@ -142,18 +144,26 @@ class PulsedProcess(WidgetMyVBox):
     def from_tree(self, tree):
         """Fill parameters from tree."""
         self.base_process.from_tree(tree)
-        process = tree["process"]
+        process = tree["welding_process"]
         self.kind = process.meta["modulation"]
 
         params = process.parameters
-        self.pulse_duration.quantity = from_scalar_timeseries_to_q(params["pulse_duration"])
-        self.pulse_frequency.quantity = from_scalar_timeseries_to_q(params["pulse_frequency"])
+        self.pulse_duration.quantity = from_scalar_timeseries_to_q(
+            params["pulse_duration"]
+        )
+        self.pulse_frequency.quantity = from_scalar_timeseries_to_q(
+            params["pulse_frequency"]
+        )
         self.base_current.quantity = from_scalar_timeseries_to_q(params["base_current"])
 
         if self.kind == "UI":
-            self.pulsed_dim.quantity = from_scalar_timeseries_to_q(params["pulse_voltage"])
+            self.pulsed_dim.quantity = from_scalar_timeseries_to_q(
+                params["pulse_voltage"]
+            )
         else:
-            self.pulsed_dim.quantity = from_scalar_timeseries_to_q(params["pulse_current"])
+            self.pulsed_dim.quantity = from_scalar_timeseries_to_q(
+                params["pulse_current"]
+            )
 
 
 class ProcessSpray(WidgetMyVBox):
@@ -193,16 +203,17 @@ class ProcessSpray(WidgetMyVBox):
         return tree
 
     def from_tree(self, tree):
+        """Set widget state from tree."""
         self.base_process.from_tree(tree)
-        process = tree["process"]
+        process = tree["welding_process"]
         parameters = process.parameters
 
         self.voltage.from_tree(dict(timeseries=parameters["voltage"]))
 
-        self.impedance.quantity = from_scalar_timeseries_to_q(
-            parameters["impedance"])
+        self.impedance.quantity = from_scalar_timeseries_to_q(parameters["impedance"])
         self.characteristic.quantity = from_scalar_timeseries_to_q(
-            parameters["characteristic"])
+            parameters["characteristic"]
+        )
 
 
 class WidgetWire(WidgetMyVBox):
@@ -233,16 +244,25 @@ class WidgetWire(WidgetMyVBox):
             "wx_user": {"manufacturer": "WDI", "charge id": "00349764"},
         }
 
+    def from_tree(self, tree):
+        """Set widget state from tree."""
+        wire = tree["welding_wire"]
+        self.diameter.quantity = wire["diameter"]
+        self.wire_class.text_value = wire["class"]
+        self.metadata.text_value = str(wire["wx_user"])
+
 
 class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
     """Widget to handle gas metal arc welding process parameters."""
 
-    translate = bidict({
-        "Spray": "spray",
-        "Pulsed (UI)": "UI",
-        "Pulsed (II)": "II",
-        "CMT": NotImplemented,
-    })
+    translate = bidict(
+        {
+            "Spray": "spray",
+            "Pulsed (UI)": "UI",
+            "Pulsed (II)": "II",
+            "CMT": NotImplemented,
+        }
+    )
 
     @property
     def schema(self) -> str:
@@ -284,6 +304,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
 
     @property
     def welding_process(self):
+        """Return welding process widget."""
         return self._welding_process.children[0]
 
     @lru_cache(maxsize=len(translate))
@@ -297,8 +318,6 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         """Fill widget from tree."""
         process = tree["process"]
         welding_process = process["welding_process"]
-        weld_speed = process["weld_speed"]
-        welding_wire = process["welding_wire"]
 
         # set the right welding process widget
         if welding_process.base_process == "pulse":
@@ -307,13 +326,14 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         elif welding_process.base_process == "spray":
             process_type = "Spray"
         else:
-            raise NotImplementedError(f"unknown process type {welding_process.base_process}")
+            raise NotImplementedError(
+                f"unknown process type {welding_process.base_process}"
+            )
         self.process_type.value = process_type
 
-        self.welding_process.from_tree(welding_process)
-        self.gas.from_tree(tree)
-        self.welding_wire.from_tree(tree)
-
+        self.welding_process.from_tree(process)
+        self.gas.from_tree(process)
+        self.welding_wire.from_tree(process)
 
     def to_tree(self):
         """Return GMAW process parameters."""
