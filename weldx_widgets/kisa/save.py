@@ -204,22 +204,3 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
             invoke=True,
             out=self.out,
         )
-
-
-def test_on_save(tmpdir):
-    """Ensure data from input widget get serialized to desired output file."""
-
-    class simple_export:
-        def to_tree(self):
-            return {"data": 42}
-
-    out_file = str(tmpdir / "out")
-    status = "test"
-    w = SaveAndNext(
-        out_file, next_notebook="no", collect_data_from=[simple_export()], status=status
-    )
-    w.on_save(None)
-    # verify output
-    with weldx.WeldxFile(out_file) as wx:
-        assert wx["data"] == 42
-        assert wx["wx_user"]["KISA"]["status"] == status
