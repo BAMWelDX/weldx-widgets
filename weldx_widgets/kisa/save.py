@@ -160,7 +160,10 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         path = str(fn_path.parent)
         fn = str(fn_path.name)
         self.save_button = weldx_widgets.WidgetSaveButton(
-            desc="1. Save", filename=fn, path=path
+            desc="1. Save",
+            filename=fn,
+            path=path,
+            select_default=True,
         )
         self.save_button.set_handler(self.on_save)
         self.save_button.children += (self.btn_next,)

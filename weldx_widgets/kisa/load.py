@@ -1,10 +1,9 @@
 """Utility functions to set widget state from a given file."""
 from typing import Iterable, Union
 
-from widget_base import WeldxImportExport
-
 import weldx
 from weldx_widgets.kisa.save import get_param_from_env
+from weldx_widgets.widget_base import WeldxImportExport
 
 
 def set_state_from_file(
