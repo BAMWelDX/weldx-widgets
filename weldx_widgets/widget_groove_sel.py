@@ -13,7 +13,12 @@ from ipywidgets import Button, Dropdown, HBox, Label, Layout, Output
 import weldx
 from weldx import Geometry, SpatialData
 from weldx.constants import WELDX_QUANTITY as Q_
-from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
+from weldx.welding.groove.iso_9692_1 import (
+    IsoBaseGroove,
+    _groove_name_to_type,
+    _groove_type_to_name,
+    get_groove,
+)
 from weldx_widgets.generic import WidgetSaveButton
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
@@ -157,26 +162,25 @@ class WidgetMetal(WidgetMyVBox):
             thickness=self.thickness.quantity,
         )
 
+    def from_tree(self, tree: dict):
+        self.common_name.text_value = tree["common_name"]
+        self.standard.text_value = tree["standard"]
+        self.thickness.quantity = tree["thickness"]
 
-def get_code_numbers():
+
+def get_ff_grove_code_numbers():
     """Return FFGroove code numbers."""
-    from weldx.welding.groove.iso_9692_1 import FFGroove
-
-    try:
-        a = FFGroove.__annotations__
-        return a["code_number"].__args__
-    except AttributeError:
-        return [
-            "1.12",
-            "1.13",
-            "2.12",
-            "3.1.1",
-            "3.1.2",
-            "3.1.3",
-            "4.1.1",
-            "4.1.2",
-            "4.1.3",
-        ]
+    return [
+        "1.12",
+        "1.13",
+        "2.12",
+        "3.1.1",
+        "3.1.2",
+        "3.1.3",
+        "4.1.1",
+        "4.1.2",
+        "4.1.3",
+    ]
 
 
 # TODO: nice group layout for all widgets
@@ -185,21 +189,26 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
     """Widget to select groove type."""
 
     def __init__(self):
+        # debug:
+        self.calls_plot = widgets.IntText(0)
+        self._groove_obj = None
+
         self.out = Output(layout=layout_generic_output)
         self.out.layout = plot_layout
-        self.groove_obj = None  # current groove object
         self.groove_params_dropdowns = None
+        self._inhibit_plot = False  # during certain operations, no re-plot
 
         # create figure for groove visualization
         self._create_plot()
 
         self.groove_params_vbox = WidgetMyVBox([])
         self.groove_type_dropdown = self._create_groove_dropdown()
+        self._groove_obj_cache = {}
 
         # create rest
         self.groove_selection = WidgetMyVBox(
             [
-                self.groove_type_dropdown,
+                WidgetMyHBox([Label("Groove type"), self.groove_type_dropdown]),
                 self.groove_params_vbox,
                 WidgetMyVBox([]),  # additional parameters (e.g. weld speed).
             ]
@@ -209,12 +218,29 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         children = [
             make_title("ISO 9692-1 Groove selection", 3),
             WidgetMyHBox(children=[self.groove_selection, self.out]),
+            self.calls_plot,
         ]
 
         # set initial state
         self._update_params_to_selection(dict(new=self.groove_type_dropdown.value))
-        self._update_plot(None)
+        self._update_plot()
         super().__init__(children=children, layout=Layout(width="100%"))
+
+    @property
+    def groove_obj(self) -> IsoBaseGroove:
+        """Get current groove object."""
+        return self._groove_obj
+
+    @groove_obj.setter
+    def groove_obj(self, value: IsoBaseGroove):
+        self._groove_obj = value
+
+        self.groove_selection.children[0].value = _groove_type_to_name[
+            self.groove_obj.__class__
+        ]
+        # update fields according to data in new groove object.
+        for k, v in self.groove_obj.parameters().items():
+            self.groove_params_dropdowns[k].value = v
 
     @property
     def schema(self) -> str:
@@ -224,8 +250,6 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
     def from_tree(self, tree: dict):
         """Fill widget from tree."""
         self.groove_obj = tree["groove"]
-        raise NotImplementedError
-        # TODO: update fields according to data in new groove obj!
 
     def to_tree(self) -> dict:
         """Return groove parameters."""
@@ -247,7 +271,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
             canvas.header_visible = False
             canvas.footer_visible = False
             canvas.resizable = False
-            plt.show(self.fig)
+            plt.show()
 
     def _create_groove_dropdown(self):
         # get all attribute mappings (human-readable names)
@@ -261,30 +285,30 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
         # create dict with hboxes of all attributes
         self.groove_params_dropdowns = dict()
-        hbox_dict = self.groove_params_dropdowns
+        param_widgets = self.groove_params_dropdowns
         for item in attrs:
-            if item == "code_number":
+            if item == "code_number":  # only the case for FFGroove
                 dropdown = widgets.Dropdown(
-                    # import those somewhere?
-                    options=get_code_numbers(),
+                    options=get_ff_grove_code_numbers(),
                     layout=description_layout,
                 )
-                hbox_dict[item] = HBox(
-                    [Label("code_number :", layout=description_layout), dropdown]
+                param_widgets[item] = HBox(
+                    [Label("code_number", layout=description_layout), dropdown]
                 )
             elif "angle" in item:
-                hbox_dict[item] = hbox_float_text_creator(item, "deg", 45)
+                param_widgets[item] = hbox_float_text_creator(item, "deg", 45)
             elif "workpiece_thickness" in item:
-                hbox_dict[item] = hbox_float_text_creator(item, "mm", 15)
+                param_widgets[item] = hbox_float_text_creator(item, "mm", 15)
             else:
-                hbox_dict[item] = hbox_float_text_creator(item, "mm", 5)
+                param_widgets[item] = hbox_float_text_creator(item, "mm", 5)
 
         groove_list = list(_groove_name_to_type.keys())
         # TODO: layout
         groove_type_dropdown = widgets.Dropdown(
             options=groove_list,
-            value=groove_list[1],
-            description="Groove type",
+            # value=("VGroove", None),
+            # value=None,
+            # description="Groove type",
         )
 
         # connect value observers
@@ -292,17 +316,21 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
         update_plot = self._update_plot
         groove_type_dropdown.observe(update_plot, "value")
-        for key, box in hbox_dict.items():
+        for key, box in param_widgets.items():
             box.children[1].observe(update_plot, "value")
             if key != "code_number":
                 box.children[2].observe(update_plot, "value")
+            else:
+                print("ff groove observe:", box.children)
 
         return groove_type_dropdown
 
-    def _update_plot(self, _):
-        selection = self.groove_type_dropdown.value
-        groove_params = dict()
-        groove_params["groove_type"] = selection
+    def _update_plot(self, *_):
+        self.calls_plot.value += 1
+        groove_type = self.groove_type_dropdown.value
+        groove_obj = self._groove_obj_cache.get(groove_type, None)
+
+        groove_params = dict(groove_type=groove_type)
         for child in self.groove_params_vbox.children:
             child_0 = child.children[0]
             if child_0.value == "code_number":
@@ -312,15 +340,20 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
                 unit = child.children[2].value
                 groove_params[child_0.value] = Q_(magnitude, unit)
 
-        self.groove_obj = get_groove(**groove_params)
+        if groove_obj is None:
+            self._groove_obj = get_groove(**groove_params)
+            self._groove_obj_cache[groove_type] = groove_obj
+        else:
+            for attr, value in groove_params.items():
+                setattr(groove_obj, attr, value)
+            self.groove_obj = groove_obj
 
         # TODO: re-plot can be avoided (e.g. set_xydata?)
         self.ax.lines.clear()
         # self.ax.texts = []
 
-        # with show_only_exception_message():
-        if True:
-            self.groove_obj.plot(line_style="-", ax=self.ax)
+        self._groove_obj.plot(line_style="-", ax=self.ax)
+        self.ax.autoscale(True, axis="both")
 
     def _update_params_to_selection(self, change):
         selection = change["new"]
@@ -505,9 +538,16 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         )
         return tree
 
+    def from_tree(self, tree: dict):
+        """Set widget groups state from given tree."""
+        self.csm = tree.get("coordinates_design", default=None)
+        workpiece = tree["workpiece"]
+        geom = workpiece["geometry"]
+        # groove_shape = geom["groove_shape"]
+        seam_length = geom["seam_length"]
+        self.seam_length.quantity = seam_length
+        self.groove_sel.from_tree(tree)
+        # self.workpiece =
 
-def test_groove_linear_sel_tcp_movement_export():
-    w = WidgetGrooveSelectionTCPMovement()
-    tree = w.to_tree()
-    # dump
-    weldx.WeldxFile(tree=tree, mode="rw")
+        self.base_metal.from_tree(tree)
+        raise NotImplementedError
