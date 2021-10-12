@@ -79,13 +79,13 @@ class WidgetCADExport(WidgetMyVBox):
             "Profile raster width",
             value=2,
             unit="mm",
-            tooltip="Target distance between the individual points of a profile",
+            # tooltip="Target distance between the individual points of a profile",
         )
         self.trace_raster_width = FloatWithUnit(
             "Trace raster width",
             value=30,
             unit="mm",
-            tooltip="Target distance between the individual profiles on the trace",
+            # tooltip="Target distance between the individual profiles on the trace",
         )
 
         children = [

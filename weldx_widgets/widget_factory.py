@@ -63,7 +63,7 @@ class WidgetLabeledTextInput(WidgetMyHBox):
 class FloatWithUnit(WidgetMyHBox):
     """Widget grouping a float with unit."""
 
-    def __init__(self, text, unit, value: float = 0.0, min=0, tooltip=None):
+    def __init__(self, text, unit, value: float = 0.0, min=0):
         self._label = Label(text, layout=description_layout)
         self._float = widgets.BoundedFloatText(
             value=value, min=min, max=2 ** 32, layout=textbox_layout
@@ -72,7 +72,6 @@ class FloatWithUnit(WidgetMyHBox):
 
         super(FloatWithUnit, self).__init__(
             children=[self._label, self._float, self._unit],
-            tooltip=tooltip,
         )
 
     @contextlib.contextmanager
