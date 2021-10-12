@@ -24,9 +24,9 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
 
     gas_list = ["Argon", "CO2", "Helium", "Hydrogen", "Oxygen"]
     _asdf_names = ["argon", "carbon dioxide", "helium", "hydrogen", "oxygen"]
-    _mapping = bidict({
-        gui_name: _asdf_name for gui_name, _asdf_name in zip(gas_list, _asdf_names)
-    })
+    _mapping = bidict(
+        {gui_name: _asdf_name for gui_name, _asdf_name in zip(gas_list, _asdf_names)}
+    )
 
     def __init__(self, index=0, percentage=100):
         # create first gas dropdown, with buttons to delete and add gases.
@@ -47,7 +47,7 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
 
     def _clear(self):
         self.children = [self.children[0]]
-        #self.components.clear()
+        # self.components.clear()
 
     def _create_gas_dropdown(self, index=0, percentage=100):
         gas_dropdown = Dropdown(
@@ -158,7 +158,10 @@ class WidgetShieldingGas(WidgetMyVBox):
         return dict(shielding_gas=gas_for_proc)
 
     def from_tree(self, tree):
+        """Restore widget state from tree."""
         gas_for_proc: ShieldingGasForProcedure = tree["shielding_gas"]
         self.flowrate.quantity = gas_for_proc.torch_shielding_gas_flowrate
-        gas_components = dict(gas_component=gas_for_proc.torch_shielding_gas.gas_component)
+        gas_components = dict(
+            gas_component=gas_for_proc.torch_shielding_gas.gas_component
+        )
         self.gas_components.from_tree(gas_components)
