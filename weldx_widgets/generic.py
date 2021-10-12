@@ -45,7 +45,7 @@ class WidgetSaveButton(WidgetMyHBox):
         desc="Save to",
         filename="out.wx",
         path=".",
-        file_pattern=None,
+        filter_pattern=None,
         select_default=False,
     ):
         from weldx_widgets.widget_factory import button_layout
@@ -53,7 +53,7 @@ class WidgetSaveButton(WidgetMyHBox):
         self.file_chooser = FileChooser(
             path=path,
             filename=filename,
-            file_pattern=file_pattern,
+            filter_pattern=filter_pattern,
             select_default=select_default,
         )
         self.button = Button(description=desc, layout=button_layout)

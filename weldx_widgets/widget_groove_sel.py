@@ -68,7 +68,7 @@ class WidgetCADExport(WidgetMyVBox):
         self.save = WidgetSaveButton(
             desc="Save",
             filename=f"specimen.{ext}",
-            file_pattern=f"*.{ext}",
+            filter_pattern=f"*.{ext}",
             select_default=True,
         )
         self.save.set_handler(self._on_export_geometry)
@@ -186,8 +186,6 @@ def get_ff_grove_code_numbers():
 class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
     """Widget to select groove type."""
 
-    _figures = []
-
     def __init__(self):
         self._groove_obj = None
 
@@ -275,18 +273,12 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         #  -figure-to-match-ipywidgets-output-size-automatically
         with self.out:
             self.fig, self.ax = plt.subplots(1, 1, figsize=(5, 4), dpi=100)
-            self._figures.append(self.fig)
             canvas = self.fig.canvas
             canvas.toolbar_visible = False
             canvas.header_visible = False
             canvas.footer_visible = False
             canvas.resizable = False
             plt.show()
-
-    def __del__(self):
-        """Super private method, you fucking linter!!!!!."""
-        for f in self._figures:
-            plt.close(f)
 
     def _create_groove_dropdown(self):
         # get all attribute mappings (human-readable names)
