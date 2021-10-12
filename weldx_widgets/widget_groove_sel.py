@@ -152,15 +152,18 @@ class WidgetMetal(WidgetMyVBox):
     def to_tree(self):
         """Return metal parameters."""
         return dict(
-            common_name=self.common_name.text_value,
-            standard=self.standard.text_value,
-            thickness=self.thickness.quantity,
+            base_metal=dict(
+                common_name=self.common_name.text_value,
+                standard=self.standard.text_value,
+                thickness=self.thickness.quantity,
+            )
         )
 
     def from_tree(self, tree: dict):
-        self.common_name.text_value = tree["common_name"]
-        self.standard.text_value = tree["standard"]
-        self.thickness.quantity = tree["thickness"]
+        base_metal = tree["base_metal"]
+        self.common_name.text_value = base_metal["common_name"]
+        self.standard.text_value = base_metal["standard"]
+        self.thickness.quantity = base_metal["thickness"]
 
 
 def get_ff_grove_code_numbers():
@@ -255,11 +258,11 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
     def from_tree(self, tree: dict):
         """Fill widget from tree."""
-        self.groove_obj = tree["groove"]
+        self.groove_obj = tree["groove_shape"]
 
     def to_tree(self) -> dict:
         """Return groove parameters."""
-        return dict(groove=self.groove_obj)
+        return dict(groove_shape=self.groove_obj)
 
     def _create_plot(self):
         # ensure we have the proper matplotlib backend.
@@ -363,14 +366,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         self.ax.lines.clear()
         # self.ax.texts = []
 
-        # TODO: cache plot results by hash of groove_obj?
-        self._groove_obj.plot(line_style="-", ax=self.ax)
-
-        def hash_params(groove):
-            params = groove.parameters()
-            return hash(frozenset(params.items()))
-
-        # print(hash_params(self.groove_obj))
+        self.groove_obj.plot(line_style="-", ax=self.ax)
         self.ax.autoscale(True, axis="both")
 
     def _update_params_to_selection(self, change):
@@ -538,11 +534,11 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     def to_tree(self) -> dict:
         """Return the workpiece, coordinates and TCP movement."""
         geometry = dict(
-            groove_shape=self.groove_sel.groove_obj,
+            **self.groove_sel.to_tree(),
             seam_length=self.seam_length.quantity,
         )
-        base_metal = dict(common_name="S355J2+N", standard="DIN EN 10225-2:2011")
-        workpiece = dict(base_metal=base_metal, geometry=geometry)
+        workpiece = dict(geometry=geometry, **self.base_metal.to_tree())
+
         if self.csm is None:
             self.create_csm_and_plot(button=None, plot=False)
         # the single_pass_weld_schema expects the "TCP" key to be a LCS
@@ -558,14 +554,10 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
     def from_tree(self, tree: dict):
         """Set widget groups state from given tree."""
-        self.csm = tree.get("coordinates_design", default=None)
+        self.csm = tree.get("coordinates_design", None)
         workpiece = tree["workpiece"]
         geom = workpiece["geometry"]
-        # groove_shape = geom["groove_shape"]
-        seam_length = geom["seam_length"]
-        self.seam_length.quantity = seam_length
-        self.groove_sel.from_tree(tree)
-        # self.workpiece =
 
-        self.base_metal.from_tree(tree)
-        raise NotImplementedError
+        self.seam_length.quantity = geom["seam_length"]
+        self.groove_sel.from_tree(geom)
+        self.base_metal.from_tree(workpiece)

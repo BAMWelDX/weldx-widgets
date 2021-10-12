@@ -48,4 +48,12 @@ def test_groove_linear_sel_tcp_movement_export():
     w = WidgetGrooveSelectionTCPMovement()
     tree = w.to_tree()
     # dump
-    weldx.WeldxFile(tree=tree, mode="rw")
+    tree = weldx.WeldxFile(tree=tree, mode="rw")
+    tree.pop("asdf_library")
+    tree.pop("history")
+
+    w2 = WidgetGrooveSelectionTCPMovement()
+    w2.from_tree(tree)
+    tree2 = w2.to_tree()
+
+    assert tree2 == tree
