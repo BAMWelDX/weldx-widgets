@@ -6,7 +6,6 @@ from weldx.welding.groove.iso_9692_1 import _create_test_grooves
 from weldx_widgets import WidgetGrooveSelection, WidgetGrooveSelectionTCPMovement
 
 test_grooves = _create_test_grooves()
-# ff_grooves = {k,v for k,v in test_grooves if k.startswith("ff_groove")}
 
 
 def setup_module(module):
@@ -19,9 +18,24 @@ def setup_module(module):
 @pytest.mark.parametrize("groove_name", test_grooves.keys())
 def test_groove_sel(groove_name):
     """Check form restoration from test grooves."""
+    groove_obj = test_grooves[groove_name][0]
     w = WidgetGrooveSelection()
-    w.groove_obj = test_grooves[groove_name][0]
+    w.groove_obj = groove_obj
     tree = w.to_tree()
+    gui_params = w.groove_params_dropdowns
+    if not groove_name.startswith("ff"):  # non ff-grooves
+        assert gui_params["workpiece_thickness"].quantity == groove_obj.t
+        assert gui_params["root_gap"].quantity == groove_obj.b
+        try:
+            assert gui_params["root_face"].quantity == groove_obj.c
+        except AttributeError:
+            pass
+        try:
+            assert gui_params["groove_angle"].quantity == groove_obj.alpha
+        except AttributeError:
+            pass
+    else:
+        assert gui_params["workpiece_thickness"].quantity == groove_obj.t_1
 
     w2 = WidgetGrooveSelection()
     w2.from_tree(tree)
