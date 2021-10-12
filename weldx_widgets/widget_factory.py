@@ -1,6 +1,8 @@
 """Factory for commonly used widget elements."""
+import contextlib
+
 import ipywidgets as widgets
-from ipywidgets import HTML, HBox, Label, Layout, Text
+from ipywidgets import HTML, Label, Layout, Text
 
 from weldx import Q_, TimeSeries
 from weldx_widgets.widget_base import WidgetMyHBox
@@ -12,7 +14,7 @@ button_layout = Layout(
     # height="50px",
 )
 textbox_layout = Layout(width="65px", height="30px")  # used for units
-description_layout = Layout(width="30%", height="30px")
+description_layout = Layout(width="35%", height="30px")
 
 layout_generic_output = Layout(width="50%", height="300px")
 
@@ -23,17 +25,20 @@ def copy_layout(layout):
     return Layout(height=layout.height, width=layout.width)
 
 
-def hbox_float_text_creator(text, unit, value=7.5, min=0, make_box=True):
-    """Create a labeled float input with unit."""
-    children = [
-        Label(text, layout=description_layout),
-        widgets.BoundedFloatText(value=value, min=min, layout=textbox_layout),
-        Text(value=unit, placeholder="unit", layout=textbox_layout),
-    ]
-    if make_box:
-        return HBox(children=children)
+@contextlib.contextmanager
+def temporarily_unobserve_all(widget):
+    """Block all events within the context."""
+    from traitlets import HasTraits
 
-    return children
+    if not isinstance(widget, HasTraits):
+        raise ValueError(f"unsupported type {type(widget)}")
+    if not widget._trait_notifiers:
+        yield
+    else:
+        old = widget._trait_notifiers
+        widget._trait_notifiers = {}
+        yield
+        widget._trait_notifiers = old
 
 
 class WidgetLabeledTextInput(WidgetMyHBox):
@@ -59,13 +64,24 @@ class FloatWithUnit(WidgetMyHBox):
     """Widget grouping a float with unit."""
 
     def __init__(self, text, unit, value: float = 0.0, min=0, tooltip=None):
-        self._label, self._float, self._unit = hbox_float_text_creator(
-            text, unit, value, min, make_box=False
+        self._label = Label(text, layout=description_layout)
+        self._float = widgets.BoundedFloatText(
+            value=value, min=min, max=2 ** 32, layout=textbox_layout
         )
+        self._unit = Text(value=unit, placeholder="unit", layout=textbox_layout)
+
         super(FloatWithUnit, self).__init__(
             children=[self._label, self._float, self._unit],
             tooltip=tooltip,
         )
+
+    @contextlib.contextmanager
+    def silence_events(self):
+        """Do not listen to events within this context."""
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(temporarily_unobserve_all(self._unit))
+            stack.enter_context(temporarily_unobserve_all(self._float))
+            yield
 
     @property
     def text(self):
