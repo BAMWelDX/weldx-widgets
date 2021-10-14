@@ -1,5 +1,6 @@
 """Utility functions to set widget state from a given file."""
 from pathlib import Path
+
 from typing import Iterable, Union
 
 import weldx
@@ -33,3 +34,4 @@ def set_state_from_file(
                 print(f"Error during reading {file}: {e}")
     else:
         print(f"Unknown input file type: {type(file)}")
+
