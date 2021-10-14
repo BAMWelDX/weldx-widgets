@@ -127,7 +127,6 @@ class ProcessPulsed(WidgetMyVBox):
         tree = self.base_process.to_tree()
         process = tree["process"]
         process.base_process = "pulse"
-        process.modulation = self.kind
         # these params have to be quantities
         params = dict(
             pulse_duration=self.pulse_duration.quantity,
