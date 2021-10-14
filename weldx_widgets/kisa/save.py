@@ -194,7 +194,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         clear_output()
         with weldx.WeldxFile(self.filename, mode="rw", sync=True) as fh, self.out:
             fh.update(**result)
-            display(fh)
+            display(fh.show_asdf_header(False, True))
 
     def on_next(self, _):
         """Invoke next notebook."""
