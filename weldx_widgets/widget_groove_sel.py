@@ -1,6 +1,7 @@
 """Widgets to select groove type and tcp movement."""
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 from typing import Union
 
@@ -13,7 +14,12 @@ from ipywidgets import Button, Dropdown, HBox, Label, Layout, Output
 import weldx
 from weldx import Geometry, SpatialData
 from weldx.constants import WELDX_QUANTITY as Q_
-from weldx.welding.groove.iso_9692_1 import _groove_name_to_type, get_groove
+from weldx.welding.groove.iso_9692_1 import (
+    IsoBaseGroove,
+    _groove_name_to_type,
+    _groove_type_to_name,
+    get_groove,
+)
 from weldx_widgets.generic import WidgetSaveButton
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
@@ -21,10 +27,10 @@ from weldx_widgets.widget_factory import (
     WidgetLabeledTextInput,
     button_layout,
     description_layout,
-    hbox_float_text_creator,
     layout_generic_output,
     make_title,
     plot_layout,
+    textbox_layout,
 )
 
 __all__ = [
@@ -62,7 +68,7 @@ class WidgetCADExport(WidgetMyVBox):
         self.save = WidgetSaveButton(
             desc="Save",
             filename=f"specimen.{ext}",
-            file_pattern=f"*.{ext}",
+            filter_pattern=f"*.{ext}",
             select_default=True,
         )
         self.save.set_handler(self._on_export_geometry)
@@ -73,13 +79,13 @@ class WidgetCADExport(WidgetMyVBox):
             "Profile raster width",
             value=2,
             unit="mm",
-            tooltip="Target distance between the individual points of a profile",
+            # tooltip="Target distance between the individual points of a profile",
         )
         self.trace_raster_width = FloatWithUnit(
             "Trace raster width",
             value=30,
             unit="mm",
-            tooltip="Target distance between the individual profiles on the trace",
+            # tooltip="Target distance between the individual profiles on the trace",
         )
 
         children = [
@@ -105,33 +111,27 @@ class WidgetCADExport(WidgetMyVBox):
 
     def _on_export_geometry(self, _):
         if self.geometry is None:
-            print("no geo")
             return
         if not self.save.path:
-            print("no path")
             return
 
         if isinstance(self.geometry, Geometry):
-            print("dump Geometry")
             self.geometry.to_file(
                 self.save.path,
                 self.profile_raster_width.quantity,
                 self.trace_raster_width.quantity,
             )
         elif isinstance(self.geometry, SpatialData):  # already rasterized
-            print("dump SpatialData")
             self.geometry.to_file(self.save.path)
         else:
             raise RuntimeError(f"invalid geometry type {type(self.geometry)}")
 
     def _update_file_pattern(self, change):
-        print("update file pattern")
         dot_ext = f".{change['new']}"
         self.save.file_chooser.filter_pattern = f"*{dot_ext}"
         fn = Path(self.save.path).stem + dot_ext
         self.save.file_chooser.default_filename = fn
         self.save.file_chooser.refresh()
-        print("refershed")
 
 
 class WidgetMetal(WidgetMyVBox):
@@ -152,31 +152,33 @@ class WidgetMetal(WidgetMyVBox):
     def to_tree(self):
         """Return metal parameters."""
         return dict(
-            common_name=self.common_name.text_value,
-            standard=self.standard.text_value,
-            thickness=self.thickness.quantity,
+            base_metal=dict(
+                common_name=self.common_name.text_value,
+                standard=self.standard.text_value,
+                thickness=self.thickness.quantity,
+            )
         )
 
+    def from_tree(self, tree: dict):
+        base_metal = tree["base_metal"]
+        self.common_name.text_value = base_metal["common_name"]
+        self.standard.text_value = base_metal["standard"]
+        self.thickness.quantity = base_metal["thickness"]
 
-def get_code_numbers():
+
+def get_ff_grove_code_numbers():
     """Return FFGroove code numbers."""
-    from weldx.welding.groove.iso_9692_1 import FFGroove
-
-    try:
-        a = FFGroove.__annotations__
-        return a["code_number"].__args__
-    except AttributeError:
-        return [
-            "1.12",
-            "1.13",
-            "2.12",
-            "3.1.1",
-            "3.1.2",
-            "3.1.3",
-            "4.1.1",
-            "4.1.2",
-            "4.1.3",
-        ]
+    return [
+        "1.12",
+        "1.13",
+        "2.12",
+        "3.1.1",
+        "3.1.2",
+        "3.1.3",
+        "4.1.1",
+        "4.1.2",
+        "4.1.3",
+    ]
 
 
 # TODO: nice group layout for all widgets
@@ -185,22 +187,28 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
     """Widget to select groove type."""
 
     def __init__(self):
+        self._groove_obj = None
+
         self.out = Output(layout=layout_generic_output)
         self.out.layout = plot_layout
-        self.groove_obj = None  # current groove object
         self.groove_params_dropdowns = None
 
         # create figure for groove visualization
         self._create_plot()
 
-        self.groove_params_vbox = WidgetMyVBox([])
+        self.groove_params = WidgetMyVBox([])
         self.groove_type_dropdown = self._create_groove_dropdown()
+        self._groove_obj_cache = {}  # store ISOBaseGroove objects mapped to type.
 
-        # create rest
         self.groove_selection = WidgetMyVBox(
             [
-                self.groove_type_dropdown,
-                self.groove_params_vbox,
+                WidgetMyHBox(
+                    [
+                        Label("Groove type", layout=description_layout),
+                        self.groove_type_dropdown,
+                    ]
+                ),
+                self.groove_params,
                 WidgetMyVBox([]),  # additional parameters (e.g. weld speed).
             ]
         )
@@ -213,8 +221,33 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
         # set initial state
         self._update_params_to_selection(dict(new=self.groove_type_dropdown.value))
-        self._update_plot(None)
+        self._update_plot()
         super().__init__(children=children, layout=Layout(width="100%"))
+
+    @property
+    def groove_obj(self) -> IsoBaseGroove:
+        """Get current groove object."""
+        return self._groove_obj
+
+    @groove_obj.setter
+    def groove_obj(self, value: IsoBaseGroove):
+        self._groove_obj = value
+
+        self.groove_selection.children[0].value = _groove_type_to_name[
+            self.groove_obj.__class__
+        ]
+        # update fields according to data in new groove object.
+        gui_params = self.groove_params_dropdowns
+
+        # inhibit notifications during updating the parameters (or we would call the
+        # _update_plot method for every setting!
+        with contextlib.ExitStack() as stack:
+            for k, v in self.groove_obj.parameters().items():
+                mapped_k = self._groove_obj._mapping[k]
+                widget: FloatWithUnit = gui_params[mapped_k]
+                stack.enter_context(widget.silence_events())
+
+                widget.quantity = v
 
     @property
     def schema(self) -> str:
@@ -223,13 +256,11 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
     def from_tree(self, tree: dict):
         """Fill widget from tree."""
-        self.groove_obj = tree["groove"]
-        raise NotImplementedError
-        # TODO: update fields according to data in new groove obj!
+        self.groove_obj = tree["groove_shape"]
 
     def to_tree(self) -> dict:
         """Return groove parameters."""
-        return dict(groove=self.groove_obj)
+        return dict(groove_shape=self.groove_obj)
 
     def _create_plot(self):
         # ensure we have the proper matplotlib backend.
@@ -247,7 +278,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
             canvas.header_visible = False
             canvas.footer_visible = False
             canvas.resizable = False
-            plt.show(self.fig)
+            plt.show()
 
     def _create_groove_dropdown(self):
         # get all attribute mappings (human-readable names)
@@ -261,30 +292,32 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
         # create dict with hboxes of all attributes
         self.groove_params_dropdowns = dict()
-        hbox_dict = self.groove_params_dropdowns
+        param_widgets = self.groove_params_dropdowns
         for item in attrs:
-            if item == "code_number":
+            if item == "code_number":  # only the case for FFGroove
                 dropdown = widgets.Dropdown(
-                    # import those somewhere?
-                    options=get_code_numbers(),
+                    options=get_ff_grove_code_numbers(),
                     layout=description_layout,
                 )
-                hbox_dict[item] = HBox(
-                    [Label("code_number :", layout=description_layout), dropdown]
+                param_widgets[item] = HBox(
+                    [Label("Code number", layout=description_layout), dropdown]
                 )
-            elif "angle" in item:
-                hbox_dict[item] = hbox_float_text_creator(item, "deg", 45)
-            elif "workpiece_thickness" in item:
-                hbox_dict[item] = hbox_float_text_creator(item, "mm", 15)
             else:
-                hbox_dict[item] = hbox_float_text_creator(item, "mm", 5)
+                text = f"{(item[0].upper()+item[1:]).replace('_', ' ')}"
+                if "angle" in item:
+                    param_widgets[item] = FloatWithUnit(text=text, unit="°", value=45)
+                elif "workpiece_thickness" in item:
+                    param_widgets[item] = FloatWithUnit(text=text, unit="mm", value=15)
+                else:
+                    param_widgets[item] = FloatWithUnit(text=text, unit="mm", value=5)
+            param_widgets[item].mapping = item
 
         groove_list = list(_groove_name_to_type.keys())
-        # TODO: layout
+        margin = 5
         groove_type_dropdown = widgets.Dropdown(
             options=groove_list,
             value=groove_list[1],
-            description="Groove type",
+            layout=Layout(width=f"{2 * Q_(textbox_layout.width).m + margin}px"),
         )
 
         # connect value observers
@@ -292,39 +325,45 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
         update_plot = self._update_plot
         groove_type_dropdown.observe(update_plot, "value")
-        for key, box in hbox_dict.items():
+        for key, box in param_widgets.items():
             box.children[1].observe(update_plot, "value")
             if key != "code_number":
                 box.children[2].observe(update_plot, "value")
 
         return groove_type_dropdown
 
-    def _update_plot(self, _):
-        selection = self.groove_type_dropdown.value
-        groove_params = dict()
-        groove_params["groove_type"] = selection
-        for child in self.groove_params_vbox.children:
-            child_0 = child.children[0]
-            if child_0.value == "code_number":
-                groove_params[child_0.value] = child.children[1].value
+    def _update_plot(self, *_):
+        groove_type = self.groove_type_dropdown.value
+        groove_obj = self._groove_obj_cache.get(groove_type, None)
+
+        groove_params = dict(groove_type=groove_type)
+        for child in self.groove_params.children:
+            param_key = child.mapping
+            if param_key == "code_number":
+                groove_params[param_key] = child.children[1].value
             else:
                 magnitude = child.children[1].value
                 unit = child.children[2].value
-                groove_params[child_0.value] = Q_(magnitude, unit)
+                groove_params[param_key] = Q_(magnitude, unit)
 
-        self.groove_obj = get_groove(**groove_params)
+        if groove_obj is None:
+            self._groove_obj = get_groove(**groove_params)
+            self._groove_obj_cache[groove_type] = groove_obj
+        else:
+            for attr, value in groove_params.items():
+                setattr(groove_obj, attr, value)
+            self.groove_obj = groove_obj
 
         # TODO: re-plot can be avoided (e.g. set_xydata?)
         self.ax.lines.clear()
         # self.ax.texts = []
 
-        # with show_only_exception_message():
-        if True:
-            self.groove_obj.plot(line_style="-", ax=self.ax)
+        self.groove_obj.plot(line_style="-", ax=self.ax)
+        self.ax.autoscale(True, axis="both")
 
     def _update_params_to_selection(self, change):
         selection = change["new"]
-        self.groove_params_vbox.children = [
+        self.groove_params.children = [
             slider
             for key, slider in self.groove_params_dropdowns.items()
             if key
@@ -487,11 +526,11 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     def to_tree(self) -> dict:
         """Return the workpiece, coordinates and TCP movement."""
         geometry = dict(
-            groove_shape=self.groove_sel.groove_obj,
+            **self.groove_sel.to_tree(),
             seam_length=self.seam_length.quantity,
         )
-        base_metal = dict(common_name="S355J2+N", standard="DIN EN 10225-2:2011")
-        workpiece = dict(base_metal=base_metal, geometry=geometry)
+        workpiece = dict(geometry=geometry, **self.base_metal.to_tree())
+
         if self.csm is None:
             self.create_csm_and_plot(button=None, plot=False)
         # the single_pass_weld_schema expects the "TCP" key to be a LCS
@@ -505,9 +544,12 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         )
         return tree
 
+    def from_tree(self, tree: dict):
+        """Set widget groups state from given tree."""
+        self.csm = tree.get("coordinates_design", None)
+        workpiece = tree["workpiece"]
+        geom = workpiece["geometry"]
 
-def test_groove_linear_sel_tcp_movement_export():
-    w = WidgetGrooveSelectionTCPMovement()
-    tree = w.to_tree()
-    # dump
-    weldx.WeldxFile(tree=tree, mode="rw")
+        self.seam_length.quantity = geom["seam_length"]
+        self.groove_sel.from_tree(geom)
+        self.base_metal.from_tree(workpiece)

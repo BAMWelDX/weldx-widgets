@@ -45,7 +45,7 @@ class WidgetSaveButton(WidgetMyHBox):
         desc="Save to",
         filename="out.wx",
         path=".",
-        file_pattern=None,
+        filter_pattern=None,
         select_default=False,
     ):
         from weldx_widgets.widget_factory import button_layout
@@ -53,7 +53,7 @@ class WidgetSaveButton(WidgetMyHBox):
         self.file_chooser = FileChooser(
             path=path,
             filename=filename,
-            file_pattern=file_pattern,
+            filter_pattern=filter_pattern,
             select_default=select_default,
         )
         self.button = Button(description=desc, layout=button_layout)
@@ -88,7 +88,7 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
     @property
     def schema(self) -> str:
         """Return schema to validate data against."""
-        return "time_series-1.0.0"
+        return "time_series"
 
     # TODO: handle math-expr
     def __init__(
@@ -139,21 +139,3 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
 
         self.base_data.text_value = repr(list(ts.data.magnitude))
         self.base_unit.text_value = format(ts.data.units, "~")
-
-
-def test_import_export():
-    import pandas as pd
-
-    import weldx
-
-    data = [42, 23, 12]
-    time = [0, 2, 4]
-    ts = weldx.TimeSeries(weldx.Q_(data, "m"), time=pd.TimedeltaIndex(time, unit="s"))
-    w = WidgetTimeSeries("m")
-    w.from_tree(dict(timeseries=ts))
-    assert w.base_unit.text_value == "m"
-    assert w.base_data.text_value == str(data)
-    assert w.time_data.text_value == str(time)
-
-    ts2 = w.to_tree()
-    assert ts2["timeseries"] == ts
