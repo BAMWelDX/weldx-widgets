@@ -1,4 +1,6 @@
 """Utility functions to set widget state from a given file."""
+from pathlib import Path
+
 from typing import Iterable, Union
 
 import weldx
@@ -16,6 +18,20 @@ def set_state_from_file(
     if not isinstance(widget, Iterable):
         widget = [widget]
 
-    with weldx.WeldxFile(file, mode="r") as wx:
-        for w in widget:
-            w.from_tree(wx)
+    if isinstance(file, (str, Path)):
+        file = Path(file)
+        if file.exists() and file.stat().st_size > 0:
+            try:
+                with weldx.WeldxFile(file, mode="r") as wx:
+                    for w in widget:
+                        try:
+                            w.from_tree(wx)
+                        except KeyError as ke:
+                            print(f"Key not found in given file. Details: {ke}")
+                        except Exception as e:
+                            print(f"Error during reading {file}: {e}")
+            except Exception as e:
+                print(f"Error during reading {file}: {e}")
+    else:
+        print(f"Unknown input file type: {type(file)}")
+
