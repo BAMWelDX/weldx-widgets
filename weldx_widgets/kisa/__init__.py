@@ -1,1 +1,1 @@
-"""Widgets soley belonging to the KISA project."""
+"""Widgets solely belonging to the KISA project."""

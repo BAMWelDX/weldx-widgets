@@ -12,6 +12,7 @@ from weldx_widgets.widget_base import WidgetSimpleOutput
 __all__ = ["WidgetScans"]
 
 
+# TODO: import/use this from libo lib!
 # TODO: handle both cases, parameterstudie (mehrere schweißungen auf einem werkstück)
 # und einzel schweißung!
 class WidgetScans(WidgetSimpleOutput):
