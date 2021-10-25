@@ -144,6 +144,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         collect_data_from: typing.List[weldx_widgets.widget_base.WeldxImportExport],
         next_notebook_desc: str = "2. invoke next step",
         next_notebook_params=None,
+        title="Save results",
     ):
         self.status = status
         self.collect_data_from = collect_data_from
@@ -169,7 +170,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         self.save_button.children += (self.btn_next,)
 
         children = [
-            weldx_widgets.widget_factory.make_title("Save results"),
+            weldx_widgets.widget_factory.make_title(title),
             self.save_button,
             self.out,
         ]
