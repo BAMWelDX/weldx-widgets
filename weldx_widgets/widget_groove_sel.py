@@ -5,11 +5,10 @@ import contextlib
 from pathlib import Path
 from typing import Union
 
-import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import pandas as pd
 from IPython import get_ipython
-from ipywidgets import Button, Dropdown, HBox, Label, Layout, Output
+from ipywidgets import Dropdown, HBox, Label, Layout, Output, Tab
 
 import weldx
 from weldx import Geometry, SpatialData
@@ -25,11 +24,8 @@ from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyV
 from weldx_widgets.widget_factory import (
     FloatWithUnit,
     WidgetLabeledTextInput,
-    button_layout,
     description_layout,
-    layout_generic_output,
     make_title,
-    plot_layout,
     textbox_layout,
 )
 
@@ -189,8 +185,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
     def __init__(self):
         self._groove_obj = None
 
-        self.out = Output(layout=layout_generic_output)
-        self.out.layout = plot_layout
+        self.out = Output()  # layout=Layout(width="100%"))
         self.groove_params_dropdowns = None
 
         # create figure for groove visualization
@@ -214,9 +209,13 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         )
         # left box with parameter should be small to leave more space for plots.
         self.groove_selection.layout.width = "30%"
+        self.output_tabs = Tab()
+        self.output_tabs.layout = Layout(width="70%")
+        self.output_tabs.children = [self.out]
+        self.output_tabs.set_title(0, "2D profile")
         children = [
             make_title("ISO 9692-1 Groove selection", 3),
-            WidgetMyHBox(children=[self.groove_selection, self.out]),
+            WidgetMyHBox(children=[self.groove_selection, self.output_tabs]),
         ]
 
         # set initial state
@@ -272,12 +271,14 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         #  https://stackoverflow.com/questions/61272384/how-to-resize-matplotlib
         #  -figure-to-match-ipywidgets-output-size-automatically
         with self.out:
-            self.fig, self.ax = plt.subplots(1, 1, figsize=(5, 4), dpi=100)
+            self.fig, self.ax = plt.subplots(1, 1)  # , figsize=(5, 4), dpi=100)
             canvas = self.fig.canvas
-            canvas.toolbar_visible = False
+            # canvas.toolbar_visible = False
             canvas.header_visible = False
-            canvas.footer_visible = False
-            canvas.resizable = False
+            # canvas.footer_visible = False
+            # canvas.resizable = False
+            canvas.layout.height = "100%"
+            canvas.layout.width = "100%"
             plt.show()
 
     def _create_groove_dropdown(self):
@@ -295,7 +296,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         param_widgets = self.groove_params_dropdowns
         for item in attrs:
             if item == "code_number":  # only the case for FFGroove
-                dropdown = widgets.Dropdown(
+                dropdown = Dropdown(
                     options=get_ff_grove_code_numbers(),
                     layout=description_layout,
                 )
@@ -314,7 +315,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
         groove_list = list(_groove_name_to_type.keys())
         margin = 5
-        groove_type_dropdown = widgets.Dropdown(
+        groove_type_dropdown = Dropdown(
             options=groove_list,
             value=groove_list[1],
             layout=Layout(width=f"{2 * Q_(textbox_layout.width).m + margin}px"),
@@ -388,9 +389,6 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         self.weld_speed = FloatWithUnit("weld speed", value=6, unit="mm/s")
         self.base_metal = WidgetMetal()
         self.geometry_export = WidgetCADExport()
-        self.plot_button = Button(description="3D Plot", layout=button_layout)
-        self.plot_button.layout.width = "150px"
-        self.plot_button.on_click(self.create_csm_and_plot)
         self.additional_params = (
             make_title("Welding parameters", 4),
             self.seam_length,
@@ -398,11 +396,19 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
             self.tcp_y,
             self.tcp_z,
             self.base_metal,
-            self.plot_button,
-            self.geometry_export,
         )
         # add our parameters to our instance of WidgetGrooveSelection.
         self.groove_sel.groove_selection.children += self.additional_params
+
+        # add 3d plot and CAD export to groove_sel output tab
+        self.out = Output()
+        self.groove_sel.output_tabs.children += (self.out, self.geometry_export)
+        self.groove_sel.output_tabs.set_title(1, "3D profile")
+        self.groove_sel.output_tabs.set_title(2, "CAD export")
+
+        self.groove_sel.output_tabs.observe(
+            self.create_csm_and_plot, names="selected_index"
+        )
 
         # csm 3d visualization
         self.csm = None
@@ -415,8 +421,13 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
             children=children, layout=Layout(width="100%")
         )
 
-    def create_csm_and_plot(self, button, plot=True, **kwargs):
+    def create_csm_and_plot(self, change, plot=True, **kwargs):
         """Create coordinates system manager containing TCP movement."""
+        assert change["name"] == "selected_index"
+        # if not 3d plot tab selected, do not update
+        if change["new"] != 1:
+            return
+
         # TODO: only create once and then update the csm!
 
         # create a linear trace segment a the complete weld seam trace
@@ -494,8 +505,6 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
     def plot(self):
         """Visualize the tcp design movement."""
-        out = self.groove_sel.out
-
         # clear previous output.
         if self.last_plot is not None:
             self.last_plot.close()
@@ -509,7 +518,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         # TODO: once weldx-widgets matches a release of weldx, we can remove this
         # monkey patching
-        with out, mock.patch(
+        with self.out, mock.patch(
             "weldx.visualization.CoordinateSystemManagerVisualizerK3D",
             CoordinateSystemManagerVisualizerK3D,
         ), warnings.catch_warnings():
