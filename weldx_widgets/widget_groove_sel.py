@@ -62,7 +62,7 @@ class WidgetCADExport(WidgetMyVBox):
         )
         self.create_btn = Button(description="Create program")
 
-        self.create_btn.set_handler(self._on_export_geometry)
+        self.create_btn.observe(self._on_export_geometry)
         # disable button initially, because we first need to have a geometry
         self.create_btn.button.disabled = True
         # this dynamically created button allows the user to download the
