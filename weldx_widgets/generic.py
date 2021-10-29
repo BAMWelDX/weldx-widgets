@@ -1,11 +1,13 @@
 """Generic widgets."""
+import base64
 import contextlib
+import hashlib
 from functools import partial
-from typing import Callable
+from typing import Callable, Optional
 
 from ipyfilechooser import FileChooser
 from IPython import get_ipython
-from ipywidgets import Button, HBox, Label
+from ipywidgets import Button, HBox, Label, HTML
 
 import weldx
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
@@ -18,6 +20,7 @@ from weldx_widgets.widget_factory import (
 __all__ = [
     "WidgetSaveButton",
     "WidgetTimeSeries",
+    "download_button",
 ]
 
 
@@ -139,3 +142,44 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
 
         self.base_data.text_value = repr(list(ts.data.magnitude))
         self.base_unit.text_value = format(ts.data.units, "~")
+
+
+def download_button(
+    content: bytes,
+    filename: str,
+    button_description: str,
+    html_instance: Optional[HTML] = None,
+) -> HTML:
+    """Load data from buffer into base64 payload embedded into a HTML button.
+
+    Parameters
+    ----------
+    content :
+        file contents as bytes.
+    filename :
+        The name when it is downloaded.
+    button_description :
+        The text that goes into the button.
+    html_instance :
+        update a passed instance or create a new one.
+    """
+    digest = hashlib.md5(content).hexdigest()  # bypass browser cache
+    payload = base64.b64encode(content).decode()
+    id_dl = f"dl_{digest}"
+    html_button = f"""<html>
+    <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+    <a id={id_dl} download="{filename}" href="data:text/text;base64,{payload}" >
+    <button class="p-Widget jupyter-widgets jupyter-button widget-button mod-success">
+    {button_description}</button>
+    </a>
+    </body>
+    </html>
+    """
+    if html_instance is None:
+        html_instance = HTML()
+
+    html_instance.value = html_button
+    return html_instance
