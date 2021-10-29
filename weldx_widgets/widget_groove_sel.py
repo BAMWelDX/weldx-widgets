@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import contextlib
+import tempfile
+from io import BytesIO
 from pathlib import Path
 from typing import Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from IPython import get_ipython
-from ipywidgets import Dropdown, HBox, Label, Layout, Output, Tab
+from ipywidgets import Dropdown, HBox, Label, Layout, Output, Tab, Button, HTML
 
 import weldx
 from weldx import Geometry, SpatialData
@@ -19,7 +21,7 @@ from weldx.welding.groove.iso_9692_1 import (
     _groove_type_to_name,
     get_groove,
 )
-from weldx_widgets.generic import WidgetSaveButton
+from weldx_widgets.generic import WidgetSaveButton, download_button
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
     FloatWithUnit,
@@ -45,7 +47,7 @@ class WidgetCADExport(WidgetMyVBox):
         does nothing.
     """
 
-    data_formats = ["stl", "ply"]
+    data_formats = [".stl", ".ply"]
 
     def __init__(self):
         title = make_title("Export geometry to CAD file [optional]", heading_level=4)
@@ -58,18 +60,14 @@ class WidgetCADExport(WidgetMyVBox):
             index=default_format_index,
             description="Data format",
         )
-        self.format.observe(self._update_file_pattern, "value")
-        ext = self.data_formats[default_format_index]
+        self.create_btn = Button(description="Create program")
 
-        self.save = WidgetSaveButton(
-            desc="Save",
-            filename=f"specimen.{ext}",
-            filter_pattern=f"*.{ext}",
-            select_default=True,
-        )
-        self.save.set_handler(self._on_export_geometry)
+        self.create_btn.set_handler(self._on_export_geometry)
         # disable button initially, because we first need to have a geometry
-        self.save.button.disabled = True
+        self.create_btn.button.disabled = True
+        # this dynamically created button allows the user to download the
+        # program directly to his/her computer.
+        self._html_dl_button = HTML()
 
         self.profile_raster_width = FloatWithUnit(
             "Profile raster width",
@@ -89,7 +87,8 @@ class WidgetCADExport(WidgetMyVBox):
             self.profile_raster_width,
             self.trace_raster_width,
             self.format,
-            self.save,
+            self.create_btn,
+            self._html_dl_button,
         ]
         super().__init__(children=children)
         self.layout.border = "1px solid gray"
@@ -103,31 +102,40 @@ class WidgetCADExport(WidgetMyVBox):
     def geometry(self, value):
         self._geometry = value
         if value is not None:
-            self.save.button.disabled = False
+            self.create_btn.button.disabled = False
 
     def _on_export_geometry(self, _):
         if self.geometry is None:
             return
-        if not self.save.path:
-            return
-
-        if isinstance(self.geometry, Geometry):
-            self.geometry.to_file(
-                self.save.path,
-                self.profile_raster_width.quantity,
-                self.trace_raster_width.quantity,
-            )
-        elif isinstance(self.geometry, SpatialData):  # already rasterized
-            self.geometry.to_file(self.save.path)
-        else:
-            raise RuntimeError(f"invalid geometry type {type(self.geometry)}")
+        ext = self.format.value
+        print("ext", ext)
+        # need to write to a file, because Geometry.write_to does not
+        # expose the format parameter.
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=ext) as ntf:
+            if isinstance(self.geometry, Geometry):
+                self.geometry.to_file(
+                    ntf.name,
+                    self.profile_raster_width.quantity,
+                    self.trace_raster_width.quantity,
+                )
+            elif isinstance(self.geometry, SpatialData):  # already rasterized
+                self.geometry.to_file(ntf)
+            else:
+                raise RuntimeError(f"invalid geometry type {type(self.geometry)}")
+        ntf.seek(0)
+        download_button(
+            button_description="Download program",
+            filename=f"specimen.{ext}",
+            html_instance=self._html_dl_button,
+            content=ntf.read()
+        )
 
     def _update_file_pattern(self, change):
         dot_ext = f".{change['new']}"
-        self.save.file_chooser.filter_pattern = f"*{dot_ext}"
-        fn = Path(self.save.path).stem + dot_ext
-        self.save.file_chooser.default_filename = fn
-        self.save.file_chooser.refresh()
+        self.create_btn.file_chooser.filter_pattern = f"*{dot_ext}"
+        fn = Path(self.create_btn.path).stem + dot_ext
+        self.create_btn.file_chooser.default_filename = fn
+        self.create_btn.file_chooser.refresh()
 
 
 class WidgetMetal(WidgetMyVBox):
