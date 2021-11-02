@@ -64,7 +64,7 @@ class WidgetCADExport(WidgetMyVBox):
 
         self.create_btn.observe(self._on_export_geometry)
         # disable button initially, because we first need to have a geometry
-        self.create_btn.button.disabled = True
+        self.create_btn.disabled = True
         # this dynamically created button allows the user to download the
         # program directly to his/her computer.
         self._html_dl_button = HTML()
@@ -102,7 +102,7 @@ class WidgetCADExport(WidgetMyVBox):
     def geometry(self, value):
         self._geometry = value
         if value is not None:
-            self.create_btn.button.disabled = False
+            self.create_btn.disabled = False
 
     def _on_export_geometry(self, _):
         if self.geometry is None:
@@ -129,13 +129,6 @@ class WidgetCADExport(WidgetMyVBox):
             html_instance=self._html_dl_button,
             content=ntf.read()
         )
-
-    def _update_file_pattern(self, change):
-        dot_ext = f".{change['new']}"
-        self.create_btn.file_chooser.filter_pattern = f"*{dot_ext}"
-        fn = Path(self.create_btn.path).stem + dot_ext
-        self.create_btn.file_chooser.default_filename = fn
-        self.create_btn.file_chooser.refresh()
 
 
 class WidgetMetal(WidgetMyVBox):
