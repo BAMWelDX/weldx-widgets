@@ -3,14 +3,12 @@ from __future__ import annotations
 
 import contextlib
 import tempfile
-from io import BytesIO
-from pathlib import Path
 from typing import Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from IPython import get_ipython
-from ipywidgets import Dropdown, HBox, Label, Layout, Output, Tab, Button, HTML
+from ipywidgets import HTML, Button, Dropdown, HBox, Label, Layout, Output, Tab
 
 import weldx
 from weldx import Geometry, SpatialData
@@ -21,7 +19,7 @@ from weldx.welding.groove.iso_9692_1 import (
     _groove_type_to_name,
     get_groove,
 )
-from weldx_widgets.generic import WidgetSaveButton, download_button
+from weldx_widgets.generic import download_button
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
     FloatWithUnit,
@@ -127,7 +125,7 @@ class WidgetCADExport(WidgetMyVBox):
             button_description="Download program",
             filename=f"specimen.{ext}",
             html_instance=self._html_dl_button,
-            content=ntf.read()
+            content=ntf.read(),
         )
 
 

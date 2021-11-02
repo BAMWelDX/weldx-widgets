@@ -7,7 +7,7 @@ from typing import Callable, Optional
 
 from ipyfilechooser import FileChooser
 from IPython import get_ipython
-from ipywidgets import Button, HBox, Label, HTML
+from ipywidgets import HTML, Button, HBox, Label
 
 import weldx
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
