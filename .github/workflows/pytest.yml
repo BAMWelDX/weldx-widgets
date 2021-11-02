@@ -38,7 +38,7 @@ jobs:
 
       - name: run pytest
         run: |
-          pytest --no-cov-on-fail
+          pytest --no-cov-on-fail --color=yes
 
       - name: coverage xml (combination is performed by pytest-cov)
         run: coverage xml
