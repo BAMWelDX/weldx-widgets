@@ -16,6 +16,14 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         py: ['3.8', '3.9']
+        weldx_version: ['weldx']
+        include:
+          - os: ubuntu-latest
+            py: 3.8
+            weldx_version: 'git+https://github.com/BAMWelDX/weldx.git'
+    env:
+      WELDX_VERSION: ${{ matrix.weldx_version }}
+
     steps:
       - uses: actions/checkout@v2
         with:
@@ -34,6 +42,7 @@ jobs:
       - name: pip installs
         run: |
           pip install wheel
+          pip install $WELDX_VERSION
           pip install -e .[test]
 
       - name: run pytest
