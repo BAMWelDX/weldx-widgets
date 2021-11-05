@@ -59,10 +59,11 @@ class WidgetCADExport(WidgetMyVBox):
             description="Data format",
         )
         self.create_btn = Button(description="Create program")
-
-        self.create_btn.observe(self._on_export_geometry)
+        self.geometry = None
         # disable button initially, because we first need to have a geometry
         self.create_btn.disabled = True
+        # observe here, because "btn.disabled = True" already triggers an event.
+        self.create_btn.observe(self._on_export_geometry)
         # this dynamically created button allows the user to download the
         # program directly to his/her computer.
         self._html_dl_button = HTML()
@@ -90,7 +91,6 @@ class WidgetCADExport(WidgetMyVBox):
         ]
         super().__init__(children=children)
         self.layout.border = "1px solid gray"
-        self.geometry = None
 
     @property
     def geometry(self) -> Union[SpatialData, Geometry]:
@@ -106,10 +106,9 @@ class WidgetCADExport(WidgetMyVBox):
         if self.geometry is None:
             return
         ext = self.format.value
-        print("ext", ext)
         # need to write to a file, because Geometry.write_to does not
         # expose the format parameter.
-        with tempfile.NamedTemporaryFile(mode="wb", suffix=ext) as ntf:
+        with tempfile.NamedTemporaryFile(mode="w+b", suffix=ext) as ntf:
             if isinstance(self.geometry, Geometry):
                 self.geometry.to_file(
                     ntf.name,
@@ -117,16 +116,17 @@ class WidgetCADExport(WidgetMyVBox):
                     self.trace_raster_width.quantity,
                 )
             elif isinstance(self.geometry, SpatialData):  # already rasterized
-                self.geometry.to_file(ntf)
+                self.geometry.to_file(ntf.name)
             else:
                 raise RuntimeError(f"invalid geometry type {type(self.geometry)}")
-        ntf.seek(0)
-        download_button(
-            button_description="Download program",
-            filename=f"specimen.{ext}",
-            html_instance=self._html_dl_button,
-            content=ntf.read(),
-        )
+            # read and embed in HTML button.
+            ntf.seek(0)
+            download_button(
+                button_description="Download program",
+                filename=f"specimen.{ext}",
+                html_instance=self._html_dl_button,
+                content=ntf.read(),
+            )
 
 
 class WidgetMetal(WidgetMyVBox):
@@ -276,8 +276,9 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
             canvas.header_visible = False
             # canvas.footer_visible = False
             # canvas.resizable = False
-            canvas.layout.height = "100%"
-            canvas.layout.width = "100%"
+            if hasattr(canvas, "layout"):
+                canvas.layout.height = "100%"
+                canvas.layout.width = "100%"
             plt.show()
 
     def _create_groove_dropdown(self):
@@ -420,12 +421,13 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
             children=children, layout=Layout(width="100%")
         )
 
-    def create_csm_and_plot(self, change, plot=True, **kwargs):
+    def create_csm_and_plot(self, change=None, plot=True, **kwargs):
         """Create coordinates system manager containing TCP movement."""
-        assert change["name"] == "selected_index"
-        # if not 3d plot tab selected, do not update
-        if change["new"] != 1:
-            return
+        if change is not None:
+            assert change["name"] == "selected_index"
+            # if not 3d plot tab selected, do not update
+            if change["new"] != 1:
+                return
 
         # TODO: only create once and then update the csm!
 
