@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - 'weldx-widgets/**'
+      - 'weldx_widgets/**'
       - '.github/workflows/pytest.yml'
 
 jobs:
