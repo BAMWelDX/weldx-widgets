@@ -1,3 +1,4 @@
+"""Test k3d implementations."""
 import weldx
 from weldx import CoordinateSystemManager, Time, get_groove
 
@@ -20,4 +21,13 @@ def test_k3d_csm_vis():
 
     spatial = weldx.Geometry(groove, "10mm").spatial_data("1 mm", "1 mm")
     csm.assign_data(spatial, "workpiece", "A")
+
     plot = csm.plot(backend="k3d")
+    for state in [True, False, True]:
+        plot.show_data_labels(state)
+        plot.show_labels(state)
+        plot.show_origins(state)
+        plot.show_traces(state)
+        plot.show_vectors(state)
+        plot.show_wireframes(state)
+    plot.update_reference_system("A")
