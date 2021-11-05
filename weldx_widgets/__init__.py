@@ -20,9 +20,9 @@ __all__ = map(str, (x.__name__ for x in __all__))
 from importlib.metadata import PackageNotFoundError, version
 
 try:
-    __version__ = version("package-name")
+    __version__ = version("weldx_widgets")
 except PackageNotFoundError:
     # package is not installed
-    pass
+    __version__ = "unknown(pkg-not-installed)"
 finally:
     del version, PackageNotFoundError

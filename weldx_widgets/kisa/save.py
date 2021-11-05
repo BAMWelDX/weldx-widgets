@@ -144,32 +144,38 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         collect_data_from: typing.List[weldx_widgets.widget_base.WeldxImportExport],
         next_notebook_desc: str = "2. invoke next step",
         next_notebook_params=None,
+        title="Save results",
+        disable_next_button=False,
     ):
         self.status = status
         self.collect_data_from = collect_data_from
         self.out = w.Output()
 
-        self.btn_next = w.Button(description=next_notebook_desc, layout=button_layout)
-        if next_notebook_params is None:
-            next_notebook_params = dict()
-        self.next_notebook_params = next_notebook_params
-        self.next_notebook = next_notebook
-        self.btn_next.on_click(self.on_next)
+        if not disable_next_button:
+            self.btn_next = w.Button(
+                description=next_notebook_desc, layout=button_layout
+            )
+            if next_notebook_params is None:
+                next_notebook_params = dict()
+            self.next_notebook_params = next_notebook_params
+            self.next_notebook = next_notebook
+            self.btn_next.on_click(self.on_next)
 
         fn_path = pathlib.Path(filename)
         path = str(fn_path.parent)
         fn = str(fn_path.name)
         self.save_button = weldx_widgets.WidgetSaveButton(
-            desc="1. Save",
+            desc="1. Save" if not disable_next_button else "Save",
             filename=fn,
             path=path,
             select_default=True,
         )
         self.save_button.set_handler(self.on_save)
-        self.save_button.children += (self.btn_next,)
+        if not disable_next_button:
+            self.save_button.children += (self.btn_next,)
 
         children = [
-            weldx_widgets.widget_factory.make_title("Save results"),
+            weldx_widgets.widget_factory.make_title(title),
             self.save_button,
             self.out,
         ]
