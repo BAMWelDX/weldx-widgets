@@ -1,10 +1,8 @@
 """Widget to create a robot program."""
-import base64
-import hashlib
 import tempfile
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Optional, Union
+from typing import Callable, Union
 
 import ipywidgets as widgets
 import numpy as np
@@ -13,53 +11,13 @@ from ipywidgets import HTML, Button, Label, Layout
 
 from weldx import Q_, WeldxFile
 from weldx.tags.core.file import ExternalFile
+from weldx_widgets.generic import download_button
 from weldx_widgets.widget_base import WidgetMyVBox
 from weldx_widgets.widget_factory import FloatWithUnit, make_title
 
 __all__ = [
     "WidgetLinearWeldYaskawa",
 ]
-
-
-def download_button(
-    content: bytes,
-    filename: str,
-    button_description: str,
-    html_instance: Optional[HTML] = None,
-) -> HTML:
-    """Load data from buffer into base64 payload embedded into a HTML button.
-
-    Parameters
-    ----------
-    content :
-        file contents as bytes.
-    filename :
-        The name when it is downloaded.
-    button_description :
-        The text that goes into the button.
-    html_instance :
-        update a passed instance or create a new one.
-    """
-    digest = hashlib.md5(content).hexdigest()  # bypass browser cache
-    payload = base64.b64encode(content).decode()
-    id_dl = f"dl_{digest}"
-    html_button = f"""<html>
-    <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    </head>
-    <body>
-    <a id={id_dl} download="{filename}" href="data:text/text;base64,{payload}" >
-    <button class="p-Widget jupyter-widgets jupyter-button widget-button mod-success">
-    {button_description}</button>
-    </a>
-    </body>
-    </html>
-    """
-    if html_instance is None:
-        html_instance = HTML()
-
-    html_instance.value = html_button
-    return html_instance
 
 
 class WidgetLinearWeldYaskawa(WidgetMyVBox):

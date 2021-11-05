@@ -2,14 +2,13 @@
 from __future__ import annotations
 
 import contextlib
-from pathlib import Path
+import tempfile
 from typing import Union
 
-import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import pandas as pd
 from IPython import get_ipython
-from ipywidgets import Button, Dropdown, HBox, Label, Layout, Output
+from ipywidgets import HTML, Button, Dropdown, HBox, Label, Layout, Output, Tab
 
 import weldx
 from weldx import Geometry, SpatialData
@@ -20,16 +19,13 @@ from weldx.welding.groove.iso_9692_1 import (
     _groove_type_to_name,
     get_groove,
 )
-from weldx_widgets.generic import WidgetSaveButton
+from weldx_widgets.generic import download_button
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
     FloatWithUnit,
     WidgetLabeledTextInput,
-    button_layout,
     description_layout,
-    layout_generic_output,
     make_title,
-    plot_layout,
     textbox_layout,
 )
 
@@ -49,7 +45,7 @@ class WidgetCADExport(WidgetMyVBox):
         does nothing.
     """
 
-    data_formats = ["stl", "ply"]
+    data_formats = [".stl", ".ply"]
 
     def __init__(self):
         title = make_title("Export geometry to CAD file [optional]", heading_level=4)
@@ -62,18 +58,15 @@ class WidgetCADExport(WidgetMyVBox):
             index=default_format_index,
             description="Data format",
         )
-        self.format.observe(self._update_file_pattern, "value")
-        ext = self.data_formats[default_format_index]
-
-        self.save = WidgetSaveButton(
-            desc="Save",
-            filename=f"specimen.{ext}",
-            filter_pattern=f"*.{ext}",
-            select_default=True,
-        )
-        self.save.set_handler(self._on_export_geometry)
+        self.create_btn = Button(description="Create program")
+        self.geometry = None
         # disable button initially, because we first need to have a geometry
-        self.save.button.disabled = True
+        self.create_btn.disabled = True
+        # observe here, because "btn.disabled = True" already triggers an event.
+        self.create_btn.observe(self._on_export_geometry)
+        # this dynamically created button allows the user to download the
+        # program directly to his/her computer.
+        self._html_dl_button = HTML()
 
         self.profile_raster_width = FloatWithUnit(
             "Profile raster width",
@@ -93,11 +86,11 @@ class WidgetCADExport(WidgetMyVBox):
             self.profile_raster_width,
             self.trace_raster_width,
             self.format,
-            self.save,
+            self.create_btn,
+            self._html_dl_button,
         ]
         super().__init__(children=children)
         self.layout.border = "1px solid gray"
-        self.geometry = None
 
     @property
     def geometry(self) -> Union[SpatialData, Geometry]:
@@ -107,31 +100,33 @@ class WidgetCADExport(WidgetMyVBox):
     def geometry(self, value):
         self._geometry = value
         if value is not None:
-            self.save.button.disabled = False
+            self.create_btn.disabled = False
 
     def _on_export_geometry(self, _):
         if self.geometry is None:
             return
-        if not self.save.path:
-            return
-
-        if isinstance(self.geometry, Geometry):
-            self.geometry.to_file(
-                self.save.path,
-                self.profile_raster_width.quantity,
-                self.trace_raster_width.quantity,
+        ext = self.format.value
+        # need to write to a file, because Geometry.write_to does not
+        # expose the format parameter.
+        with tempfile.NamedTemporaryFile(mode="w+b", suffix=ext) as ntf:
+            if isinstance(self.geometry, Geometry):
+                self.geometry.to_file(
+                    ntf.name,
+                    self.profile_raster_width.quantity,
+                    self.trace_raster_width.quantity,
+                )
+            elif isinstance(self.geometry, SpatialData):  # already rasterized
+                self.geometry.to_file(ntf.name)
+            else:
+                raise RuntimeError(f"invalid geometry type {type(self.geometry)}")
+            # read and embed in HTML button.
+            ntf.seek(0)
+            download_button(
+                button_description="Download program",
+                filename=f"specimen.{ext}",
+                html_instance=self._html_dl_button,
+                content=ntf.read(),
             )
-        elif isinstance(self.geometry, SpatialData):  # already rasterized
-            self.geometry.to_file(self.save.path)
-        else:
-            raise RuntimeError(f"invalid geometry type {type(self.geometry)}")
-
-    def _update_file_pattern(self, change):
-        dot_ext = f".{change['new']}"
-        self.save.file_chooser.filter_pattern = f"*{dot_ext}"
-        fn = Path(self.save.path).stem + dot_ext
-        self.save.file_chooser.default_filename = fn
-        self.save.file_chooser.refresh()
 
 
 class WidgetMetal(WidgetMyVBox):
@@ -189,8 +184,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
     def __init__(self):
         self._groove_obj = None
 
-        self.out = Output(layout=layout_generic_output)
-        self.out.layout = plot_layout
+        self.out = Output()  # layout=Layout(width="100%"))
         self.groove_params_dropdowns = None
 
         # create figure for groove visualization
@@ -214,9 +208,13 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         )
         # left box with parameter should be small to leave more space for plots.
         self.groove_selection.layout.width = "30%"
+        self.output_tabs = Tab()
+        self.output_tabs.layout = Layout(width="70%")
+        self.output_tabs.children = [self.out]
+        self.output_tabs.set_title(0, "2D profile")
         children = [
             make_title("ISO 9692-1 Groove selection", 3),
-            WidgetMyHBox(children=[self.groove_selection, self.out]),
+            WidgetMyHBox(children=[self.groove_selection, self.output_tabs]),
         ]
 
         # set initial state
@@ -272,12 +270,15 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         #  https://stackoverflow.com/questions/61272384/how-to-resize-matplotlib
         #  -figure-to-match-ipywidgets-output-size-automatically
         with self.out:
-            self.fig, self.ax = plt.subplots(1, 1, figsize=(5, 4), dpi=100)
+            self.fig, self.ax = plt.subplots(1, 1)  # , figsize=(5, 4), dpi=100)
             canvas = self.fig.canvas
-            canvas.toolbar_visible = False
+            # canvas.toolbar_visible = False
             canvas.header_visible = False
-            canvas.footer_visible = False
-            canvas.resizable = False
+            # canvas.footer_visible = False
+            # canvas.resizable = False
+            if hasattr(canvas, "layout"):
+                canvas.layout.height = "100%"
+                canvas.layout.width = "100%"
             plt.show()
 
     def _create_groove_dropdown(self):
@@ -295,7 +296,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         param_widgets = self.groove_params_dropdowns
         for item in attrs:
             if item == "code_number":  # only the case for FFGroove
-                dropdown = widgets.Dropdown(
+                dropdown = Dropdown(
                     options=get_ff_grove_code_numbers(),
                     layout=description_layout,
                 )
@@ -314,7 +315,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
         groove_list = list(_groove_name_to_type.keys())
         margin = 5
-        groove_type_dropdown = widgets.Dropdown(
+        groove_type_dropdown = Dropdown(
             options=groove_list,
             value=groove_list[1],
             layout=Layout(width=f"{2 * Q_(textbox_layout.width).m + margin}px"),
@@ -388,9 +389,6 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         self.weld_speed = FloatWithUnit("weld speed", value=6, unit="mm/s")
         self.base_metal = WidgetMetal()
         self.geometry_export = WidgetCADExport()
-        self.plot_button = Button(description="3D Plot", layout=button_layout)
-        self.plot_button.layout.width = "150px"
-        self.plot_button.on_click(self.create_csm_and_plot)
         self.additional_params = (
             make_title("Welding parameters", 4),
             self.seam_length,
@@ -398,11 +396,19 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
             self.tcp_y,
             self.tcp_z,
             self.base_metal,
-            self.plot_button,
-            self.geometry_export,
         )
         # add our parameters to our instance of WidgetGrooveSelection.
         self.groove_sel.groove_selection.children += self.additional_params
+
+        # add 3d plot and CAD export to groove_sel output tab
+        self.out = Output()
+        self.groove_sel.output_tabs.children += (self.out, self.geometry_export)
+        self.groove_sel.output_tabs.set_title(1, "3D profile")
+        self.groove_sel.output_tabs.set_title(2, "CAD export")
+
+        self.groove_sel.output_tabs.observe(
+            self.create_csm_and_plot, names="selected_index"
+        )
 
         # csm 3d visualization
         self.csm = None
@@ -415,8 +421,14 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
             children=children, layout=Layout(width="100%")
         )
 
-    def create_csm_and_plot(self, button, plot=True, **kwargs):
+    def create_csm_and_plot(self, change=None, plot=True, **kwargs):
         """Create coordinates system manager containing TCP movement."""
+        if change is not None:
+            assert change["name"] == "selected_index"
+            # if not 3d plot tab selected, do not update
+            if change["new"] != 1:
+                return
+
         # TODO: only create once and then update the csm!
 
         # create a linear trace segment a the complete weld seam trace
@@ -494,8 +506,6 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
     def plot(self):
         """Visualize the tcp design movement."""
-        out = self.groove_sel.out
-
         # clear previous output.
         if self.last_plot is not None:
             self.last_plot.close()
@@ -509,7 +519,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         # TODO: once weldx-widgets matches a release of weldx, we can remove this
         # monkey patching
-        with out, mock.patch(
+        with self.out, mock.patch(
             "weldx.visualization.CoordinateSystemManagerVisualizerK3D",
             CoordinateSystemManagerVisualizerK3D,
         ), warnings.catch_warnings():
