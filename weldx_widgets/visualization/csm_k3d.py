@@ -769,44 +769,20 @@ class CoordinateSystemManagerVisualizerK3D:
         play.disabled = disable_time_widgets
         time_slider.disabled = disable_time_widgets
 
-        # callback functions
-        def _reference_callback(change):
-            self.update_reference_system(change["new"])
-
-        def _time_callback(change):
-            self.update_time_index(change["new"])
-
-        def _vectors_callback(change):
-            self.show_vectors(change["new"])
-
-        def _origins_callback(change):
-            self.show_origins(change["new"])
-
-        def _traces_callback(change):
-            self.show_traces(change["new"])
-
-        def _labels_callback(change):
-            self.show_labels(change["new"])
-
-        def _data_callback(change):
-            self.set_data_visualization_method(change["new"])
-
-        def _data_labels_callback(change):
-            self.show_data_labels(change["new"])
-
-        def _wireframe_callback(change):
-            self.show_wireframes(change["new"])
-
         # register callbacks
-        time_slider.observe(_time_callback, names="value")
-        reference_dropdown.observe(_reference_callback, names="value")
-        vectors_cb.observe(_vectors_callback, names="value")
-        origin_cb.observe(_origins_callback, names="value")
-        traces_cb.observe(_traces_callback, names="value")
-        labels_cb.observe(_labels_callback, names="value")
-        data_dropdown.observe(_data_callback, names="value")
-        data_labels_cb.observe(_data_labels_callback, names="value")
-        wf_cb.observe(_wireframe_callback, names="value")
+        time_slider.observe(lambda c: self.update_time_index(c["new"]), names="value")
+        reference_dropdown.observe(
+            lambda c: self.update_reference_system(c["new"]), names="value"
+        )
+        vectors_cb.observe(lambda c: self.show_vectors(c["new"]), names="value")
+        origin_cb.observe(lambda c: self.show_origins(c["new"]), names="value")
+        traces_cb.observe(lambda c: self.show_traces(c["new"]), names="value")
+        labels_cb.observe(lambda c: self.show_labels(c["new"]), names="value")
+        data_dropdown.observe(
+            lambda c: self.set_data_visualization_method(c["new"]), names="value"
+        )
+        data_labels_cb.observe(lambda c: self.show_data_labels(c["new"]), names="value")
+        wf_cb.observe(lambda c: self.show_wireframes(c["new"]), names="value")
 
         # create control panel
         row_1 = HBox([time_slider, play, reference_dropdown])
