@@ -2,7 +2,7 @@
 import tempfile
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 import ipywidgets as widgets
 import numpy as np
