@@ -2,7 +2,7 @@
 import tempfile
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 import ipywidgets as widgets
 import numpy as np
@@ -42,6 +42,8 @@ class WidgetLinearWeldYaskawa(WidgetMyVBox):
             [Union[str, Path, WeldxFile], pint.Quantity, str, bool], Union[Path, bytes]
         ],
     ):
+        self.temp_dir = tempfile.TemporaryDirectory()  # outputs will be stored here.
+        self.output: Optional[bytes] = None  # binary contents of robot program.
         self.wx_file = wx_file
         self.program_func = program_func
         # The translation from the user frame (UF) to the
@@ -111,11 +113,14 @@ class WidgetLinearWeldYaskawa(WidgetMyVBox):
             html_instance=dl_button,
         )
 
+        self.output = output
+
     def to_tree(self) -> dict:
         """Export state."""
+        if not self.output:
+            return {}
         fn = Path(self.jobname.value)
-        temp_dir = tempfile.TemporaryDirectory()
-        with open(temp_dir.name / fn) as fh:
+        with open(self.temp_dir.name / fn, mode="wb") as fh:
             fh.write(self.output)
             external_file = ExternalFile(fh.name, asdf_save_content=True)
             return dict(robot_program=external_file)
