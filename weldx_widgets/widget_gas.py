@@ -81,8 +81,9 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
         new_children = [c for c in self.children if c is not box_to_delete]
         dropdown: Dropdown = box_to_delete.children[0]
         key = dropdown.value
-        del self.components[key]
-        self.children = new_children
+        if len(self.components) > 1:
+            del self.components[key]
+            self.children = new_children
 
     def _add_gas_comp(self, change):
         # find gas which was not yet added
