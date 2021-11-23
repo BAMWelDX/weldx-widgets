@@ -6,8 +6,7 @@ from bidict import bidict
 from ipywidgets import Dropdown
 from matplotlib import pylab as plt
 
-import weldx
-from weldx import Q_, GmawProcess, TimeSeries
+from weldx import Q_, GmawProcess, Time, TimeSeries
 from weldx_widgets import WidgetShieldingGas
 from weldx_widgets.generic import WidgetTimeSeries
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyVBox
@@ -23,7 +22,7 @@ _DEFAULT_FIGWIDTH = 12
 def parplot(par, t, name, ax):
     """Plot a single parameter into an axis."""
     ts = par.interp_time(t)
-    x = weldx.util.pandas_time_delta_to_quantity(t)
+    x = Time(t).as_quantity()
     ax.plot(x.m, ts.data.m)
     ax.set_ylabel(f"{name} / {ts.data.u:~}")
     ax.grid()
