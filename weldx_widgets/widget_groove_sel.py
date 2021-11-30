@@ -46,7 +46,21 @@ class WidgetCADExport(WidgetMyVBox):
         does nothing.
     """
 
-    data_formats = [".stl", ".ply"]
+    data_formats = (
+        [  # ".stl", # FIXME: for some reason there is a div by zero error in meshio
+            ".ply"
+        ]
+    )  # same groove is fine in ply format...
+    """ example trace for a simple vgroove:
+    meshio/stl/_stl.py in write(filename, mesh, binary)
+    203         normals = np.cross(pts[:, 1] - pts[:, 0], pts[:, 2] - pts[:, 0])
+    204         nrm = np.sqrt(np.einsum("ij,ij->i", normals, normals))
+--> 205         normals = (normals.T / nrm).T
+    206
+    207     fun = _write_binary if binary else _write_ascii
+
+RuntimeWarning: invalid value encountered in true_divide
+    """
 
     def __init__(self):
         title = make_title("Export geometry to CAD file [optional]", heading_level=4)
@@ -124,7 +138,7 @@ class WidgetCADExport(WidgetMyVBox):
             ntf.seek(0)
             download_button(
                 button_description="Download program",
-                filename=f"specimen.{ext}",
+                filename=f"specimen{ext}",
                 html_instance=self._html_dl_button,
                 content=ntf.read(),
             )
