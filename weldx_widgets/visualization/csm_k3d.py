@@ -537,6 +537,7 @@ class CoordinateSystemManagerVisualizerK3D:
         self._current_reference_system = reference_system
 
         plot = k3d.plot()
+        self.plot = plot
 
         self._color_generator = color_generator_function()
 
