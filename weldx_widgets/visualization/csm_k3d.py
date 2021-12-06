@@ -300,6 +300,8 @@ class SpatialDataVisualizer:
         color: int = None,
         visualization_method: str = "auto",
         show_wireframe: bool = False,
+        create_points: bool = False,
+        create_label: bool = False,
     ):
         """Create a ``SpatialDataVisualizer`` instance.
 
@@ -322,16 +324,22 @@ class SpatialDataVisualizer:
             triangle data is available and points if not.
         show_wireframe :
             If `True`, meshes will be drawn as wireframes
+        create_points
+            create points object even if mesh is available
+        create_label
+            create a K3D label for the data
 
         """
         if not isinstance(data, geo.SpatialData):
             data = geo.SpatialData(coordinates=data)
 
-        colors = []
+        colors = []  # color mapping for 3d data
         if color is None or isinstance(color, str):
             if isinstance(color, str):
                 colors = data.attributes[color]
             color = RGB_GREY
+
+        self._color = color
 
         if data.triangles is not None:
             triangles = data.triangles.astype(np.uint32)
@@ -340,32 +348,28 @@ class SpatialDataVisualizer:
 
         self._reference_system = reference_system
 
-        self._label_pos = data.coordinates.mean(dim=data.additional_dims).values
+        self.data = data
+
         self._label = None
-        if name is not None:
-            self._label = k3d.text(
-                text=name,
-                position=self._label_pos,
-                reference_point="cc",
-                color=color,
-                size=0.5,
-                label_box=True,
-                name=name if name is None else f"{name} (text)",
+        if create_label & (name is not None):
+            self.create_label(name=name)
+
+        self._points = None
+        if (data.triangles is None) | create_points:
+            self._points = k3d.points(
+                self.data.coordinates,
+                point_size=0.05,
+                color=self._color,
+                name=name if name is None else f"{name} (points)",
             )
 
-        self._points = k3d.points(
-            data.coordinates,
-            point_size=0.05,
-            color=color,
-            name=name if name is None else f"{name} (points)",
-        )
         self._mesh = None
         if data.triangles is not None:
             self._mesh = k3d.mesh(
-                data.coordinates.values.astype(np.float32).reshape(-1, 3),
+                self.data.coordinates.values.astype(np.float32).reshape(-1, 3),
                 triangles,
                 side="double",
-                color=color,
+                color=self._color,
                 attribute=colors,
                 color_map=k3d.colormaps.matplotlib_color_maps.Viridis,
                 wireframe=show_wireframe,
@@ -375,13 +379,31 @@ class SpatialDataVisualizer:
         self.set_visualization_method(visualization_method)
 
         if plot is not None:
-            plot += self._points
-            if self._mesh is not None:
-                plot += self._mesh
-            if self._label is not None:
-                plot += self._label
+            self.add_to_plot(plot)
 
-        self.data = data
+    def create_label(self, name):
+        """Create a K3D label for this object."""
+        dims = self.data.additional_dims
+        self._label_pos = self.data.coordinates.mean(dim=dims).values
+        if name is not None:
+            self._label = k3d.text(
+                text=name,
+                position=self._label_pos,
+                reference_point="cc",
+                color=self._color,
+                size=0.5,
+                label_box=True,
+                name=name if name is None else f"{name} (text)",
+            )
+
+    def add_to_plot(self, plot: k3d.Plot):
+        """Add the k3d objects t an existing plot."""
+        if self._points is not None:
+            plot += self._points
+        if self._mesh is not None:
+            plot += self._mesh
+        if self._label is not None:
+            plot += self._label
 
     @property
     def reference_system(self) -> str:
@@ -415,7 +437,9 @@ class SpatialDataVisualizer:
             else:
                 method = "point"
 
-        self._points.visible = method in ["point", "both"]
+        if self._points is not None:
+            self._points.visible = method in ["point", "both"]
+
         if self._mesh is not None:
             self._mesh.visible = method in ["mesh", "both"]
 
@@ -428,7 +452,8 @@ class SpatialDataVisualizer:
             If `True`, the label will be shown
 
         """
-        self._label.visible = show_label
+        if self._label is not None:
+            self._label.visible = show_label
 
     def show_wireframe(self, show_wireframe: bool):
         """Set wireframe rendering.
@@ -444,7 +469,8 @@ class SpatialDataVisualizer:
 
     def update_model_matrix(self, model_mat):
         """Update the model matrices of the k3d objects."""
-        self._points.model_matrix = model_mat
+        if self._points is not None:
+            self._points.model_matrix = model_mat
         if self._mesh is not None:
             self._mesh.model_matrix = model_mat
         if self._label is not None:
@@ -744,44 +770,20 @@ class CoordinateSystemManagerVisualizerK3D:
         play.disabled = disable_time_widgets
         time_slider.disabled = disable_time_widgets
 
-        # callback functions
-        def _reference_callback(change):
-            self.update_reference_system(change["new"])
-
-        def _time_callback(change):
-            self.update_time_index(change["new"])
-
-        def _vectors_callback(change):
-            self.show_vectors(change["new"])
-
-        def _origins_callback(change):
-            self.show_origins(change["new"])
-
-        def _traces_callback(change):
-            self.show_traces(change["new"])
-
-        def _labels_callback(change):
-            self.show_labels(change["new"])
-
-        def _data_callback(change):
-            self.set_data_visualization_method(change["new"])
-
-        def _data_labels_callback(change):
-            self.show_data_labels(change["new"])
-
-        def _wireframe_callback(change):
-            self.show_wireframes(change["new"])
-
         # register callbacks
-        time_slider.observe(_time_callback, names="value")
-        reference_dropdown.observe(_reference_callback, names="value")
-        vectors_cb.observe(_vectors_callback, names="value")
-        origin_cb.observe(_origins_callback, names="value")
-        traces_cb.observe(_traces_callback, names="value")
-        labels_cb.observe(_labels_callback, names="value")
-        data_dropdown.observe(_data_callback, names="value")
-        data_labels_cb.observe(_data_labels_callback, names="value")
-        wf_cb.observe(_wireframe_callback, names="value")
+        time_slider.observe(lambda c: self.update_time_index(c["new"]), names="value")
+        reference_dropdown.observe(
+            lambda c: self.update_reference_system(c["new"]), names="value"
+        )
+        vectors_cb.observe(lambda c: self.show_vectors(c["new"]), names="value")
+        origin_cb.observe(lambda c: self.show_origins(c["new"]), names="value")
+        traces_cb.observe(lambda c: self.show_traces(c["new"]), names="value")
+        labels_cb.observe(lambda c: self.show_labels(c["new"]), names="value")
+        data_dropdown.observe(
+            lambda c: self.set_data_visualization_method(c["new"]), names="value"
+        )
+        data_labels_cb.observe(lambda c: self.show_data_labels(c["new"]), names="value")
+        wf_cb.observe(lambda c: self.show_wireframes(c["new"]), names="value")
 
         # create control panel
         row_1 = HBox([time_slider, play, reference_dropdown])
