@@ -8,6 +8,7 @@ from typing import Union
 import matplotlib.pyplot as plt
 import pandas as pd
 from IPython import get_ipython
+from IPython.core.display import display
 from ipywidgets import HTML, Button, Dropdown, HBox, Label, Layout, Output, Tab
 
 import weldx
@@ -45,7 +46,21 @@ class WidgetCADExport(WidgetMyVBox):
         does nothing.
     """
 
-    data_formats = [".stl", ".ply"]
+    data_formats = (
+        [  # ".stl", # FIXME: for some reason there is a div by zero error in meshio
+            ".ply"
+        ]
+    )  # same groove is fine in ply format...
+    """ example trace for a simple vgroove:
+    meshio/stl/_stl.py in write(filename, mesh, binary)
+    203         normals = np.cross(pts[:, 1] - pts[:, 0], pts[:, 2] - pts[:, 0])
+    204         nrm = np.sqrt(np.einsum("ij,ij->i", normals, normals))
+--> 205         normals = (normals.T / nrm).T
+    206
+    207     fun = _write_binary if binary else _write_ascii
+
+RuntimeWarning: invalid value encountered in true_divide
+    """
 
     def __init__(self):
         title = make_title("Export geometry to CAD file [optional]", heading_level=4)
@@ -63,7 +78,7 @@ class WidgetCADExport(WidgetMyVBox):
         # disable button initially, because we first need to have a geometry
         self.create_btn.disabled = True
         # observe here, because "btn.disabled = True" already triggers an event.
-        self.create_btn.observe(self._on_export_geometry)
+        self.create_btn.on_click(self._on_export_geometry)
         # this dynamically created button allows the user to download the
         # program directly to his/her computer.
         self._html_dl_button = HTML()
@@ -123,7 +138,7 @@ class WidgetCADExport(WidgetMyVBox):
             ntf.seek(0)
             download_button(
                 button_description="Download program",
-                filename=f"specimen.{ext}",
+                filename=f"specimen{ext}",
                 html_instance=self._html_dl_button,
                 content=ntf.read(),
             )
@@ -444,12 +459,6 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         profile_raster_width = self.geometry_export.profile_raster_width.quantity
         trace_raster_width = self.geometry_export.trace_raster_width.quantity
 
-        # TODO: show 2d data?
-        # geometry_data_sp = geometry.rasterize(
-        #     profile_raster_width=profile_raster_width,
-        #     trace_raster_width=trace_raster_width
-        # )
-
         # crete a new coordinate system manager with default base coordinate system
         csm = weldx.CoordinateSystemManager(
             "base", coordinate_system_manager_name="design"
@@ -473,8 +482,6 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         tcp_y = self.tcp_y.float_value
         tcp_z = self.tcp_z.float_value
-        # tcp_start_point = Q_([5.0, 0.0, 2.0], "mm")
-        # tcp_end_point = Q_([self.seam_length.float_value - 5.0, 0.0, 2.0], "mm")
         tcp_start_point = Q_([5.0, tcp_y, tcp_z], "mm")
         tcp_end_point = Q_([self.seam_length.float_value - 5.0, tcp_y, tcp_z], "mm")
 
@@ -510,20 +517,8 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         if self.last_plot is not None:
             self.last_plot.close()
 
-        import warnings
-        from unittest import mock
-
-        from weldx_widgets.visualization.csm_k3d import (
-            CoordinateSystemManagerVisualizerK3D,
-        )
-
-        # TODO: once weldx-widgets matches a release of weldx, we can remove this
-        # monkey patching
-        with self.out, mock.patch(
-            "weldx.visualization.CoordinateSystemManagerVisualizerK3D",
-            CoordinateSystemManagerVisualizerK3D,
-        ), warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+        with self.out:
+            self.out.clear_output()
             vis = self.csm.plot(
                 coordinate_systems=["TCP design"],
                 # limits=[(0, 140), (-5, 5), (0, 12)],
@@ -531,7 +526,8 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
                 show_wireframe=False,
                 backend="k3d",
             )
-            self.last_plot = vis
+            display(vis)
+        self.last_plot = vis.plot
 
     def to_tree(self) -> dict:
         """Return the workpiece, coordinates and TCP movement."""

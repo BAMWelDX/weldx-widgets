@@ -39,6 +39,8 @@ def test_groove_sel(groove_name):
 def test_groove_linear_sel_tcp_movement_export():
     """Test export."""
     w = WidgetGrooveSelectionTCPMovement()
+    w.create_csm_and_plot()
+    w.geometry_export.create_btn.click()  # simulate an geometry export with defaults.
     tree = w.to_tree()
     # dump
     tree = weldx.WeldxFile(tree=tree, mode="rw")
