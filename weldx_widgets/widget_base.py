@@ -98,6 +98,8 @@ class WidgetSimpleOutput(WidgetMyHBox):
             else:
                 layout = layout_generic_output
             out = Output(layout=layout)
+        else:
+            layout = out.layout
         self.out = out
         super(WidgetSimpleOutput, self).__init__(children=[self.out], layout=layout)
 

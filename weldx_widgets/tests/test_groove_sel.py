@@ -8,13 +8,6 @@ from weldx_widgets import WidgetGrooveSelection, WidgetGrooveSelectionTCPMovemen
 test_grooves = _create_test_grooves()
 
 
-def setup_module(module):
-    """Set Agg matplotlib backend for this module."""
-    import matplotlib
-
-    matplotlib.use("Agg", force=True)
-
-
 @pytest.mark.parametrize("groove_name", test_grooves.keys())
 def test_groove_sel(groove_name):
     """Check form restoration from test grooves."""

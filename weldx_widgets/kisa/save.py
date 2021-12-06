@@ -145,7 +145,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         next_notebook_desc: str = "2. invoke next step",
         next_notebook_params=None,
         title="Save results",
-        disable_next_button=False,
+        disable_next_button=True,
     ):
         self.status = status
         self.collect_data_from = collect_data_from
