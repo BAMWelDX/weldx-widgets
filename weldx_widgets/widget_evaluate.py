@@ -18,6 +18,7 @@ from ipywidgets import Layout, Output, Tab
 import weldx
 from weldx import (
     Q_,
+    CoordinateSystemManager,
     Geometry,
     GmawProcess,
     LinearHorizontalTraceSegment,
@@ -69,10 +70,25 @@ cs_colors = {
 }
 
 
+def _clean_nans_from_spatial_data(data: SpatialData):
+    def dims_as_coords(arr):
+        return arr.assign_coords({k: arr[k] for k in arr.dims})
+
+    coords = data.coordinates
+    coords = dims_as_coords(coords)
+
+    positive = coords.sel(c="z") > 0
+
+    filtered = coords.where(positive).ffill("n").bfill("n")
+
+    # TODO: ensure we do not manipulate anything with this!
+    data.coordinates = filtered
+
+
 class WidgetEvaluateSinglePassWeld(Tab):
     """Aggregate info of passed file in several tabs."""
 
-    def __init__(self, file_content: WeldxFile):
+    def __init__(self, file: WeldxFile):
         def make_output():
             layout = Layout(width="100%", height="800px")
             out = Output(layout=layout)
@@ -81,25 +97,25 @@ class WidgetEvaluateSinglePassWeld(Tab):
         tabs = defaultdict(make_output)
 
         with tabs["ASDF-header"]:
-            display(file_content.show_asdf_header(False, True))
+            display(file.show_asdf_header(False, True))
 
         # start and end time of experiment
-        t = (file_content["TCP"].time[[0, -1]]).as_timedelta()
+        t = (file["TCP"].time[[0, -1]]).as_timedelta()
 
         WidgetProcessInfo(
-            file_content["process"]["welding_process"], t, out=tabs["Process params"]
+            file["process"]["welding_process"], t, out=tabs["Process params"]
         )
 
-        groove = file_content["workpiece"]["geometry"]["groove_shape"]
+        groove = file["workpiece"]["geometry"]["groove_shape"]
         with tabs["Specimen"]:
             print("Material")
-            print(file_content["workpiece"]["base_metal"]["common_name"])
-            print(file_content["workpiece"]["base_metal"]["standard"])
+            print(file["workpiece"]["base_metal"]["common_name"])
+            print(file["workpiece"]["base_metal"]["standard"])
 
             groove.plot()
             plt.show()
 
-            seam_length = file_content["workpiece"]["geometry"]["seam_length"]
+            seam_length = file["workpiece"]["geometry"]["seam_length"]
             print("Seam length:", seam_length)
 
         # 3D Geometry
@@ -109,7 +125,19 @@ class WidgetEvaluateSinglePassWeld(Tab):
         #                           trace_raster_width=Q_(40, "mm")))
 
         # Add geometry data to CSM
-        csm = file_content["coordinate_systems"]
+        csm: CoordinateSystemManager = file["coordinate_systems"]
+
+        # clean up scan data (fill up NaNs)
+        scans_available = True
+        try:
+            foo = [
+                _clean_nans_from_spatial_data(csm.get_data("scan_%s" % i))
+                for i in range(0, 2)
+            ]
+            assert len(foo) == 2
+            # assert csm.get_data("scan_1").coordinates.
+        except KeyError:
+            scans_available = False
 
         geometry_full_width = self._create_geometry(groove, seam_length, Q_(100, "mm"))
         spatial_data_geo_full = geometry_full_width.spatial_data(
@@ -137,7 +165,7 @@ class WidgetEvaluateSinglePassWeld(Tab):
             display(
                 csm.plot(
                     reference_system="workpiece",
-                    coordinate_systems=["TCP design", "T1", "T2"],
+                    coordinate_systems=csm.coordinate_system_names,
                     data_sets=["workpiece geometry (reduced)"],
                     colors=cs_colors,
                     show_wireframe=True,
@@ -147,18 +175,24 @@ class WidgetEvaluateSinglePassWeld(Tab):
                 )
             )
 
-        welding_wire_diameter = file_content["process"]["welding_wire"]["diameter"].m
+        welding_wire_diameter = file["process"]["welding_wire"]["diameter"].m
+
+        # this name does only exist in KISA (not yet in schema).
+        tcp_cs_name = "TCP" if "TCP" in csm.coordinate_system_names else "tcp_wire"
         csm.assign_data(
             self._welding_wire_geo_data(welding_wire_diameter / 2, 20, 16),
             "welding_wire",
-            "TCP",
+            tcp_cs_name,
         )
 
+        data_sets = ["welding_wire"]
+        if scans_available:
+            data_sets.append("scan_0")
         with tabs["CSM-Real"]:
             plt_real = csm.plot(
                 reference_system="workpiece",
-                coordinate_systems=["TCP", "T1", "T2"],
-                data_sets=["scan_0", "welding_wire"],
+                coordinate_systems=csm.coordinate_system_names,
+                data_sets=data_sets,
                 colors=cs_colors,
                 show_data_labels=False,
                 backend="k3d",
@@ -170,7 +204,7 @@ class WidgetEvaluateSinglePassWeld(Tab):
         # with self:
         #    print(tcp)
 
-        measurements = file_content["measurements"]
+        measurements = file["measurements"]
         # TODO: compute W on the fly and attach it to measurements?
         WidgetMeasurementChain(measurements, out=tabs["Measurement chain"])
         WidgetMeasurement(measurements, out=tabs["Measurements"])
@@ -189,9 +223,10 @@ class WidgetEvaluateSinglePassWeld(Tab):
 
     @staticmethod
     def _show_csm_subsystems(csm):
-        # Show subsystems
-        print(csm.subsystem_names)
         subsystems = csm.subsystems
+        if not subsystems:
+            return
+        print(csm.subsystem_names)
         fig, ax = plt.subplots(ncols=len(subsystems))
         for i, subsystem in enumerate(subsystems):
             subsystem.plot_graph(ax=ax[i])
@@ -212,6 +247,8 @@ class WidgetEvaluateSinglePassWeld(Tab):
     @staticmethod
     def _compare_design_tcp(csm):
         # TCP design vs TCP
+        if "TCP design" not in csm.coordinate_system_names:
+            return
         csm_interp = csm.interp_time(csm.time_union())
         tcp_design_coords = csm_interp.get_cs("TCP design", "workpiece").coordinates
         tcp_coords = csm_interp.get_cs("TCP", "workpiece").coordinates
