@@ -499,6 +499,7 @@ class CoordinateSystemManagerVisualizerK3D:
         show_traces: bool = True,
         show_vectors: bool = True,
         show_wireframe: bool = True,
+        plot_all_obj: bool = False,
     ):
         """Create a `CoordinateSystemManagerVisualizerK3D`.
 
@@ -587,6 +588,8 @@ class CoordinateSystemManagerVisualizerK3D:
                 plot,
                 color=get_color(data_name, colors, self._color_generator),
                 show_wireframe=show_wireframe,
+                create_label=plot_all_obj,
+                create_points=plot_all_obj,
             )
             for data_name in data_sets
         }
