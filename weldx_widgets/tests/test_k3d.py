@@ -26,7 +26,7 @@ def test_k3d_csm_vis(plot_all):
     spatial = weldx.Geometry(groove, "10mm").spatial_data("1 mm", "1 mm")
     csm.assign_data(spatial, "workpiece", "A")
 
-    plot = CoordinateSystemManagerVisualizerK3D(csm=csm,plot_all_obj=plot_all)
+    plot = CoordinateSystemManagerVisualizerK3D(csm=csm, plot_all_obj=plot_all)
     for state in [True, False, True]:
         plot.show_data_labels(state)
         plot.show_labels(state)
