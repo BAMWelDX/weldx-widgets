@@ -162,6 +162,7 @@ class CoordinateSystemVisualizerK3D:
                 size=1,
                 label_box=False,
                 name=name if name is None else f"{name} (text)",
+                is_html=True,
             )
 
         self._trace = k3d.line(
@@ -394,6 +395,7 @@ class SpatialDataVisualizer:
                 size=0.5,
                 label_box=True,
                 name=name if name is None else f"{name} (text)",
+                is_html=True,
             )
 
     def add_to_plot(self, plot: k3d.Plot):
