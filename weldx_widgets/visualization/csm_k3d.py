@@ -162,6 +162,7 @@ class CoordinateSystemVisualizerK3D:
                 size=1,
                 label_box=False,
                 name=name if name is None else f"{name} (text)",
+                is_html=True,
             )
 
         self._trace = k3d.line(
@@ -394,6 +395,7 @@ class SpatialDataVisualizer:
                 size=0.5,
                 label_box=True,
                 name=name if name is None else f"{name} (text)",
+                is_html=True,
             )
 
     def add_to_plot(self, plot: k3d.Plot):
@@ -499,6 +501,7 @@ class CoordinateSystemManagerVisualizerK3D:
         show_traces: bool = True,
         show_vectors: bool = True,
         show_wireframe: bool = True,
+        plot_all_obj: bool = False,
     ):
         """Create a `CoordinateSystemManagerVisualizerK3D`.
 
@@ -587,6 +590,8 @@ class CoordinateSystemManagerVisualizerK3D:
                 plot,
                 color=get_color(data_name, colors, self._color_generator),
                 show_wireframe=show_wireframe,
+                create_label=plot_all_obj,
+                create_points=plot_all_obj,
             )
             for data_name in data_sets
         }
