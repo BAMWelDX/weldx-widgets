@@ -6,6 +6,7 @@ from ipywidgets import Button, Dropdown, HBox, IntSlider, Layout, Output
 
 from weldx import Q_
 from weldx.tags.aws import GasComponent, ShieldingGasForProcedure, ShieldingGasType
+from weldx_widgets.translation_utils import _i18n as _
 from weldx_widgets.widget_base import WidgetMyVBox
 from weldx_widgets.widget_factory import (
     FloatWithUnit,
@@ -22,13 +23,10 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
     A gas component is a list of gases (element, percentage)
     """
 
-    gas_list = ["Argon", "CO2", "Helium", "Hydrogen", "Oxygen"]
-    _asdf_names = ["argon", "carbon dioxide", "helium", "hydrogen", "oxygen"]
-    _mapping = bidict(
-        {gui_name: _asdf_name for gui_name, _asdf_name in zip(gas_list, _asdf_names)}
-    )
+    _asdf_gas_names = ["argon", "carbon dioxide", "helium", "hydrogen", "oxygen"]
 
     def __init__(self, index=0, percentage=100):
+        self._set_gas_list()
         # create first gas dropdown, with buttons to delete and add gases.
         gas = self._create_gas_dropdown(index, percentage=percentage)
         self.initial_percentage = percentage
@@ -40,10 +38,19 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
             )
         )
 
-        button_add = Button(description="Add gas component")
+        button_add = Button(description=_("Add gas component"))
         button_add.on_click(self._add_gas_comp)
 
         super(WidgetSimpleGasSelection, self).__init__(children=[button_add, gas])
+
+    def _set_gas_list(self):
+        self.gas_list = ["Argon", "CO2", "Helium", _("Hydrogen"), _("Oxygen")]
+        self._mapping = bidict(
+            {
+                gui_name: _asdf_name
+                for gui_name, _asdf_name in zip(self.gas_list, self._asdf_gas_names)
+            }
+        )
 
     def _clear(self):
         self.children = [self.children[0]]
@@ -59,13 +66,13 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
         )
 
         percentage = IntSlider(
-            start=0, end=100, value=percentage, description="percentage"
+            start=0, end=100, value=percentage, description=_("percentage")
         )
         percentage.observe(self._check, type="change")
 
         self.gas_selection = gas_dropdown
 
-        button_del = Button(description="delete", layout=button_layout)
+        button_del = Button(description=_("delete"), layout=button_layout)
 
         box = HBox((gas_dropdown, percentage, button_del))
 
@@ -102,7 +109,7 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
         if not sum(g.gas_percentage for g in gas_components) == 100:
             with self.out:
                 print(
-                    "Check percentages, all components should sum up to 100!"
+                    _("Check percentages, all components should sum up to 100!")
                 )  # , file=sys.stderr)
         else:
             # remove output, if everything is alright.
@@ -141,7 +148,7 @@ class WidgetShieldingGas(WidgetMyVBox):
     # TODO: this could in principle be used multiple times for all positions
     #  e.g. torch, trailing, backing
     def __init__(self, position="torch"):
-        self.flowrate = FloatWithUnit("Flow rate", "l/min", value=20)
+        self.flowrate = FloatWithUnit(_("Flow rate"), "l/min", value=20)
         self.gas_components = WidgetSimpleGasSelection()
 
         children = [self.gas_components, self.flowrate]
@@ -166,3 +173,11 @@ class WidgetShieldingGas(WidgetMyVBox):
             gas_component=gas_for_proc.torch_shielding_gas.gas_component
         )
         self.gas_components.from_tree(gas_components)
+
+
+def test_lang():
+    from weldx_widgets.translation_utils import get_trans
+
+    t = get_trans("de")
+    w = WidgetSimpleGasSelection()
+    assert "Sauerstoff" in w.gas_list, (w.gas_list, t._catalog)
