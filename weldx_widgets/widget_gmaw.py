@@ -9,6 +9,7 @@ from matplotlib import pylab as plt
 from weldx import Q_, GmawProcess, Time, TimeSeries
 from weldx_widgets import WidgetShieldingGas
 from weldx_widgets.generic import WidgetTimeSeries
+from weldx_widgets.translation_utils import _i18n as _
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyVBox
 from weldx_widgets.widget_factory import (
     FloatWithUnit,
@@ -38,7 +39,7 @@ def plot_gmaw(gmaw, t):
     fig, ax = plt.subplots(nrows=n, sharex="all", figsize=(_DEFAULT_FIGWIDTH, 2 * n))
     for i, k in enumerate(pars):
         parplot(pars[k], t, k, ax[i])
-    ax[-1].set_xlabel("time / s")
+    ax[-1].set_xlabel(_("time") + " / s")
     ax[0].set_title(title, loc="left")
 
     # ipympl_style(fig)
@@ -58,10 +59,10 @@ class BaseProcess(WidgetMyVBox):
         self.tag = tag
         self.meta = meta
 
-        self.manufacturer = WidgetLabeledTextInput("Manufacturer", "Fronius")
-        self.power_source = WidgetLabeledTextInput("Power source", "TPS 500i")
+        self.manufacturer = WidgetLabeledTextInput(_("Manufacturer"), "Fronius")
+        self.power_source = WidgetLabeledTextInput(_("Power source"), "TPS 500i")
         self.wire_feedrate = FloatWithUnit(
-            text="Wire feed rate", value=10, min=0, unit="m/min"
+            text=_("Wire feed rate"), value=10, min=0, unit="m/min"
         )
         children = [
             self.manufacturer,
@@ -98,21 +99,23 @@ class ProcessPulsed(WidgetMyVBox):
     """Widget for pulsed processes."""
 
     def __init__(self, kind="UI"):
-        self.pulse_duration = FloatWithUnit("Pulse duration", value=5.0, unit="ms")
-        self.pulse_frequency = FloatWithUnit("Pulse frequency", value=100.0, unit="Hz")
-        self.base_current = FloatWithUnit("Base current", value=60.0, unit="A")
+        self.pulse_duration = FloatWithUnit(_("Pulse duration"), value=5.0, unit="ms")
+        self.pulse_frequency = FloatWithUnit(
+            _("Pulse frequency"), value=100.0, unit="Hz"
+        )
+        self.base_current = FloatWithUnit(_("Base current"), value=60.0, unit="A")
 
         if kind == "UI":
-            self.pulsed_dim = FloatWithUnit("Pulse voltage", "V", 40)
+            self.pulsed_dim = FloatWithUnit(_("Pulse voltage"), "V", 40)
         elif kind == "II":
-            self.pulsed_dim = FloatWithUnit("Pulse current", "A", 300)
+            self.pulsed_dim = FloatWithUnit(_("Pulse current"), "A", 300)
         else:
             raise ValueError(f"unknown kind: {kind}")
         self.kind = kind
         self.base_process = BaseProcess("CLOOS/pulse", {"modulation": self.kind})
 
         children = [
-            make_title(f"Pulsed ({self.kind}) process parameters"),
+            make_title(_("Pulsed") + f"{self.kind}" + _("process parameters")),
             self.base_process,
             self.pulse_duration,
             self.pulse_frequency,
@@ -175,12 +178,12 @@ class ProcessSpray(WidgetMyVBox):
         self.voltage = WidgetTimeSeries(
             base_data="40.0, 20.0", base_unit="V", time_data="0.0, 10.0", time_unit="s"
         )
-        self.impedance = FloatWithUnit(text="Impedance", value=10, unit="percent")
-        self.characteristic = FloatWithUnit("Characteristic", value=5, unit="V/A")
+        self.impedance = FloatWithUnit(text=_("Impedance"), value=10, unit="percent")
+        self.characteristic = FloatWithUnit(_("Characteristic"), value=5, unit="V/A")
 
         super(ProcessSpray, self).__init__(
             children=[
-                make_title("Spray process parameters"),
+                make_title(_("Spray process parameters")),
                 self.base_process,
                 self.voltage,
                 self.impedance,
@@ -223,13 +226,13 @@ class WidgetWire(WidgetMyVBox):
     heading_level = 4
 
     def __init__(self):
-        self.diameter = FloatWithUnit("diameter", unit="mm", min=0, value=1.2)
-        self.wire_class = WidgetLabeledTextInput("class", "G 42 2 C/M G4Si1")
+        self.diameter = FloatWithUnit(_("Diameter"), unit="mm", min=0, value=1.2)
+        self.wire_class = WidgetLabeledTextInput(_("Class"), "G 42 2 C/M G4Si1")
 
         # TODO: consider a tree like editing widget for metadata.
-        self.metadata = WidgetLabeledTextInput("metadata", "")
+        self.metadata = WidgetLabeledTextInput(_("Metadata"), "")
         children = [
-            make_title("Wire parameters", heading_level=WidgetWire.heading_level),
+            make_title(_("Wire parameters"), heading_level=WidgetWire.heading_level),
             self.diameter,
             self.wire_class,
             self.metadata,
@@ -256,14 +259,15 @@ class WidgetWire(WidgetMyVBox):
 class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
     """Widget to handle gas metal arc welding process parameters."""
 
-    translate = bidict(
-        {
-            "Spray": "spray",
-            "Pulsed (UI)": "UI",
-            "Pulsed (II)": "II",
-            "CMT": NotImplemented,
-        }
-    )
+    def _set_gui_mapping(self):
+        self.translate = bidict(
+            {
+                _("Spray"): "spray",
+                _("Pulsed") + " (UI)": "UI",
+                _("Pulsed") + " (II)": "II",
+                _("CMT"): NotImplemented,
+            }
+        )
 
     @property
     def schema(self) -> str:
@@ -275,7 +279,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         self.process_type = Dropdown(
             options=list(self.translate.keys()),
             index=index,
-            description="Process type",
+            description=_("Process type"),
         )
         self.process_type.observe(self._create_process_widgets, names="value")
         self.gas = WidgetShieldingGas()
@@ -283,8 +287,8 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         self.welding_wire = WidgetWire()
 
         children = [
-            make_title("GMAW process parameters"),
-            make_title("Shielding gas", 4),
+            make_title(_("GMAW process parameters")),
+            make_title(_("Shielding gas"), 4),
             self.gas,
             self.welding_wire,
             # self.weld_speed, # TODO: speed is given by feedrate and groove!
