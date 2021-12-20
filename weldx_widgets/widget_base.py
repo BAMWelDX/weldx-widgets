@@ -27,7 +27,7 @@ def metaclass_resolver(*classes):
 
 
 class _TranslationUtil:
-    """Ensures upon instanciation of the class we have the proper translation."""
+    """Ensures upon instantiation of the class we have the proper translation."""
 
     def __new__(cls, *args, **kwargs):
         set_trans_from_env()
