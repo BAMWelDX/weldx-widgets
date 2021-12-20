@@ -114,8 +114,12 @@ class ProcessPulsed(WidgetMyVBox):
         self.kind = kind
         self.base_process = BaseProcess("CLOOS/pulse", {"modulation": self.kind})
 
+        if self.kind == "UI":
+            desc = _("voltage/current")
+        else:
+            desc = _("current")
         children = [
-            make_title(_("Pulsed") + f"{self.kind}" + _("process parameters")),
+            make_title(_("Pulsed") + f" {desc} " + _("process parameters")),
             self.base_process,
             self.pulse_duration,
             self.pulse_frequency,
@@ -328,12 +332,12 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         # set the right welding process widget
         if welding_process.base_process == "pulse":
             kind = welding_process.meta["modulation"]
-            process_type = f"Pulsed ({kind})"
+            process_type = _("Pulsed") + f" ({kind})"
         elif welding_process.base_process == "spray":
-            process_type = "Spray"
+            process_type = _("Spray")
         else:
             raise NotImplementedError(
-                f"unknown process type {welding_process.base_process}"
+                _("unknown process type") + f"{welding_process.base_process}"
             )
         self.process_type.value = process_type
 

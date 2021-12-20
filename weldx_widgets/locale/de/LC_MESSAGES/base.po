@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-12-20 17:57+0100\n"
+"POT-Creation-Date: 2021-12-20 18:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,122 +17,137 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: weldx_widgets/widget_gas.py:25 widget_gas.py:47
+#: weldx_widgets/widget_gas.py:25 widget_gas.py:47 widget_gas.py:47
 msgid "Hydrogen"
 msgstr "Wasserstoff"
 
-#: weldx_widgets/widget_gas.py:25 widget_gas.py:47
+#: weldx_widgets/widget_gas.py:25 widget_gas.py:47 widget_gas.py:47
 msgid "Oxygen"
 msgstr "Sauerstoff"
 
-#: weldx_widgets/widget_gas.py:43 widget_gas.py:41
+#: weldx_widgets/widget_gas.py:43 widget_gas.py:41 widget_gas.py:41
 msgid "Add gas component"
 msgstr "Gas hinzufügen"
 
-#: weldx_widgets/widget_gas.py:62 widget_gas.py:69
+#: weldx_widgets/widget_gas.py:62 widget_gas.py:69 widget_gas.py:69
 msgid "percentage"
 msgstr "Prozent"
 
-#: weldx_widgets/widget_gas.py:68 widget_gas.py:75
+#: weldx_widgets/widget_gas.py:68 widget_gas.py:75 widget_gas.py:75
 msgid "delete"
 msgstr "löschen"
 
-#: weldx_widgets/widget_gas.py:144 widget_gas.py:151
+#: weldx_widgets/widget_gas.py:144 widget_gas.py:151 widget_gas.py:151
 msgid "Flow rate"
 msgstr "Flußrate"
 
-#: widget_gas.py:112
+#: widget_gas.py:112 widget_gas.py:112
 msgid "Check percentages, all components should sum up to 100!"
 msgstr ""
 
-#: widget_gmaw.py:42
+#: widget_gmaw.py:42 widget_gmaw.py:42
 msgid "time"
 msgstr "Zeit"
 
-#: widget_gmaw.py:62
+#: widget_gmaw.py:62 widget_gmaw.py:62
 msgid "Manufacturer"
 msgstr "Hersteller"
 
-#: widget_gmaw.py:63
+#: widget_gmaw.py:63 widget_gmaw.py:63
 msgid "Power source"
 msgstr "Stromquelle"
 
-#: widget_gmaw.py:65
+#: widget_gmaw.py:65 widget_gmaw.py:65
 msgid "Wire feed rate"
 msgstr "Drahtvorschubrate"
 
-#: widget_gmaw.py:102
+#: widget_gmaw.py:102 widget_gmaw.py:102
 msgid "Pulse duration"
 msgstr "Pulsdauer"
 
-#: widget_gmaw.py:103
+#: widget_gmaw.py:103 widget_gmaw.py:104 widget_gmaw.py:104
 msgid "Pulse frequency"
 msgstr "Pulsfrequenz"
 
-#: widget_gmaw.py:104
+#: widget_gmaw.py:104 widget_gmaw.py:106 widget_gmaw.py:106
 msgid "Base current"
 msgstr "Grundstromstärke"
 
-#: widget_gmaw.py:107
+#: widget_gmaw.py:107 widget_gmaw.py:109 widget_gmaw.py:109
 msgid "Pulse voltage"
 msgstr "Pulsspannung"
 
-#: widget_gmaw.py:109
+#: widget_gmaw.py:109 widget_gmaw.py:111 widget_gmaw.py:111
 msgid "Pulse current"
 msgstr "Pulsstromstärke"
 
-#: widget_gmaw.py:116 widget_gmaw.py:264 widget_gmaw.py:265
+#: widget_gmaw.py:116 widget_gmaw.py:264 widget_gmaw.py:265 widget_gmaw.py:118
+#: widget_gmaw.py:266 widget_gmaw.py:267 widget_gmaw.py:331 widget_gmaw.py:122
+#: widget_gmaw.py:270 widget_gmaw.py:271 widget_gmaw.py:335
 msgid "Pulsed"
-msgstr "Puls"
+msgstr "Gepulst"
 
-#: widget_gmaw.py:116
+#: widget_gmaw.py:116 widget_gmaw.py:118 widget_gmaw.py:122
 msgid "process parameters"
 msgstr "Prozessparameter"
 
-#: widget_gmaw.py:179
+#: widget_gmaw.py:179 widget_gmaw.py:181 widget_gmaw.py:185
 msgid "Impedance"
 msgstr "Impedanz"
 
-#: widget_gmaw.py:180
+#: widget_gmaw.py:180 widget_gmaw.py:182 widget_gmaw.py:186
 msgid "Characteristic"
 msgstr "Charakteristisch"
 
-#: widget_gmaw.py:184
+#: widget_gmaw.py:184 widget_gmaw.py:186 widget_gmaw.py:190
 msgid "Spray process parameters"
 msgstr "Sprühlichtbogen Parameter"
 
-#: widget_gmaw.py:227
+#: widget_gmaw.py:227 widget_gmaw.py:229 widget_gmaw.py:233
 msgid "Diameter"
 msgstr "Durchmesser"
 
-#: widget_gmaw.py:228
+#: widget_gmaw.py:228 widget_gmaw.py:230 widget_gmaw.py:234
 msgid "Class"
 msgstr "Klasse"
 
-#: widget_gmaw.py:231
+#: widget_gmaw.py:231 widget_gmaw.py:233 widget_gmaw.py:237
 msgid "Metadata"
 msgstr "Metadaten"
 
-#: widget_gmaw.py:233
+#: widget_gmaw.py:233 widget_gmaw.py:235 widget_gmaw.py:239
 msgid "Wire parameters"
 msgstr "Drahtparameter"
 
-#: widget_gmaw.py:263
+#: widget_gmaw.py:263 widget_gmaw.py:265 widget_gmaw.py:333 widget_gmaw.py:269
+#: widget_gmaw.py:337
 msgid "Spray"
 msgstr "Sprüh"
 
-#: widget_gmaw.py:266
+#: widget_gmaw.py:266 widget_gmaw.py:268 widget_gmaw.py:272
 msgid "CMT"
 msgstr ""
 
-#: widget_gmaw.py:280
+#: widget_gmaw.py:280 widget_gmaw.py:283 widget_gmaw.py:287
 msgid "Process type"
 msgstr "Prozesstyp"
 
-#: widget_gmaw.py:288
+#: widget_gmaw.py:288 widget_gmaw.py:291 widget_gmaw.py:295
 msgid "GMAW process parameters"
 msgstr "GMAW Prozessparameter"
 
-#: widget_gmaw.py:289
+#: widget_gmaw.py:289 widget_gmaw.py:292 widget_gmaw.py:296
 msgid "Shielding gas"
 msgstr "Schutzgas"
+
+#: widget_gmaw.py:336 widget_gmaw.py:340
+msgid "unknown process type"
+msgstr "Unbekannter Prozesstyp"
+
+#: widget_gmaw.py:118
+msgid "voltage/current"
+msgstr "Spannung/Stromstärke"
+
+#: widget_gmaw.py:120
+msgid "current"
+msgstr "Stromstärke"
