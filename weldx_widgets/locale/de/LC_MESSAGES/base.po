@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-12-20 18:24+0100\n"
+"POT-Creation-Date: 2021-12-20 18:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -83,44 +83,45 @@ msgstr "Pulsstromstärke"
 
 #: widget_gmaw.py:116 widget_gmaw.py:264 widget_gmaw.py:265 widget_gmaw.py:118
 #: widget_gmaw.py:266 widget_gmaw.py:267 widget_gmaw.py:331 widget_gmaw.py:122
+#: widget_gmaw.py:270 widget_gmaw.py:271 widget_gmaw.py:335 widget_gmaw.py:122
 #: widget_gmaw.py:270 widget_gmaw.py:271 widget_gmaw.py:335
 msgid "Pulsed"
 msgstr "Gepulst"
 
-#: widget_gmaw.py:116 widget_gmaw.py:118 widget_gmaw.py:122
+#: widget_gmaw.py:116 widget_gmaw.py:118 widget_gmaw.py:122 widget_gmaw.py:122
 msgid "process parameters"
 msgstr "Prozessparameter"
 
-#: widget_gmaw.py:179 widget_gmaw.py:181 widget_gmaw.py:185
+#: widget_gmaw.py:179 widget_gmaw.py:181 widget_gmaw.py:185 widget_gmaw.py:185
 msgid "Impedance"
 msgstr "Impedanz"
 
-#: widget_gmaw.py:180 widget_gmaw.py:182 widget_gmaw.py:186
+#: widget_gmaw.py:180 widget_gmaw.py:182 widget_gmaw.py:186 widget_gmaw.py:186
 msgid "Characteristic"
 msgstr "Charakteristisch"
 
-#: widget_gmaw.py:184 widget_gmaw.py:186 widget_gmaw.py:190
+#: widget_gmaw.py:184 widget_gmaw.py:186 widget_gmaw.py:190 widget_gmaw.py:190
 msgid "Spray process parameters"
 msgstr "Sprühlichtbogen Parameter"
 
-#: widget_gmaw.py:227 widget_gmaw.py:229 widget_gmaw.py:233
+#: widget_gmaw.py:227 widget_gmaw.py:229 widget_gmaw.py:233 widget_gmaw.py:233
 msgid "Diameter"
 msgstr "Durchmesser"
 
-#: widget_gmaw.py:228 widget_gmaw.py:230 widget_gmaw.py:234
+#: widget_gmaw.py:228 widget_gmaw.py:230 widget_gmaw.py:234 widget_gmaw.py:234
 msgid "Class"
 msgstr "Klasse"
 
-#: widget_gmaw.py:231 widget_gmaw.py:233 widget_gmaw.py:237
+#: widget_gmaw.py:231 widget_gmaw.py:233 widget_gmaw.py:237 widget_gmaw.py:237
 msgid "Metadata"
 msgstr "Metadaten"
 
-#: widget_gmaw.py:233 widget_gmaw.py:235 widget_gmaw.py:239
+#: widget_gmaw.py:233 widget_gmaw.py:235 widget_gmaw.py:239 widget_gmaw.py:239
 msgid "Wire parameters"
 msgstr "Drahtparameter"
 
 #: widget_gmaw.py:263 widget_gmaw.py:265 widget_gmaw.py:333 widget_gmaw.py:269
-#: widget_gmaw.py:337
+#: widget_gmaw.py:337 widget_gmaw.py:269 widget_gmaw.py:337
 msgid "Spray"
 msgstr "Sprüh"
 
@@ -128,26 +129,46 @@ msgstr "Sprüh"
 msgid "CMT"
 msgstr ""
 
-#: widget_gmaw.py:280 widget_gmaw.py:283 widget_gmaw.py:287
+#: widget_gmaw.py:280 widget_gmaw.py:283 widget_gmaw.py:287 widget_gmaw.py:287
 msgid "Process type"
 msgstr "Prozesstyp"
 
-#: widget_gmaw.py:288 widget_gmaw.py:291 widget_gmaw.py:295
+#: widget_gmaw.py:288 widget_gmaw.py:291 widget_gmaw.py:295 widget_gmaw.py:295
 msgid "GMAW process parameters"
 msgstr "GMAW Prozessparameter"
 
-#: widget_gmaw.py:289 widget_gmaw.py:292 widget_gmaw.py:296
+#: widget_gmaw.py:289 widget_gmaw.py:292 widget_gmaw.py:296 widget_gmaw.py:296
 msgid "Shielding gas"
 msgstr "Schutzgas"
 
-#: widget_gmaw.py:336 widget_gmaw.py:340
+#: widget_gmaw.py:336 widget_gmaw.py:340 widget_gmaw.py:340
 msgid "unknown process type"
 msgstr "Unbekannter Prozesstyp"
 
-#: widget_gmaw.py:118
+#: widget_gmaw.py:118 widget_gmaw.py:118
 msgid "voltage/current"
 msgstr "Spannung/Stromstärke"
 
-#: widget_gmaw.py:120
+#: widget_gmaw.py:120 widget_gmaw.py:120
 msgid "current"
 msgstr "Stromstärke"
+
+#: kisa/save.py:146
+msgid "invoke next step"
+msgstr "Nächster Schritt"
+
+#: kisa/save.py:148
+msgid "Save results"
+msgstr "Speichern"
+
+#: kisa/save.py:169 kisa/save.py:169
+msgid "Save"
+msgstr "Speichern"
+
+#: generic.py:62
+msgid "Select"
+msgstr "Auswählen"
+
+#: generic.py:63
+msgid "Change"
+msgstr "Ändern"
