@@ -11,6 +11,19 @@ from weldx.asdf.util import get_schema_path
 class WidgetBase(abc.ABC):
     """Base class for weldx widgets."""
 
+    def __init__(self, *args, **kwargs):
+        # set locale from env.QUERY_STRING (if available, default to english).
+        import os
+
+        from weldx_widgets.kisa.save import get_param_from_env
+        from weldx_widgets.translation_utils import get_trans
+
+        lang = get_param_from_env("LANG", default="en")
+        os.environ["LANG"] = lang
+        get_trans(lang)
+
+        super().__init__(*args, **kwargs)
+
     def copy(self):
         """Copy the widget."""
         from copy import deepcopy
