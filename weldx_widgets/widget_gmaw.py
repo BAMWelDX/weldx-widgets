@@ -275,6 +275,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         raise
 
     def __init__(self, process_type="spray"):
+        self._set_gui_mapping()  # set up translation mapping.
         index = list(self.translate.values()).index(process_type)
         self.process_type = Dropdown(
             options=list(self.translate.keys()),
