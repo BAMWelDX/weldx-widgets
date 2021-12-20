@@ -6,23 +6,40 @@ from pathlib import Path
 from ipywidgets import HBox, Layout, Output, VBox
 
 from weldx.asdf.util import get_schema_path
+from weldx_widgets.translation_utils import set_trans_from_env
 
 
-class WidgetBase(abc.ABC):
+def metaclass_resolver(*classes):
+    """Merge multiple meta classes."""
+    # Does something like this:
+    # https://coderedirect.com/questions/163000/multiple-inheritance-metaclass-conflict
+    metaclass = tuple(set(type(cls) for cls in classes))
+
+    def cls_name(classes):
+        return "_".join(mcls.__name__ for mcls in classes)
+
+    metaclass = (
+        metaclass[0]
+        if len(metaclass) == 1
+        else type(cls_name(metaclass), metaclass, {})
+    )  # class M_C
+    return metaclass(cls_name(classes), classes, {})  # class C
+
+
+class _TranslationUtil:
+    """Ensures upon instanciation of the class we have the proper translation."""
+
+    def __new__(cls, *args, **kwargs):
+        set_trans_from_env()
+        return super().__new__(cls)
+
+
+class _merged_meta(type(abc.ABC), type(_TranslationUtil)):  # avoid metaclass conflict.
+    pass
+
+
+class WidgetBase(abc.ABC, _TranslationUtil, metaclass=_merged_meta):
     """Base class for weldx widgets."""
-
-    def __init__(self, *args, **kwargs):
-        # set locale from env.QUERY_STRING (if available, default to english).
-        import os
-
-        from weldx_widgets.kisa.save import get_param_from_env
-        from weldx_widgets.translation_utils import get_trans
-
-        lang = get_param_from_env("LANG", default="en")
-        os.environ["LANG"] = lang
-        get_trans(lang)
-
-        super().__init__(*args, **kwargs)
 
     def copy(self):
         """Copy the widget."""
@@ -48,17 +65,6 @@ class WidgetBase(abc.ABC):
 
     def _ipython_display_(self):
         self.display()
-
-
-def metaclass_resolver(*classes):
-    """Merge multiple meta classes."""
-    metaclass = tuple(set(type(cls) for cls in classes))
-    metaclass = (
-        metaclass[0]
-        if len(metaclass) == 1
-        else type("_".join(mcls.__name__ for mcls in metaclass), metaclass, {})
-    )  # class M_C
-    return metaclass("_".join(cls.__name__ for cls in classes), classes, {})  # class C
 
 
 border_debug_style = ""  # 2px dashed green"
