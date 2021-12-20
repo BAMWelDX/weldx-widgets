@@ -3,7 +3,22 @@ import gettext
 import os
 from pathlib import Path
 
+__all__ = [
+    "gettext",
+    "_i18n",
+    "_",
+]
+
 _translations = dict()
+
+
+def set_trans_from_env():
+    """Set locale from env.QUERY_STRING (if available, defaults to english)."""
+    from weldx_widgets.kisa.save import get_param_from_env
+
+    lang = get_param_from_env("LANG", default="en")
+    os.environ["LANG"] = lang
+    get_trans(lang)
 
 
 def get_trans(lang_="en") -> gettext.GNUTranslations:
@@ -25,22 +40,14 @@ def get_trans(lang_="en") -> gettext.GNUTranslations:
     return trans
 
 
-# set default language
-get_trans("en")
-
-
 def _i18n(message: str) -> str:
     """Translate given message. Uses os.environ['LANG'] as target language."""
     lang = os.environ.get("LANG", "en")[:2]
-    trans_ = _translations.get(lang)
+    trans_ = get_trans(lang)
     if not trans_:
         return message
 
     return trans_.gettext(message)
 
 
-def test_set_trans():
-    """Test."""
-    get_trans("de")
-    os.environ["LAMG"] = "de"
-    assert _i18n("Oxygen") == "Sauerstoff"
+_ = _i18n  # alias
