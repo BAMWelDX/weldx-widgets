@@ -3,7 +3,7 @@ import pytest
 
 from weldx import WeldxFile
 from weldx_widgets import WidgetShieldingGas
-from weldx_widgets.tests.util import temp_env
+from weldx_widgets.tests.util import voila_language
 from weldx_widgets.widget_gas import WidgetSimpleGasSelection
 
 
@@ -32,6 +32,6 @@ def test_import_export(write_file):
 
 def test_lang():
     """Test translation."""
-    with temp_env(LANG="de"):
+    with voila_language(lang="de"):
         w = WidgetSimpleGasSelection()
     assert "Sauerstoff" in w.gas_list

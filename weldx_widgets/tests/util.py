@@ -12,3 +12,10 @@ def temp_env(**kw):
     yield
 
     os.environ = old
+
+
+@contextlib.contextmanager
+def voila_language(lang):
+    """Temporarily sets env.QUERY_LANG to given language."""
+    with temp_env(QUERY_STRING=f"&LANG={lang}"):
+        yield
