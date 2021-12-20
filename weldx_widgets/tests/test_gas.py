@@ -3,6 +3,8 @@ import pytest
 
 from weldx import WeldxFile
 from weldx_widgets import WidgetShieldingGas
+from weldx_widgets.tests.util import temp_env
+from weldx_widgets.widget_gas import WidgetSimpleGasSelection
 
 
 @pytest.mark.parametrize("write_file", (True, False))
@@ -26,3 +28,10 @@ def test_import_export(write_file):
     w2 = WidgetShieldingGas()
     w2.from_tree(tree)
     assert w2.to_tree() == tree
+
+
+def test_lang():
+    """Test translation."""
+    with temp_env(LANG="de"):
+        w = WidgetSimpleGasSelection()
+    assert "Sauerstoff" in w.gas_list

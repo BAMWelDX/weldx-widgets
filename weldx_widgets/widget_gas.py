@@ -173,11 +173,3 @@ class WidgetShieldingGas(WidgetMyVBox):
             gas_component=gas_for_proc.torch_shielding_gas.gas_component
         )
         self.gas_components.from_tree(gas_components)
-
-
-def test_lang():
-    from weldx_widgets.translation_utils import get_trans
-
-    t = get_trans("de")
-    w = WidgetSimpleGasSelection()
-    assert "Sauerstoff" in w.gas_list, (w.gas_list, t._catalog)
