@@ -269,7 +269,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
                 _("Spray"): "spray",
                 _("Pulsed") + " (UI)": "UI",
                 _("Pulsed") + " (II)": "II",
-                _("CMT"): NotImplemented,
+                # _("CMT"): NotImplemented,
             }
         )
 
