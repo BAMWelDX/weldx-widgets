@@ -44,6 +44,8 @@ def get_trans(lang_="en") -> gettext.GNUTranslations:
 def _i18n(message: str) -> str:
     """Translate given message. Uses os.environ['LANG'] as target language."""
     lang = os.environ.get("LANG", "en")[:2]
+    if lang.startswith("C"):
+        lang = "en"
     trans_ = get_trans(lang)
     if not trans_:
         return message
