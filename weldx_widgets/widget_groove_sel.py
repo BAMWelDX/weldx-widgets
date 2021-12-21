@@ -4,7 +4,7 @@ from __future__ import annotations
 import contextlib
 import re
 import tempfile
-from typing import Union
+from typing import Callable, Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -119,7 +119,7 @@ RuntimeWarning: invalid value encountered in true_divide
         if value is not None:
             self.create_btn.disabled = False
 
-    def _on_export_geometry(self, _):
+    def _on_export_geometry(self, *args):
         if self.geometry is None:
             return
         ext = self.format.value
@@ -228,7 +228,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         self.output_tabs = Tab()
         self.output_tabs.layout = Layout(width="70%")
         self.output_tabs.children = [self.out]
-        self.output_tabs.set_title(0, "2D" + _("profile"))
+        self.output_tabs.set_title(0, "2D " + _("profile"))
         children = [
             make_title(_("ISO 9692-1 Groove selection"), 3),
             WidgetMyHBox(children=[self.groove_selection, self.output_tabs]),
@@ -306,13 +306,11 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
             for attr in _groove_name_to_type[groove]._mapping.values()
         }
 
-        # TODO: formatting, first letter upper case, replace _ with space
-
         # create dict with hboxes of all attributes
         self.groove_params_dropdowns = dict()
         param_widgets = self.groove_params_dropdowns
         for item in attrs:
-            if item == _("code_number"):  # only the case for FFGroove
+            if item == "code_number":  # only the case for FFGroove
                 dropdown = Dropdown(
                     options=get_ff_grove_code_numbers(),
                     layout=description_layout,
@@ -342,21 +340,23 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         margin = 5
         groove_type_dropdown = Dropdown(
             options=groove_list,
-            value=groove_list[1],
+            value=groove_list[1],  # VGroove
             layout=Layout(width=f"{2 * Q_(textbox_layout.width).m + margin}px"),
         )
 
         # connect value observers
         groove_type_dropdown.observe(self._update_params_to_selection, names="value")
-
-        update_plot = self._update_plot
-        groove_type_dropdown.observe(update_plot, "value")
-        for key, box in param_widgets.items():
-            box.children[1].observe(update_plot, "value")
-            if key != _("code_number"):
-                box.children[2].observe(update_plot, "value")
+        groove_type_dropdown.observe(self._update_plot, "value")
+        self.add_parameter_observer(self._update_plot)
 
         return groove_type_dropdown
+
+    def add_parameter_observer(self, observer: Callable):
+        """Add observers to groove parameters."""
+        for key, box in self.groove_params_dropdowns.items():
+            box.children[1].observe(observer, "value")
+            # if key != "code_number":
+            #    box.children[2].observe(observer, "value")
 
     def _update_plot(self, *args):
         groove_type = self.groove_type_dropdown.value
@@ -406,7 +406,11 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     def __init__(self):
         self.last_plot = None
         self.groove_sel = WidgetGrooveSelection()
+
         self.seam_length = FloatWithUnit(_("Seam length"), value=300, min=0, unit="mm")
+        self.seam_length.observe_float_value(self.create_csm_and_plot)
+        self.seam_length.observe_unit(self.create_csm_and_plot)
+
         self.tcp_y = FloatWithUnit("TCP-y", unit="mm")
         self.tcp_z = FloatWithUnit("TCP-z", unit="mm")
         # TODO: compute weld speed accordingly to chosen groove area!
@@ -434,6 +438,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         self.groove_sel.output_tabs.observe(
             self.create_csm_and_plot, names="selected_index"
         )
+        self.groove_sel.add_parameter_observer(self.create_csm_and_plot)
 
         # csm 3d visualization
         self.csm = None
@@ -449,9 +454,8 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     def create_csm_and_plot(self, change=None, plot=True, **kwargs):
         """Create coordinates system manager containing TCP movement."""
         if change is not None:
-            assert change["name"] == "selected_index"
-            # if not 3d plot tab selected, do not update
-            if change["new"] != 1:
+            # update, except for 2d view.
+            if change.get("new", -1) == 0:
                 return
 
         # TODO: only create once and then update the csm!
