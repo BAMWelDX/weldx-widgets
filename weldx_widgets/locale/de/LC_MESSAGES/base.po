@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-12-20 20:50+0100\n"
+"POT-Creation-Date: 2021-12-21 10:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -45,7 +45,7 @@ msgstr "Flußrate"
 msgid "Check percentages, all components should sum up to 100!"
 msgstr ""
 
-#: widget_gmaw.py:42 widget_gmaw.py:42
+#: widget_gmaw.py:42 widget_measurement.py:57 widget_gmaw.py:42
 msgid "time"
 msgstr "Zeit"
 
@@ -173,84 +173,126 @@ msgstr "Auswählen"
 msgid "Change"
 msgstr "Ändern"
 
-#: widget_groove_sel.py:66 widget_groove_sel.py:67
+#: widget_groove_sel.py:66 widget_groove_sel.py:67 widget_groove_sel.py:67
 msgid "Export geometry to CAD file [optional]"
 msgstr "CAD-Export [optional]"
 
-#: widget_groove_sel.py:74 widget_groove_sel.py:75
+#: widget_groove_sel.py:74 widget_groove_sel.py:75 widget_groove_sel.py:75
 msgid "Data format"
 msgstr "Datenformat"
 
-#: widget_groove_sel.py:76 widget_groove_sel.py:77
+#: widget_groove_sel.py:76 widget_groove_sel.py:77 widget_groove_sel.py:77
 msgid "Create program"
 msgstr "Programm erstellen"
 
-#: widget_groove_sel.py:87 widget_groove_sel.py:88
+#: widget_groove_sel.py:87 widget_groove_sel.py:88 widget_groove_sel.py:88
 msgid "Profile raster width"
 msgstr "Breite Profilraster"
 
-#: widget_groove_sel.py:93 widget_groove_sel.py:94
+#: widget_groove_sel.py:93 widget_groove_sel.py:94 widget_groove_sel.py:94
 msgid "Trace raster width"
 msgstr "Breite Spurraster"
 
-#: widget_groove_sel.py:140 widget_groove_sel.py:141
+#: widget_groove_sel.py:140 widget_groove_sel.py:141 widget_groove_sel.py:141
 msgid "Download program"
 msgstr "Lade Program"
 
-#: widget_groove_sel.py:151 widget_groove_sel.py:152
+#: widget_groove_sel.py:151 widget_groove_sel.py:152 widget_groove_sel.py:152
 msgid "Common name"
 msgstr "Allgemeiner Name"
 
-#: widget_groove_sel.py:152 widget_groove_sel.py:153
+#: widget_groove_sel.py:152 widget_groove_sel.py:153 widget_groove_sel.py:153
 msgid "Standard"
 msgstr "Standard"
 
-#: widget_groove_sel.py:153 widget_groove_sel.py:154
+#: widget_groove_sel.py:153 widget_groove_sel.py:154 widget_groove_sel.py:154
 msgid "Thickness"
 msgstr "Dicke"
 
-#: widget_groove_sel.py:155 widget_groove_sel.py:156
+#: widget_groove_sel.py:155 widget_groove_sel.py:156 widget_groove_sel.py:156
 msgid "Base metal"
 msgstr "Grundmetal"
 
-#: widget_groove_sel.py:216 widget_groove_sel.py:217
+#: widget_groove_sel.py:216 widget_groove_sel.py:217 widget_groove_sel.py:217
 msgid "Groove type"
 msgstr "Fugentyp"
 
 #: widget_groove_sel.py:229 widget_groove_sel.py:421 widget_groove_sel.py:230
-#: widget_groove_sel.py:422
+#: widget_groove_sel.py:422 widget_groove_sel.py:230 widget_groove_sel.py:422
 msgid "profile"
 msgstr "Profil"
 
-#: widget_groove_sel.py:231 widget_groove_sel.py:232
+#: widget_groove_sel.py:231 widget_groove_sel.py:232 widget_groove_sel.py:232
 msgid "ISO 9692-1 Groove selection"
 msgstr "ISO 9692-1 Fugenauswahl"
 
-#: widget_groove_sel.py:319 widget_groove_sel.py:320
+#: widget_groove_sel.py:319 widget_groove_sel.py:320 widget_groove_sel.py:320
 msgid "Code number"
 msgstr "Kodenummer"
 
-#: widget_groove_sel.py:323 widget_groove_sel.py:324
+#: widget_groove_sel.py:323 widget_groove_sel.py:324 widget_groove_sel.py:324
 msgid "angle"
 msgstr "Winkel"
 
-#: widget_groove_sel.py:325 widget_groove_sel.py:326
+#: widget_groove_sel.py:325 widget_groove_sel.py:326 widget_groove_sel.py:326
 msgid "workpiece_thickness"
 msgstr "Werkstückdicke"
 
 #: widget_groove_sel.py:346 widget_groove_sel.py:358 widget_groove_sel.py:314
+#: widget_groove_sel.py:347 widget_groove_sel.py:359 widget_groove_sel.py:314
 #: widget_groove_sel.py:347 widget_groove_sel.py:359
 msgid "code_number"
 msgstr "Kodenummer"
 
-#: widget_groove_sel.py:399 widget_groove_sel.py:400
+#: widget_groove_sel.py:399 widget_groove_sel.py:400 widget_groove_sel.py:400
+#: widget_evaluate.py:123
 msgid "Seam length"
 msgstr "Nahtlänge"
 
-#: widget_groove_sel.py:404 widget_groove_sel.py:405
+#: widget_groove_sel.py:404 widget_groove_sel.py:405 widget_groove_sel.py:405
 msgid "weld speed"
 msgstr "Schweißgeschwindigkeit"
 
-#: widget_groove_sel.py:408 widget_groove_sel.py:409
+#: widget_groove_sel.py:408 widget_groove_sel.py:409 widget_groove_sel.py:409
 msgid "Welding parameters"
 msgstr "Schweißparameter"
+
+#: widget_measurement.py:58
+msgid "Measurements"
+msgstr "Messungen"
+
+#: widget_measurement.py:96
+msgid "Measurement chain"
+msgstr "Messkette"
+
+#: widget_evaluate.py:42 widget_evaluate.py:110
+msgid "Process parameters"
+msgstr "Prozessparameter"
+
+#: widget_evaluate.py:103
+msgid "ASDF-header"
+msgstr "ASDF-Dateikopf"
+
+#: widget_evaluate.py:114
+msgid "Specimen"
+msgstr "Werkstück"
+
+#: widget_evaluate.py:163
+msgid "CSM-Subsystems"
+msgstr ""
+
+#: widget_evaluate.py:275
+msgid "Difference in welding speed"
+msgstr "Unterschied Schweißgeschwindigkeit"
+
+#: widget_evaluate.py:276 widget_evaluate.py:285
+msgid "time in s"
+msgstr "Zeit in s"
+
+#: widget_evaluate.py:277 widget_evaluate.py:286
+msgid "diff in mm"
+msgstr "Unterschied in mm"
+
+#: widget_evaluate.py:280
+msgid "User frame deviation"
+msgstr "Abweichung Nutzerrahmen"

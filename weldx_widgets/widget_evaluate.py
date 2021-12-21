@@ -26,6 +26,7 @@ from weldx import (
     Trace,
     WeldxFile,
 )
+from weldx_widgets.translation_utils import _i18n as _
 from weldx_widgets.widget_base import WidgetSimpleOutput
 from weldx_widgets.widget_factory import make_title
 from weldx_widgets.widget_measurement import WidgetMeasurement, WidgetMeasurementChain
@@ -37,7 +38,7 @@ class WidgetProcessInfo(WidgetSimpleOutput):
     def __init__(self, gmaw_process: GmawProcess, t, out=None):
         super(WidgetProcessInfo, self).__init__(out=out)
 
-        children = [make_title("Process parameters"), self.out]
+        children = [make_title(_("Process parameters")), self.out]
         self.children = children
 
         with self:
@@ -89,25 +90,26 @@ class WidgetEvaluateSinglePassWeld(Tab):
     """Aggregate info of passed file in several tabs."""
 
     def __init__(self, file: WeldxFile):
+        layout = Layout(width="100%", height="800px", min_width="360px")
+
         def make_output():
-            layout = Layout(width="100%", height="800px")
             out = Output(layout=layout)
             return out
 
         tabs = defaultdict(make_output)
 
-        with tabs["ASDF-header"]:
+        with tabs[_("ASDF-header")]:
             display(file.show_asdf_header(False, True))
 
         # start and end time of experiment
         t = (file["TCP"].time[[0, -1]]).as_timedelta()
 
         WidgetProcessInfo(
-            file["process"]["welding_process"], t, out=tabs["Process params"]
+            file["process"]["welding_process"], t, out=tabs[_("Process parameters")]
         )
 
         groove = file["workpiece"]["geometry"]["groove_shape"]
-        with tabs["Specimen"]:
+        with tabs[_("Specimen")]:
             print("Material")
             print(file["workpiece"]["base_metal"]["common_name"])
             print(file["workpiece"]["base_metal"]["standard"])
@@ -116,7 +118,7 @@ class WidgetEvaluateSinglePassWeld(Tab):
             plt.show()
 
             seam_length = file["workpiece"]["geometry"]["seam_length"]
-            print("Seam length:", seam_length)
+            print(_("Seam length") + ":", seam_length)
 
         # 3D Geometry
         geometry = self._create_geometry(groove, seam_length, Q_(10, "mm"))
@@ -156,24 +158,29 @@ class WidgetEvaluateSinglePassWeld(Tab):
             spatial_data_geo_reduced, "workpiece geometry (reduced)", "workpiece"
         )
 
-        with tabs["CSM-Subsystems"]:
+        with tabs[_("CSM-Subsystems")]:
             csm.plot_graph()
             plt.show()
             self._show_csm_subsystems(csm)
 
         with tabs["CSM-Design"]:
-            display(
-                csm.plot(
-                    reference_system="workpiece",
-                    coordinate_systems=csm.coordinate_system_names,
-                    data_sets=["workpiece geometry (reduced)"],
-                    colors=cs_colors,
-                    show_wireframe=True,
-                    show_data_labels=False,
-                    show_vectors=False,
-                    backend="k3d",
-                )
+            plt_csm_design = csm.plot(
+                reference_system="workpiece",
+                coordinate_systems=csm.coordinate_system_names,
+                data_sets=["workpiece geometry (reduced)"],
+                colors=cs_colors,
+                show_wireframe=True,
+                show_data_labels=False,
+                show_vectors=False,
+                backend="k3d",
             )
+            plt_csm_design.plot.layout = layout
+            plt_csm_design.plot.camera_reset()
+            display(plt_csm_design)
+            plt_csm_design.plot.camera_reset()
+
+        with tabs["debug"]:
+            print("layout csm plot width:", plt_csm_design.plot.layout.width)
 
         welding_wire_diameter = file["process"]["welding_wire"]["diameter"].m
 
@@ -199,6 +206,7 @@ class WidgetEvaluateSinglePassWeld(Tab):
             )
             # plt_real.plot.width="100%"
             display(plt_real)
+            plt_real.plot.render()
 
         # tcp = csm.get_cs("TCP design")
         # with self:
@@ -260,18 +268,18 @@ class WidgetEvaluateSinglePassWeld(Tab):
         # difference in welding speed
         fig, ax = plt.subplots(1, 2)
         ax[0].plot(time.m, tcp_diff.data[:, 0])
-        ax[0].set_title("Difference in welding speed")
-        ax[0].set_xlabel("time in s")
-        ax[0].set_ylabel("diff in mm")
+        ax[0].set_title(_("Difference in welding speed"))
+        ax[0].set_xlabel(_("time in s"))
+        ax[0].set_ylabel(_("diff in mm"))
 
         # diffs depend on how well the user frame matches
-        ax[1].set_title("User frame deviation")
+        ax[1].set_title(_("User frame deviation"))
         ax[1].plot(time.m, tcp_diff.data[:, 1], label="y")
         ax[1].plot(time.m, tcp_diff.data[:, 2], label="z")
         ax[1].legend()
 
-        ax[1].set_xlabel("time in s")
-        ax[1].set_ylabel("diff in mm")
+        ax[1].set_xlabel(_("time in s"))
+        ax[1].set_ylabel(_("diff in mm"))
 
     @staticmethod
     def _welding_wire_geo_data(radius, length, cross_section_resolution=8):

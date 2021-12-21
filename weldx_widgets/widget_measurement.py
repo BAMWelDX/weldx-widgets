@@ -5,6 +5,7 @@ from matplotlib import pylab as plt
 
 import weldx
 from weldx.constants import WELDX_UNIT_REGISTRY as ureg
+from weldx_widgets.translation_utils import _i18n as _
 from weldx_widgets.widget_base import WidgetSimpleOutput
 from weldx_widgets.widget_factory import make_title
 
@@ -53,8 +54,8 @@ def plot_measurements(
         plot_signal(last_signal, measurement.name, ax=axes[i], limits=limits)
         axes[i].set_xlabel(None)
 
-    axes[-1].set_xlabel("time / s")
-    axes[0].set_title("Measurements")
+    axes[-1].set_xlabel(_("time") + " / s")
+    axes[0].set_title(_("Measurements"))
     return axes
 
 
@@ -92,4 +93,4 @@ class WidgetMeasurementChain(WidgetSimpleOutput):
             plt.tight_layout()
             plt.show()
 
-        self.children = [make_title("Measurement chain"), self.out]
+        self.children = [make_title(_("Measurement chain")), self.out]
