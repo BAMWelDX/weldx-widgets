@@ -5,6 +5,7 @@ from pathlib import Path
 
 __all__ = [
     "gettext",
+    "set_trans_from_env",
     "_i18n",
     "_",
 ]
