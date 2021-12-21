@@ -27,14 +27,14 @@ def ipympl_style(fig, toolbar=True):
 def plot_signal(signal: weldx.measurement.Signal, name, limits=None, ax=None):
     """Plot a single weldx signal."""
     if not ax:
-        _, ax = plt.subplots(figsize=(_DEFAULT_FIGWIDTH, 6))
+        fig, ax = plt.subplots(figsize=(_DEFAULT_FIGWIDTH, 6))
 
     data = signal.data
     time = weldx.Time(data.time).as_quantity()
 
     ax.plot(time.m, data.data.m)
     ax.set_ylabel(f"{name} / {ureg.Unit(signal.units):~}")
-    ax.set_xlabel("time / s")
+    ax.set_xlabel(_("time") + " / s")
     ax.grid()
 
     if limits is not None:
@@ -85,7 +85,7 @@ class WidgetMeasurementChain(WidgetSimpleOutput):
     def __init__(self, measurements, out=None):
         super(WidgetMeasurementChain, self).__init__(out=out)
         with self:
-            _, ax = plt.subplots(
+            fig, ax = plt.subplots(
                 nrows=len(measurements), figsize=(_DEFAULT_FIGWIDTH, 18)
             )
             for i, measurement in enumerate(measurements):
