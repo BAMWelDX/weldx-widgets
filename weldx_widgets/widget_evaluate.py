@@ -27,7 +27,7 @@ from weldx import (
     WeldxFile,
 )
 from weldx_widgets.translation_utils import _i18n as _
-from weldx_widgets.widget_base import WidgetSimpleOutput
+from weldx_widgets.widget_base import WidgetBase, WidgetSimpleOutput, metaclass_resolver
 from weldx_widgets.widget_factory import make_title
 from weldx_widgets.widget_measurement import WidgetMeasurement, WidgetMeasurementChain
 
@@ -86,7 +86,7 @@ def _clean_nans_from_spatial_data(data: SpatialData):
     data.coordinates = filtered
 
 
-class WidgetEvaluateSinglePassWeld(Tab):
+class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
     """Aggregate info of passed file in several tabs."""
 
     def __init__(self, file: WeldxFile):
@@ -179,9 +179,6 @@ class WidgetEvaluateSinglePassWeld(Tab):
             display(plt_csm_design)
             plt_csm_design.plot.camera_reset()
 
-        with tabs["debug"]:
-            print("layout csm plot width:", plt_csm_design.plot.layout.width)
-
         welding_wire_diameter = file["process"]["welding_wire"]["diameter"].m
 
         # this name does only exist in KISA (not yet in schema).
@@ -238,19 +235,6 @@ class WidgetEvaluateSinglePassWeld(Tab):
         fig, ax = plt.subplots(ncols=len(subsystems))
         for i, subsystem in enumerate(subsystems):
             subsystem.plot_graph(ax=ax[i])
-        # _, ax = new_3d_figure_and_axes(num_subplots=2, width=700, height=700)
-        vec_scaling = [[7, 12, 50], [36, 18, 1.2]]
-        plt.show()
-        for i, subsystem in enumerate(subsystems):
-            display(
-                subsystem.plot(
-                    axes=ax[i],
-                    colors=cs_colors,
-                    show_vectors=True,
-                    scale_vectors=vec_scaling[i],
-                    backend="k3d",
-                )
-            )
 
     @staticmethod
     def _compare_design_tcp(csm):
