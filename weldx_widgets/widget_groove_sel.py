@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import contextlib
+import re
 import tempfile
-from typing import Union
+from typing import Callable, Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -21,6 +22,7 @@ from weldx.welding.groove.iso_9692_1 import (
     get_groove,
 )
 from weldx_widgets.generic import download_button
+from weldx_widgets.translation_utils import _i18n as _
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
     FloatWithUnit,
@@ -63,7 +65,7 @@ RuntimeWarning: invalid value encountered in true_divide
     """
 
     def __init__(self):
-        title = make_title("Export geometry to CAD file [optional]", heading_level=4)
+        title = make_title(_("Export geometry to CAD file [optional]"), heading_level=4)
 
         # if the format changes, we have to update the file_pattern mask
         # of the chooser of the save widget.
@@ -71,9 +73,9 @@ RuntimeWarning: invalid value encountered in true_divide
         self.format = Dropdown(
             options=WidgetCADExport.data_formats,
             index=default_format_index,
-            description="Data format",
+            description=_("Data format"),
         )
-        self.create_btn = Button(description="Create program")
+        self.create_btn = Button(description=_("Create program"))
         self.geometry = None
         # disable button initially, because we first need to have a geometry
         self.create_btn.disabled = True
@@ -84,13 +86,13 @@ RuntimeWarning: invalid value encountered in true_divide
         self._html_dl_button = HTML()
 
         self.profile_raster_width = FloatWithUnit(
-            "Profile raster width",
+            _("Profile raster width"),
             value=2,
             unit="mm",
             # tooltip="Target distance between the individual points of a profile",
         )
         self.trace_raster_width = FloatWithUnit(
-            "Trace raster width",
+            _("Trace raster width"),
             value=30,
             unit="mm",
             # tooltip="Target distance between the individual profiles on the trace",
@@ -117,7 +119,7 @@ RuntimeWarning: invalid value encountered in true_divide
         if value is not None:
             self.create_btn.disabled = False
 
-    def _on_export_geometry(self, _):
+    def _on_export_geometry(self, *args):
         if self.geometry is None:
             return
         ext = self.format.value
@@ -137,7 +139,7 @@ RuntimeWarning: invalid value encountered in true_divide
             # read and embed in HTML button.
             ntf.seek(0)
             download_button(
-                button_description="Download program",
+                button_description=_("Download program"),
                 filename=f"specimen{ext}",
                 html_instance=self._html_dl_button,
                 content=ntf.read(),
@@ -148,11 +150,11 @@ class WidgetMetal(WidgetMyVBox):
     """Widget to select metal type and parameters."""
 
     def __init__(self):
-        self.common_name = WidgetLabeledTextInput("Common name", "S355J2+N")
-        self.standard = WidgetLabeledTextInput("Standard", "DIN EN 10225-2:2011")
-        self.thickness = FloatWithUnit("Thickness", value=30, unit="mm")
+        self.common_name = WidgetLabeledTextInput(_("Common name"), "S355J2+N")
+        self.standard = WidgetLabeledTextInput(_("Standard"), "DIN EN 10225-2:2011")
+        self.thickness = FloatWithUnit(_("Thickness"), value=30, unit="mm")
         children = [
-            make_title("Base metal", heading_level=4),
+            make_title(_("Base metal"), heading_level=4),
             self.common_name,
             self.standard,
             self.thickness,
@@ -213,7 +215,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
             [
                 WidgetMyHBox(
                     [
-                        Label("Groove type", layout=description_layout),
+                        Label(_("Groove type"), layout=description_layout),
                         self.groove_type_dropdown,
                     ]
                 ),
@@ -226,9 +228,9 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         self.output_tabs = Tab()
         self.output_tabs.layout = Layout(width="70%")
         self.output_tabs.children = [self.out]
-        self.output_tabs.set_title(0, "2D profile")
+        self.output_tabs.set_title(0, "2D " + _("profile"))
         children = [
-            make_title("ISO 9692-1 Groove selection", 3),
+            make_title(_("ISO 9692-1 Groove selection"), 3),
             WidgetMyHBox(children=[self.groove_selection, self.output_tabs]),
         ]
 
@@ -304,8 +306,6 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
             for attr in _groove_name_to_type[groove]._mapping.values()
         }
 
-        # TODO: formatting, first letter upper case, replace _ with space
-
         # create dict with hboxes of all attributes
         self.groove_params_dropdowns = dict()
         param_widgets = self.groove_params_dropdowns
@@ -316,10 +316,18 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
                     layout=description_layout,
                 )
                 param_widgets[item] = HBox(
-                    [Label("Code number", layout=description_layout), dropdown]
+                    [Label(_("Code number"), layout=description_layout), dropdown]
                 )
             else:
-                text = f"{(item[0].upper()+item[1:]).replace('_', ' ')}"
+                # replace underscores with spaces, first letter uppercase, translate.
+                t = f"{(item[0].upper() + item[1:]).replace('_', ' ')}"
+                matches = re.match("(.*)([0-9]+)", t)
+                if matches:
+                    t = _(matches.group(1))
+                    number = matches.group(2)
+                    text = f"{t} {number}"
+                else:
+                    text = _(t)
                 if "angle" in item:
                     param_widgets[item] = FloatWithUnit(text=text, unit="°", value=45)
                 elif "workpiece_thickness" in item:
@@ -332,30 +340,32 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         margin = 5
         groove_type_dropdown = Dropdown(
             options=groove_list,
-            value=groove_list[1],
+            value=groove_list[1],  # VGroove
             layout=Layout(width=f"{2 * Q_(textbox_layout.width).m + margin}px"),
         )
 
         # connect value observers
         groove_type_dropdown.observe(self._update_params_to_selection, names="value")
-
-        update_plot = self._update_plot
-        groove_type_dropdown.observe(update_plot, "value")
-        for key, box in param_widgets.items():
-            box.children[1].observe(update_plot, "value")
-            if key != "code_number":
-                box.children[2].observe(update_plot, "value")
+        groove_type_dropdown.observe(self._update_plot, "value")
+        self.add_parameter_observer(self._update_plot)
 
         return groove_type_dropdown
 
-    def _update_plot(self, *_):
+    def add_parameter_observer(self, observer: Callable):
+        """Add observers to groove parameters."""
+        for key, box in self.groove_params_dropdowns.items():
+            box.children[1].observe(observer, "value")
+            # if key != "code_number":
+            #    box.children[2].observe(observer, "value")
+
+    def _update_plot(self, *args):
         groove_type = self.groove_type_dropdown.value
         groove_obj = self._groove_obj_cache.get(groove_type, None)
 
         groove_params = dict(groove_type=groove_type)
         for child in self.groove_params.children:
             param_key = child.mapping
-            if param_key == "code_number":
+            if param_key == _("code_number"):
                 groove_params[param_key] = child.children[1].value
             else:
                 magnitude = child.children[1].value
@@ -396,16 +406,20 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     def __init__(self):
         self.last_plot = None
         self.groove_sel = WidgetGrooveSelection()
-        self.seam_length = FloatWithUnit("Seam length", value=300, min=0, unit="mm")
+
+        self.seam_length = FloatWithUnit(_("Seam length"), value=300, min=0, unit="mm")
+        self.seam_length.observe_float_value(self.create_csm_and_plot)
+        self.seam_length.observe_unit(self.create_csm_and_plot)
+
         self.tcp_y = FloatWithUnit("TCP-y", unit="mm")
         self.tcp_z = FloatWithUnit("TCP-z", unit="mm")
         # TODO: compute weld speed accordingly to chosen groove area!
         # TODO: consider setting it read-only??
-        self.weld_speed = FloatWithUnit("weld speed", value=6, unit="mm/s")
+        self.weld_speed = FloatWithUnit(_("weld speed"), value=6, unit="mm/s")
         self.base_metal = WidgetMetal()
         self.geometry_export = WidgetCADExport()
         self.additional_params = (
-            make_title("Welding parameters", 4),
+            make_title(_("Welding parameters"), 4),
             self.seam_length,
             self.weld_speed,
             self.tcp_y,
@@ -418,12 +432,13 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         # add 3d plot and CAD export to groove_sel output tab
         self.out = Output()
         self.groove_sel.output_tabs.children += (self.out, self.geometry_export)
-        self.groove_sel.output_tabs.set_title(1, "3D profile")
+        self.groove_sel.output_tabs.set_title(1, "3D " + _("profile"))
         self.groove_sel.output_tabs.set_title(2, "CAD export")
 
         self.groove_sel.output_tabs.observe(
             self.create_csm_and_plot, names="selected_index"
         )
+        self.groove_sel.add_parameter_observer(self.create_csm_and_plot)
 
         # csm 3d visualization
         self.csm = None
@@ -439,9 +454,8 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     def create_csm_and_plot(self, change=None, plot=True, **kwargs):
         """Create coordinates system manager containing TCP movement."""
         if change is not None:
-            assert change["name"] == "selected_index"
-            # if not 3d plot tab selected, do not update
-            if change["new"] != 1:
+            # update, except for 2d view.
+            if change.get("new", -1) == 0:
                 return
 
         # TODO: only create once and then update the csm!
@@ -473,6 +487,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         # add the geometry data of the specimen
         sp_specimen = geometry.spatial_data(profile_raster_width, trace_raster_width)
+        sp_specimen.plot(backend="k3d")
         csm.assign_data(
             sp_specimen,
             "specimen",

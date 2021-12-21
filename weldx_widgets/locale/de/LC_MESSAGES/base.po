@@ -1,0 +1,320 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-21 10:30+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: UTF-8\n"
+"charset=utf8"
+
+#: widget_gas.py:47
+msgid "Hydrogen"
+msgstr "Wasserstoff"
+
+#: widget_gas.py:47
+msgid "Oxygen"
+msgstr "Sauerstoff"
+
+#: widget_gas.py:41
+msgid "Add gas component"
+msgstr "Gas hinzufügen"
+
+#: widget_gas.py:69
+msgid "percentage"
+msgstr "Prozent"
+
+#: widget_gas.py:75
+msgid "delete"
+msgstr "löschen"
+
+#: widget_gas.py:151
+msgid "Flow rate"
+msgstr "Flußrate"
+
+#: widget_gas.py:112
+msgid "Check percentages, all components should sum up to 100!"
+msgstr ""
+
+#: widget_measurement.py:57 widget_gmaw.py:42
+msgid "time"
+msgstr "Zeit"
+
+#: widget_gmaw.py:62
+msgid "Manufacturer"
+msgstr "Hersteller"
+
+#: widget_gmaw.py:63
+msgid "Power source"
+msgstr "Stromquelle"
+
+#: widget_gmaw.py:65
+msgid "Wire feed rate"
+msgstr "Drahtvorschubrate"
+
+#: widget_gmaw.py:102
+msgid "Pulse duration"
+msgstr "Pulsdauer"
+
+#: widget_gmaw.py:104
+msgid "Pulse frequency"
+msgstr "Pulsfrequenz"
+
+#: widget_gmaw.py:106
+msgid "Base current"
+msgstr "Grundstromstärke"
+
+#: widget_gmaw.py:109
+msgid "Pulse voltage"
+msgstr "Pulsspannung"
+
+#: widget_gmaw.py:111
+msgid "Pulse current"
+msgstr "Pulsstromstärke"
+
+#: widget_gmaw.py:122 widget_gmaw.py:270 widget_gmaw.py:271 widget_gmaw.py:335
+msgid "Pulsed"
+msgstr "Gepulst"
+
+#: widget_gmaw.py:122
+msgid "process parameters"
+msgstr "Prozessparameter"
+
+#: widget_gmaw.py:185
+msgid "Impedance"
+msgstr "Impedanz"
+
+#: widget_gmaw.py:186
+msgid "Characteristic"
+msgstr "Charakteristisch"
+
+#: widget_gmaw.py:190
+msgid "Spray process parameters"
+msgstr "Sprühlichtbogen Parameter"
+
+#: widget_gmaw.py:233
+msgid "Diameter"
+msgstr "Durchmesser"
+
+#: widget_gmaw.py:234
+msgid "Class"
+msgstr "Klasse"
+
+#: widget_gmaw.py:237
+msgid "Metadata"
+msgstr "Metadaten"
+
+#: widget_gmaw.py:239
+msgid "Wire parameters"
+msgstr "Drahtparameter"
+
+#: widget_gmaw.py:269 widget_gmaw.py:337
+msgid "Spray"
+msgstr "Sprüh"
+
+msgid "CMT"
+msgstr ""
+
+#: widget_gmaw.py:287
+msgid "Process type"
+msgstr "Prozesstyp"
+
+#: widget_gmaw.py:295
+msgid "GMAW process parameters"
+msgstr "GMAW Prozessparameter"
+
+#: widget_gmaw.py:296
+msgid "Shielding gas"
+msgstr "Schutzgas"
+
+#: widget_gmaw.py:340
+msgid "unknown process type"
+msgstr "Unbekannter Prozesstyp"
+
+#: widget_gmaw.py:118
+msgid "voltage/current"
+msgstr "Spannung/Stromstärke"
+
+#: widget_gmaw.py:120
+msgid "current"
+msgstr "Stromstärke"
+
+msgid "invoke next step"
+msgstr "Nächster Schritt"
+
+msgid "Save results"
+msgstr "Speichern"
+
+#: kisa/save.py:169
+msgid "Save"
+msgstr "Speichern"
+
+#: generic.py:62
+msgid "Select"
+msgstr "Auswählen"
+
+#: generic.py:63
+msgid "Change"
+msgstr "Ändern"
+
+#: widget_groove_sel.py:67
+msgid "Export geometry to CAD file [optional]"
+msgstr "CAD-Export [optional]"
+
+#: widget_groove_sel.py:75
+msgid "Data format"
+msgstr "Datenformat"
+
+#: widget_groove_sel.py:77
+msgid "Create program"
+msgstr "Programm erstellen"
+
+#: widget_groove_sel.py:88
+msgid "Profile raster width"
+msgstr "Breite Profilraster"
+
+#: widget_groove_sel.py:94
+msgid "Trace raster width"
+msgstr "Breite Spurraster"
+
+#: widget_groove_sel.py:141
+msgid "Download program"
+msgstr "Lade Program"
+
+#: widget_groove_sel.py:152
+msgid "Common name"
+msgstr "Allgemeiner Name"
+
+#: widget_groove_sel.py:153
+msgid "Standard"
+msgstr "Standard"
+
+#: widget_groove_sel.py:154
+msgid "Thickness"
+msgstr "Dicke"
+
+#: widget_groove_sel.py:156
+msgid "Base metal"
+msgstr "Grundmetal"
+
+#: widget_groove_sel.py:217
+msgid "Groove type"
+msgstr "Fugentyp"
+
+#: widget_groove_sel.py:230 widget_groove_sel.py:422
+msgid "profile"
+msgstr "Profil"
+
+#: widget_groove_sel.py:232
+msgid "ISO 9692-1 Groove selection"
+msgstr "ISO 9692-1 Fugenauswahl"
+
+#: widget_groove_sel.py:320
+msgid "Code number"
+msgstr "Kodenummer"
+
+#: widget_groove_sel.py:324
+msgid "angle"
+msgstr "Winkel"
+
+#: widget_groove_sel.py:326
+msgid "workpiece_thickness"
+msgstr "Werkstückdicke"
+
+#: widget_groove_sel.py:314 widget_groove_sel.py:347 widget_groove_sel.py:359
+msgid "code_number"
+msgstr "Kodenummer"
+
+#: widget_groove_sel.py:400 widget_evaluate.py:121
+msgid "Seam length"
+msgstr "Nahtlänge"
+
+#: widget_groove_sel.py:405
+msgid "weld speed"
+msgstr "Schweißgeschwindigkeit"
+
+#: widget_groove_sel.py:409
+msgid "Welding parameters"
+msgstr "Schweißparameter"
+
+#: widget_measurement.py:58
+msgid "Measurements"
+msgstr "Messungen"
+
+#: widget_measurement.py:96
+msgid "Measurement chain"
+msgstr "Messkette"
+
+#: widget_evaluate.py:41 widget_evaluate.py:108
+msgid "Process parameters"
+msgstr "Prozessparameter"
+
+#: widget_evaluate.py:101
+msgid "ASDF-header"
+msgstr "ASDF-Dateikopf"
+
+#: widget_evaluate.py:112
+msgid "Specimen"
+msgstr "Werkstück"
+
+#: widget_evaluate.py:161
+msgid "CSM-Subsystems"
+msgstr ""
+
+#: widget_evaluate.py:271
+msgid "Difference in welding speed"
+msgstr "Unterschied Schweißgeschwindigkeit"
+
+#: widget_evaluate.py:272 widget_evaluate.py:281
+msgid "time in s"
+msgstr "Zeit in s"
+
+#: widget_evaluate.py:273 widget_evaluate.py:282
+msgid "diff in mm"
+msgstr "Unterschied in mm"
+
+#: widget_evaluate.py:276
+msgid "User frame deviation"
+msgstr "Abweichung Nutzerrahmen"
+
+# groove types
+msgid "Groove angle"
+msgstr "Fugenwinkel"
+
+msgid "Workpiece thickness"
+msgstr "Dicke Werkstück"
+
+msgid "Root face"
+msgstr "Wurzelzone"
+
+msgid "Root gap"
+msgstr "Wurzellücke"
+
+msgid "Bevel angle"
+msgstr "Keilwinkel"
+
+msgid "Bevel radius"
+msgstr "Keilradius"
+
+msgid "Special depth"
+msgstr "Spezialtiefe"
+
+# workpiece.ipynb heading
+msgid "Choose a groove and your linear weld seam parameters."
+msgstr "Wähle Fugen- und lineare Schweißbewegungsparameter."
+
+msgid "Here you can choose from various shielding gases and spray and pulsed MIG processes and its parameters."
+msgstr "Hier können Sie verschiedene Prozessparameter, wie Schutzgase und Sprüh/Pulslichtbogenparameter einstellen."
+
+msgid "Welding process type and parameters"
+msgstr "Schweißprozessparameter"

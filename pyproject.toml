@@ -1,5 +1,9 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.0"]
+requires = ["setuptools>=45",
+    "wheel",
+    "setuptools_scm[toml]>=6.0",
+    "babel",
+]
 
 [tool.setuptools_scm]
 write_to = "weldx_widgets/_version.py"

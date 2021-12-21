@@ -1,0 +1,3 @@
+recursive-include weldx_widgets *.mo
+
+prune .github

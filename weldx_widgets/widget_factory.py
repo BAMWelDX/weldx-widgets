@@ -137,4 +137,6 @@ class FloatWithUnit(WidgetMyHBox):
 
 def make_title(text, heading_level=3):
     """Return an HTML formatted heading."""
-    return HTML(f"<h{heading_level}>{text}</h{heading_level}>")
+    from weldx_widgets.translation_utils import _i18n as _
+
+    return HTML(f"<h{heading_level}>{_(text)}</h{heading_level}>")

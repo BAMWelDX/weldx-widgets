@@ -10,6 +10,7 @@ import weldx
 import weldx_widgets
 import weldx_widgets.widget_base
 import weldx_widgets.widget_factory
+from weldx_widgets.translation_utils import _i18n as _
 from weldx_widgets.widget_factory import button_layout
 
 __all__ = [
@@ -142,7 +143,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         next_notebook: str,
         status: str,
         collect_data_from: typing.List[weldx_widgets.widget_base.WeldxImportExport],
-        next_notebook_desc: str = "2. invoke next step",
+        next_notebook_desc: str = "Invoke next step",
         next_notebook_params=None,
         title="Save results",
         disable_next_button=True,
@@ -153,7 +154,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
 
         if not disable_next_button:
             self.btn_next = w.Button(
-                description=next_notebook_desc, layout=button_layout
+                description=_(next_notebook_desc), layout=button_layout
             )
             if next_notebook_params is None:
                 next_notebook_params = dict()
@@ -165,7 +166,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         path = str(fn_path.parent)
         fn = str(fn_path.name)
         self.save_button = weldx_widgets.WidgetSaveButton(
-            desc="1. Save" if not disable_next_button else "Save",
+            desc="1." + _("Save") if not disable_next_button else _("Save"),
             filename=fn,
             path=path,
             select_default=True,
