@@ -199,6 +199,13 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         assert self.filename
         # open (existing) file and update it.
         clear_output()
+
+        if pathlib.Path(self.filename).stem.endswith("_r"):
+            with self.out:
+                print("Refusing to save a read-only (template) file!")
+                print("Please choose another name with the '_r' suffix.")
+            return
+
         with weldx.WeldxFile(self.filename, mode="rw", sync=True) as fh, self.out:
             fh.update(**result)
             display(fh.show_asdf_header(False, True))
