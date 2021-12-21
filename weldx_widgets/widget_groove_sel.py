@@ -487,6 +487,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         # add the geometry data of the specimen
         sp_specimen = geometry.spatial_data(profile_raster_width, trace_raster_width)
+        sp_specimen.plot(backend="k3d")
         csm.assign_data(
             sp_specimen,
             "specimen",
