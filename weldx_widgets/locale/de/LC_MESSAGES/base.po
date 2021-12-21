@@ -285,3 +285,25 @@ msgstr "Unterschied in mm"
 #: widget_evaluate.py:276
 msgid "User frame deviation"
 msgstr "Abweichung Nutzerrahmen"
+
+# groove types
+msgid "Groove angle"
+msgstr "Fugenwinkel"
+
+msgid "Workpiece thickness"
+msgstr "Dicke Werkstück"
+
+msgid "Root face"
+msgstr "Wurzelzone"
+
+msgid "Root gap"
+msgstr "Wurzellücke"
+
+msgid "Bevel angle"
+msgstr "Keilwinkel"
+
+msgid "Bevel radius"
+msgstr "Keilradius"
+
+msgid "Special depth"
+msgstr "Spezialtiefe"
