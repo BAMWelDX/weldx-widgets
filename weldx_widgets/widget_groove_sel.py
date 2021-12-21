@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import re
 import tempfile
 from typing import Union
 
@@ -320,10 +321,18 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
                     [Label(_("Code number"), layout=description_layout), dropdown]
                 )
             else:
-                text = f"{(item[0].upper()+item[1:]).replace('_', ' ')}"
-                if _("angle") in item:
+                # replace underscores with spaces, first letter uppercase, translate.
+                t = f"{(item[0].upper() + item[1:]).replace('_', ' ')}"
+                matches = re.match("(.*)([0-9]+)", t)
+                if matches:
+                    t = _(matches.group(1))
+                    number = matches.group(2)
+                    text = f"{t} {number}"
+                else:
+                    text = _(t)
+                if "angle" in item:
                     param_widgets[item] = FloatWithUnit(text=text, unit="°", value=45)
-                elif _("workpiece_thickness") in item:
+                elif "workpiece_thickness" in item:
                     param_widgets[item] = FloatWithUnit(text=text, unit="mm", value=15)
                 else:
                     param_widgets[item] = FloatWithUnit(text=text, unit="mm", value=5)
