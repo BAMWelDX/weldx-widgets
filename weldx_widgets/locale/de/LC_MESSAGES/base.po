@@ -307,3 +307,7 @@ msgstr "Keilradius"
 
 msgid "Special depth"
 msgstr "Spezialtiefe"
+
+# workpiece.ipynb heading
+msgid "Choose a groove and your linear weld seam parameters."
+msgstr "Wähle Fugen- und lineare Schweißbewegungsparameter."
