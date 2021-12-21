@@ -12,10 +12,11 @@ msgstr ""
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Content-Transfer-Encoding: UTF-8\n"
+"charset=utf8"
 
 #: widget_gas.py:47
 msgid "Hydrogen"
@@ -311,3 +312,9 @@ msgstr "Spezialtiefe"
 # workpiece.ipynb heading
 msgid "Choose a groove and your linear weld seam parameters."
 msgstr "Wähle Fugen- und lineare Schweißbewegungsparameter."
+
+msgid "Here you can choose from various shielding gases and spray and pulsed MIG processes and its parameters."
+msgstr "Hier können Sie verschiedene Prozessparameter, wie Schutzgase und Sprüh/Pulslichtbogenparameter einstellen."
+
+msgid "Welding process type and parameters"
+msgstr "Schweißprozessparameter"
