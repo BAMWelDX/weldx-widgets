@@ -88,10 +88,10 @@ class WidgetLinearWeldYaskawa(WidgetMyVBox):
             layout=Layout(width="500px"),
         )
 
-    def _invalidate_dl_button(self, _):
+    def _invalidate_dl_button(self, button):
         self.children[-1].value = ""
 
-    def create_linear_program(self, _):
+    def create_linear_program(self, button):
         """Invoke self.program_func with form parameters and create download button."""
         base_unit = self.uf_to_workpiece.children[1].unit
         uf_to_workpiece = Q_(np.array([None, None, None]), base_unit)
