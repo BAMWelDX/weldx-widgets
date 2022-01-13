@@ -162,6 +162,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
             self.next_notebook = next_notebook
             self.btn_next.on_click(self.on_next)
 
+        self._initial_file = filename  # remember initial choice of file.
         fn_path = pathlib.Path(filename)
         path = str(fn_path.parent)
         fn = str(fn_path.name)
@@ -191,24 +192,40 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         """Handle saving data to file."""
         from IPython.display import clear_output, display
 
-        # TODO: error handling, e.g. to_tree() is not yet ready etc.
+        clear_output()
+
         result = dict()
         for widget in self.collect_data_from:
             result.update(widget.to_tree())
+        # set status
         result["wx_user"] = {"KISA": {"status": self.status}}
-        assert self.filename
-        # open (existing) file and update it.
-        clear_output()
 
+        def show_header(handle):
+            with self.out:
+                clear_output()
+                display(handle.show_asdf_header(False, True))
+
+        # open (existing) file and update it.
         if pathlib.Path(self.filename).stem.endswith("_r"):
             with self.out:
                 print("Refusing to save a read-only (template) file!")
                 print("Please choose another name with the '_r' suffix.")
             return
-
-        with weldx.WeldxFile(self.filename, mode="rw", sync=True) as fh, self.out:
-            fh.update(**result)
-            display(fh.show_asdf_header(False, True))
+        if self.filename != self._initial_file:
+            # we want to save the previous file under a different name, so load contents
+            with weldx.WeldxFile(self._initial_file, mode="r") as fh:
+                fh.update(result)
+                if not pathlib.Path(self.filename).exists():
+                    fh.write_to(self.filename)
+                    show_header(fh)
+                else:
+                    with weldx.WeldxFile(self.filename, mode="rw") as fh2:
+                        fh2.update(fh)
+                        show_header(fh2)
+        else:
+            with weldx.WeldxFile(self.filename, mode="rw", sync=True) as fh:
+                fh.update(**result)
+                show_header(fh)
 
     def on_next(self, _):
         """Invoke next notebook."""
