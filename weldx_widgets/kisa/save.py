@@ -2,6 +2,7 @@
 import pathlib
 import typing
 from os import environ as env
+from typing import Any, Dict, Mapping, TypeVar
 from urllib.parse import parse_qs, urlencode
 
 import ipywidgets as w
@@ -116,6 +117,21 @@ def invoke_url(url, out):
         display(js)
 
 
+_KeyType = TypeVar("KeyType")
+
+
+def _deep_update_inplace(
+    mapping: Dict[_KeyType, Any], *updating_mappings: Dict[_KeyType, Any]
+) -> Dict[_KeyType, Any]:
+    for updating_mapping in updating_mappings:
+        for k, v in updating_mapping.items():
+            if k in mapping and isinstance(mapping[k], dict) and isinstance(v, Mapping):
+                mapping[k] = _deep_update_inplace(mapping[k], v)
+            else:
+                mapping[k] = v
+    return mapping
+
+
 class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
     """Collect all the data from passed import/output widget list and stores it.
 
@@ -162,6 +178,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
             self.next_notebook = next_notebook
             self.btn_next.on_click(self.on_next)
 
+        self._initial_file = filename  # remember initial choice of file.
         fn_path = pathlib.Path(filename)
         path = str(fn_path.parent)
         fn = str(fn_path.name)
@@ -191,24 +208,41 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         """Handle saving data to file."""
         from IPython.display import clear_output, display
 
-        # TODO: error handling, e.g. to_tree() is not yet ready etc.
-        result = dict()
-        for widget in self.collect_data_from:
-            result.update(widget.to_tree())
-        result["wx_user"] = {"KISA": {"status": self.status}}
-        assert self.filename
-        # open (existing) file and update it.
         clear_output()
 
+        result = dict()
+        for widget in self.collect_data_from:
+            _deep_update_inplace(result, widget.to_tree())
+
+        # set status
+        result["wx_user"] = {"KISA": {"status": self.status}}
+
+        def show_header(handle):
+            with self.out:
+                clear_output()
+                display(handle.show_asdf_header(False, True))
+
+        # open (existing) file and update it.
         if pathlib.Path(self.filename).stem.endswith("_r"):
             with self.out:
                 print("Refusing to save a read-only (template) file!")
                 print("Please choose another name with the '_r' suffix.")
             return
-
-        with weldx.WeldxFile(self.filename, mode="rw", sync=True) as fh, self.out:
-            fh.update(**result)
-            display(fh.show_asdf_header(False, True))
+        if self.filename != self._initial_file:
+            # we want to save the previous file under a different name, so load contents
+            with weldx.WeldxFile(self._initial_file, mode="r") as fh:
+                _deep_update_inplace(fh, result)
+                if not pathlib.Path(self.filename).exists():
+                    fh.write_to(self.filename)
+                    show_header(fh)
+                else:
+                    with weldx.WeldxFile(self.filename, mode="rw") as fh2:
+                        _deep_update_inplace(fh2, fh)
+                        show_header(fh2)
+        else:
+            with weldx.WeldxFile(self.filename, mode="rw", sync=True) as fh:
+                _deep_update_inplace(fh, result)
+                show_header(fh)
 
     def on_next(self, _):
         """Invoke next notebook."""
