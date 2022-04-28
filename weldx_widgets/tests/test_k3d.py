@@ -2,7 +2,7 @@
 import pytest
 
 import weldx
-from weldx import CoordinateSystemManager, Time, get_groove
+from weldx import U_, CoordinateSystemManager, Time, get_groove
 from weldx_widgets.visualization.csm_k3d import CoordinateSystemManagerVisualizerK3D
 
 
@@ -10,9 +10,12 @@ from weldx_widgets.visualization.csm_k3d import CoordinateSystemManagerVisualize
 def test_k3d_csm_vis(plot_all):
     """Create a simple CSM instance for k3d visualization."""
     csm = CoordinateSystemManager("base")
-    csm.create_cs("A", "base", coordinates=[1, 1, 1])
+    csm.create_cs("A", "base", coordinates=[1, 1, 1] * U_("mm"))
     csm.create_cs(
-        "B", "base", coordinates=[[0, 0, 0], [1, 2, 3]], time=Time(["0s", "1s"])
+        "B",
+        "base",
+        coordinates=[[0, 0, 0], [1, 2, 3]] * U_("mm"),
+        time=Time(["0s", "1s"]),
     )
 
     groove = get_groove(
