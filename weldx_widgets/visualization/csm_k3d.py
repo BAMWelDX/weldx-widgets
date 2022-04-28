@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
 import k3d
 import k3d.platonic as platonic
@@ -10,10 +10,12 @@ import numpy as np
 import pandas as pd
 import pint
 from ipywidgets import Checkbox, Dropdown, HBox, IntSlider, Layout, Play, VBox, jslink
-from weldx.constants import _DEFAULT_LEN_UNIT as _DL
 
 import weldx.geometry as geo
+from weldx import U_
 from weldx.core import TimeSeries
+
+_DL = U_("mm")
 
 if TYPE_CHECKING:  # pragma: no cover
     from weldx.transformations.local_cs import LocalCoordinateSystem
