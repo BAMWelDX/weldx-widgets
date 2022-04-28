@@ -7,6 +7,7 @@ import tempfile
 from typing import Callable, Union
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from IPython import get_ipython
 from IPython.core.display import display
@@ -509,7 +510,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         rot = weldx.WXRotation.from_euler("x", 180, degrees=True)
 
-        coords = [tcp_start_point, tcp_end_point]
+        coords = np.stack([tcp_start_point, tcp_end_point])
 
         tcp_wire = weldx.LocalCoordinateSystem(
             coordinates=coords, orientation=rot, time=[t_start, t_end]
