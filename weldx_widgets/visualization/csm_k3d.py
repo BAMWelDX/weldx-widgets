@@ -208,7 +208,7 @@ class CoordinateSystemVisualizerK3D:
         self._vectors.vectors = orientation.transpose() * self._vector_scale
         self.origin.model_matrix = _create_model_matrix(coordinates, orientation)
         if self._label is not None:
-            self._label.position = coordinates + 0.05
+            self._label.position = coordinates.to(_DL).m + 0.05
 
     def show_label(self, show_label: bool):
         """Set the visibility of the label.
@@ -365,7 +365,7 @@ class SpatialDataVisualizer:
         self._points = None
         if (data.triangles is None) | create_points:
             self._points = k3d.points(
-                self.data.coordinates.to(_DL).m,
+                self.data.coordinates.data.to(_DL).m,
                 point_size=0.05,
                 color=self._color,
                 name=name if name is None else f"{name} (points)",
