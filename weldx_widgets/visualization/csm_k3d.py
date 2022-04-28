@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union, Tuple
 
 import k3d
 import k3d.platonic as platonic
 import numpy as np
 import pandas as pd
+import pint
 from ipywidgets import Checkbox, Dropdown, HBox, IntSlider, Layout, Play, VBox, jslink
+from weldx.constants import _DEFAULT_LEN_UNIT as _DL
 
 import weldx.geometry as geo
 from weldx.core import TimeSeries
@@ -39,7 +41,9 @@ def _get_limits_from_stack(limits):
     return np.vstack([mins, maxs])
 
 
-def _get_coordinates_and_orientation(lcs: LocalCoordinateSystem, index: int = 0):
+def _get_coordinates_and_orientation(
+    lcs: LocalCoordinateSystem, index: int = 0
+) -> Tuple[pint.Quantity, pint.Quantity]:
     """Get the coordinates and orientation of a coordinate system.
 
     Parameters
@@ -52,9 +56,9 @@ def _get_coordinates_and_orientation(lcs: LocalCoordinateSystem, index: int = 0)
 
     Returns
     -------
-    coordinates : numpy.ndarray
+    coordinates
         The coordinates
-    orientation : numpy.ndarray
+    orientation
         The orientation
 
     """
@@ -64,11 +68,11 @@ def _get_coordinates_and_orientation(lcs: LocalCoordinateSystem, index: int = 0)
             "Interpolate values before plotting to solve this issue"
         )
 
-    coordinates = lcs.coordinates.isel(time=index, missing_dims="ignore").values.astype(
+    coordinates = lcs.coordinates.isel(time=index, missing_dims="ignore").data.astype(
         "float32"
     )
 
-    orientation = lcs.orientation.isel(time=index, missing_dims="ignore").values.astype(
+    orientation = lcs.orientation.isel(time=index, missing_dims="ignore").data.astype(
         "float32"
     )
 
@@ -76,7 +80,7 @@ def _get_coordinates_and_orientation(lcs: LocalCoordinateSystem, index: int = 0)
 
 
 def _create_model_matrix(
-    coordinates: np.ndarray, orientation: np.ndarray
+    coordinates: pint.Quantity, orientation: np.ndarray
 ) -> np.ndarray:
     """Create the model matrix from an orientation and coordinates.
 
@@ -95,7 +99,7 @@ def _create_model_matrix(
     """
     model_matrix = np.eye(4, dtype="float32")
     model_matrix[:3, :3] = orientation
-    model_matrix[:3, 3] = coordinates
+    model_matrix[:3, 3] = coordinates.to(_DL).m
     return model_matrix
 
 
@@ -142,7 +146,7 @@ class CoordinateSystemVisualizerK3D:
         self._vector_scale = vector_scale
 
         self._vectors = k3d.vectors(
-            origins=[coordinates for _ in range(3)],
+            origins=[coordinates.to(_DL).m for _ in range(3)],
             vectors=orientation.transpose() * self._vector_scale,
             line_width=0.05,
             head_size=3.0,
@@ -157,7 +161,7 @@ class CoordinateSystemVisualizerK3D:
         if name is not None:
             self._label = k3d.text(
                 text=name,
-                position=coordinates + 0.05,
+                position=coordinates.to(_DL).m + 0.05,
                 color=self._color,
                 size=1,
                 label_box=False,
@@ -166,7 +170,7 @@ class CoordinateSystemVisualizerK3D:
             )
 
         self._trace = k3d.line(
-            np.array(lcs.coordinates.values, dtype="float32"),  # type: ignore
+            np.array(lcs.coordinates.data.to(_DL).m, dtype="float32"),  # type: ignore
             shader="thick",
             width=0.1,  # change with .set_trait("width", value)
             color=color,
@@ -186,7 +190,7 @@ class CoordinateSystemVisualizerK3D:
             if self._label is not None:
                 plot += self._label
 
-    def _update_positions(self, coordinates: np.ndarray, orientation: np.ndarray):
+    def _update_positions(self, coordinates: pint.Quantity, orientation: np.ndarray):
         """Update the positions of the coordinate cross and label.
 
         Parameters
@@ -260,7 +264,7 @@ class CoordinateSystemVisualizerK3D:
         """
         self._lcs = lcs
         self._trace.vertices = np.array(
-            lcs.coordinates.values,  # type: ignore[union-attr] # handled by __init__
+            lcs.coordinates.data.to(_DL).m,  # type: ignore[union-attr] # handled by __init__
             dtype="float32",
         )
         self.update_time_index(index)
@@ -281,10 +285,10 @@ class CoordinateSystemVisualizerK3D:
         lcs = self._lcs
         dims = [d for d in lcs.coordinates.dims if d != "c"]
         if dims:
-            mins = lcs.coordinates.min(dim=dims)
-            maxs = lcs.coordinates.max(dim=dims)
+            mins = lcs.coordinates.min(dim=dims).data
+            maxs = lcs.coordinates.max(dim=dims).data
             return np.vstack([mins, maxs])
-        return np.vstack([lcs.coordinates.values, lcs.coordinates.values])
+        return np.vstack([lcs.coordinates.data, lcs.coordinates.data])
 
 
 class SpatialDataVisualizer:
@@ -358,16 +362,17 @@ class SpatialDataVisualizer:
         self._points = None
         if (data.triangles is None) | create_points:
             self._points = k3d.points(
-                self.data.coordinates,
+                self.data.coordinates.to(_DL).m,
                 point_size=0.05,
                 color=self._color,
                 name=name if name is None else f"{name} (points)",
             )
 
         self._mesh = None
+        _coords = self.data.coordinates.data.to(_DL).m
         if data.triangles is not None:
             self._mesh = k3d.mesh(
-                self.data.coordinates.values.astype(np.float32).reshape(-1, 3),
+                _coords.astype(np.float32).reshape(-1, 3),
                 triangles,
                 side="double",
                 color=self._color,
@@ -385,7 +390,7 @@ class SpatialDataVisualizer:
     def create_label(self, name):
         """Create a K3D label for this object."""
         dims = self.data.additional_dims
-        self._label_pos = self.data.coordinates.mean(dim=dims).values
+        self._label_pos = self.data.coordinates.mean(dim=dims).data.to(_DL).m
         if name is not None:
             self._label = k3d.text(
                 text=name,
@@ -661,6 +666,8 @@ class CoordinateSystemManagerVisualizerK3D:
             self._plot.grid = (-1, -1, -1, 1, 1, 1)
         else:
             self._plot.grid_auto_fit = False
+            if isinstance(value, pint.Quantity):
+                value = value.to(_DL).m
             grid = tuple(np.array(value).flatten().astype(int))
             if len(grid) == 2:
                 grid = np.repeat(grid, 3)
