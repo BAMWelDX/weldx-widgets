@@ -372,7 +372,10 @@ class SpatialDataVisualizer:
             )
 
         self._mesh = None
-        _coords = self.data.coordinates.data.to(_DL).m
+        _coords = self.data.coordinates.data
+        if isinstance(_coords, pint.Quantity):
+            _coords = _coords.to(_DL).m
+
         if data.triangles is not None:
             self._mesh = k3d.mesh(
                 _coords.astype(np.float32).reshape(-1, 3),
