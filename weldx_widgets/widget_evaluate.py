@@ -287,7 +287,7 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
         triangles[-1][2] = 0
 
         return SpatialData(
-            np.array(points, dtype="float32"), np.array(triangles, dtype="uint32")
+            Q_(points, "mm").astype("float32"), np.array(triangles, dtype="uint32")
         )
 
     @staticmethod

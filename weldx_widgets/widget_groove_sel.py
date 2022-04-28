@@ -509,7 +509,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         rot = weldx.WXRotation.from_euler("x", 180, degrees=True)
 
-        coords = [tcp_start_point.magnitude, tcp_end_point.magnitude]
+        coords = [tcp_start_point, tcp_end_point]
 
         tcp_wire = weldx.LocalCoordinateSystem(
             coordinates=coords, orientation=rot, time=[t_start, t_end]
