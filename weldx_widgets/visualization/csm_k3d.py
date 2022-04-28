@@ -15,8 +15,6 @@ import weldx.geometry as geo
 from weldx import U_
 from weldx.core import TimeSeries
 
-_DL = U_("mm")
-
 if TYPE_CHECKING:  # pragma: no cover
     from weldx.transformations.local_cs import LocalCoordinateSystem
 
@@ -35,6 +33,9 @@ __all__ = [
     "CoordinateSystemManagerVisualizerK3D",
     "SpatialDataVisualizer",
 ]
+
+
+_DL = U_("mm")
 
 
 def _get_limits_from_stack(limits):
@@ -266,7 +267,7 @@ class CoordinateSystemVisualizerK3D:
         """
         self._lcs = lcs
         self._trace.vertices = np.array(
-            lcs.coordinates.data.to(_DL).m,  # type: ignore[union-attr] # handled by __init__
+            lcs.coordinates.data.to(_DL).m,  # type: ignore[union-attr]
             dtype="float32",
         )
         self.update_time_index(index)
