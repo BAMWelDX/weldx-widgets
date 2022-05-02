@@ -99,7 +99,7 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
         tabs = defaultdict(make_output)
 
         with tabs[_("ASDF-header")]:
-            display(file.show_asdf_header(False, True))
+            display(file.header(False))
 
         # start and end time of experiment
         t = (file["TCP"].time[[0, -1]]).as_timedelta()
