@@ -12,7 +12,7 @@ That includes:
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
-from IPython.core.display import display
+from IPython.display import display
 from ipywidgets import Layout, Output, Tab
 
 import weldx
