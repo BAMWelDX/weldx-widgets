@@ -4,13 +4,13 @@ from __future__ import annotations
 import contextlib
 import re
 import tempfile
-from typing import Callable, Union
+from typing import TYPE_CHECKING, Callable, Optional, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from IPython import get_ipython
-from IPython.core.display import display
+from IPython.display import display
 from ipywidgets import HTML, Button, Dropdown, HBox, Label, Layout, Output, Tab
 
 import weldx
@@ -32,6 +32,9 @@ from weldx_widgets.widget_factory import (
     make_title,
     textbox_layout,
 )
+
+if TYPE_CHECKING:
+    from weldx_widgets.visualization import CoordinateSystemManagerVisualizerK3D
 
 __all__ = [
     "WidgetGrooveSelection",
@@ -405,7 +408,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     """Widget to combine groove type and tcp movement."""
 
     def __init__(self):
-        self.last_plot = None
+        self.last_plot: Optional[CoordinateSystemManagerVisualizerK3D] = None
         self.groove_sel = WidgetGrooveSelection()
 
         self.seam_length = FloatWithUnit(_("Seam length"), value=300, min=0, unit="mm")
