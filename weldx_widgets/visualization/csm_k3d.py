@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Union
 
 import k3d
+import k3d.colormaps.matplotlib_color_maps
 import k3d.platonic as platonic
 import numpy as np
 import pandas as pd
-import pint
 from ipywidgets import Checkbox, Dropdown, HBox, IntSlider, Layout, Play, VBox, jslink
 
 import weldx.geometry as geo
-from weldx import U_
+from weldx.constants import _DEFAULT_LEN_UNIT, Q_
 from weldx.core import TimeSeries
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -35,18 +35,26 @@ __all__ = [
 ]
 
 
-_DL = U_("mm")
-
-
 def _get_limits_from_stack(limits):
     mins = limits.min(axis=0)[0, :]
     maxs = limits.max(axis=0)[1, :]
     return np.vstack([mins, maxs])
 
 
-def _get_coordinates_and_orientation(
-    lcs: LocalCoordinateSystem, index: int = 0
-) -> Tuple[pint.Quantity, pint.Quantity]:
+def _get_unitless_coordinates(lcs: LocalCoordinateSystem):
+    """Get the coordinates of a LocalCoordinateSystem without units."""
+    if isinstance(lcs.coordinates, TimeSeries):
+        raise ValueError(
+            "Can not visualize LCS with expression based coordinates. "
+            "Interpolate values before plotting to solve this issue"
+        )
+    coordinates = lcs.coordinates.data
+    if isinstance(coordinates, Q_):
+        coordinates = coordinates.to(_DEFAULT_LEN_UNIT).m
+    return coordinates.astype("float32")
+
+
+def _get_coordinates_and_orientation(lcs: LocalCoordinateSystem, index: int = 0):
     """Get the coordinates and orientation of a coordinate system.
 
     Parameters
@@ -59,9 +67,9 @@ def _get_coordinates_and_orientation(
 
     Returns
     -------
-    coordinates
+    coordinates : numpy.ndarray
         The coordinates
-    orientation
+    orientation : numpy.ndarray
         The orientation
 
     """
@@ -70,12 +78,12 @@ def _get_coordinates_and_orientation(
             "Can not visualize LCS with expression based coordinates. "
             "Interpolate values before plotting to solve this issue"
         )
+    coordinates = lcs.coordinates.isel(time=index, missing_dims="ignore").data
+    if isinstance(coordinates, Q_):
+        coordinates = coordinates.to(_DEFAULT_LEN_UNIT).m
+    coordinates = coordinates.astype("float32")
 
-    coordinates = lcs.coordinates.isel(time=index, missing_dims="ignore").data.astype(
-        "float32"
-    )
-
-    orientation = lcs.orientation.isel(time=index, missing_dims="ignore").data.astype(
+    orientation = lcs.orientation.isel(time=index, missing_dims="ignore").values.astype(
         "float32"
     )
 
@@ -83,7 +91,7 @@ def _get_coordinates_and_orientation(
 
 
 def _create_model_matrix(
-    coordinates: pint.Quantity, orientation: np.ndarray
+    coordinates: np.ndarray, orientation: np.ndarray
 ) -> np.ndarray:
     """Create the model matrix from an orientation and coordinates.
 
@@ -102,7 +110,7 @@ def _create_model_matrix(
     """
     model_matrix = np.eye(4, dtype="float32")
     model_matrix[:3, :3] = orientation
-    model_matrix[:3, 3] = coordinates.to(_DL).m
+    model_matrix[:3, 3] = coordinates
     return model_matrix
 
 
@@ -149,7 +157,7 @@ class CoordinateSystemVisualizerK3D:
         self._vector_scale = vector_scale
 
         self._vectors = k3d.vectors(
-            origins=[coordinates.to(_DL).m for _ in range(3)],
+            origins=[coordinates for _ in range(3)],
             vectors=orientation.transpose() * self._vector_scale,
             line_width=0.05,
             head_size=3.0,
@@ -164,16 +172,15 @@ class CoordinateSystemVisualizerK3D:
         if name is not None:
             self._label = k3d.text(
                 text=name,
-                position=coordinates.to(_DL).m + 0.05,
+                position=coordinates + 0.05,
                 color=self._color,
                 size=1,
                 label_box=False,
                 name=name if name is None else f"{name} (text)",
-                is_html=True,
             )
 
         self._trace = k3d.line(
-            np.array(lcs.coordinates.data.to(_DL).m, dtype="float32"),  # type: ignore
+            _get_unitless_coordinates(lcs),  # type: ignore
             shader="thick",
             width=0.1,  # change with .set_trait("width", value)
             color=color,
@@ -193,7 +200,7 @@ class CoordinateSystemVisualizerK3D:
             if self._label is not None:
                 plot += self._label
 
-    def _update_positions(self, coordinates: pint.Quantity, orientation: np.ndarray):
+    def _update_positions(self, coordinates: np.ndarray, orientation: np.ndarray):
         """Update the positions of the coordinate cross and label.
 
         Parameters
@@ -208,7 +215,7 @@ class CoordinateSystemVisualizerK3D:
         self._vectors.vectors = orientation.transpose() * self._vector_scale
         self.origin.model_matrix = _create_model_matrix(coordinates, orientation)
         if self._label is not None:
-            self._label.position = coordinates.to(_DL).m + 0.05
+            self._label.position = coordinates + 0.05
 
     def show_label(self, show_label: bool):
         """Set the visibility of the label.
@@ -266,10 +273,7 @@ class CoordinateSystemVisualizerK3D:
 
         """
         self._lcs = lcs
-        self._trace.vertices = np.array(
-            lcs.coordinates.data.to(_DL).m,  # type: ignore[union-attr]
-            dtype="float32",
-        )
+        self._trace.vertices = _get_unitless_coordinates(lcs)
         self.update_time_index(index)
 
     def update_time_index(self, index: int):
@@ -288,10 +292,10 @@ class CoordinateSystemVisualizerK3D:
         lcs = self._lcs
         dims = [d for d in lcs.coordinates.dims if d != "c"]
         if dims:
-            mins = lcs.coordinates.min(dim=dims).data
-            maxs = lcs.coordinates.max(dim=dims).data
+            mins = lcs.coordinates.min(dim=dims)
+            maxs = lcs.coordinates.max(dim=dims)
             return np.vstack([mins, maxs])
-        return np.vstack([lcs.coordinates.data, lcs.coordinates.data])
+        return np.vstack([lcs.coordinates.values, lcs.coordinates.values])
 
 
 class SpatialDataVisualizer:
@@ -308,8 +312,6 @@ class SpatialDataVisualizer:
         color: int = None,
         visualization_method: str = "auto",
         show_wireframe: bool = False,
-        create_points: bool = False,
-        create_label: bool = False,
     ):
         """Create a ``SpatialDataVisualizer`` instance.
 
@@ -332,22 +334,16 @@ class SpatialDataVisualizer:
             triangle data is available and points if not.
         show_wireframe :
             If `True`, meshes will be drawn as wireframes
-        create_points
-            create points object even if mesh is available
-        create_label
-            create a K3D label for the data
 
         """
         if not isinstance(data, geo.SpatialData):
             data = geo.SpatialData(coordinates=data)
 
-        colors = []  # color mapping for 3d data
+        colors = []
         if color is None or isinstance(color, str):
             if isinstance(color, str):
                 colors = data.attributes[color]
             color = RGB_GREY
-
-        self._color = color
 
         if data.triangles is not None:
             triangles = data.triangles.astype(np.uint32)
@@ -356,32 +352,38 @@ class SpatialDataVisualizer:
 
         self._reference_system = reference_system
 
-        self.data = data
-
+        self._label_pos = data.coordinates.mean(dim=data.additional_dims).data
+        if isinstance(self._label_pos, Q_):
+            self._label_pos = self._label_pos.to(_DEFAULT_LEN_UNIT).m
         self._label = None
-        if create_label & (name is not None):
-            self.create_label(name=name)
-
-        self._points = None
-        if (data.triangles is None) | create_points:
-            self._points = k3d.points(
-                self.data.coordinates.data.to(_DL).m,
-                point_size=0.05,
-                color=self._color,
-                name=name if name is None else f"{name} (points)",
+        if name is not None:
+            self._label = k3d.text(
+                text=name,
+                position=self._label_pos,
+                reference_point="cc",
+                color=color,
+                size=0.5,
+                label_box=True,
+                name=name if name is None else f"{name} (text)",
             )
 
-        self._mesh = None
-        _coords = self.data.coordinates.data
-        if isinstance(_coords, pint.Quantity):
-            _coords = _coords.to(_DL).m
+        coordinates = data.coordinates.data
+        if isinstance(coordinates, Q_):
+            coordinates = coordinates.to(_DEFAULT_LEN_UNIT).m
 
+        self._points = k3d.points(
+            coordinates,
+            point_size=0.05,
+            color=color,
+            name=name if name is None else f"{name} (points)",
+        )
+        self._mesh = None
         if data.triangles is not None:
             self._mesh = k3d.mesh(
-                _coords.astype(np.float32).reshape(-1, 3),
+                coordinates.astype(np.float32).reshape(-1, 3),
                 triangles,
                 side="double",
-                color=self._color,
+                color=color,
                 attribute=colors,
                 color_map=k3d.colormaps.matplotlib_color_maps.Viridis,
                 wireframe=show_wireframe,
@@ -391,32 +393,13 @@ class SpatialDataVisualizer:
         self.set_visualization_method(visualization_method)
 
         if plot is not None:
-            self.add_to_plot(plot)
-
-    def create_label(self, name):
-        """Create a K3D label for this object."""
-        dims = self.data.additional_dims
-        self._label_pos = self.data.coordinates.mean(dim=dims).data.to(_DL).m
-        if name is not None:
-            self._label = k3d.text(
-                text=name,
-                position=self._label_pos,
-                reference_point="cc",
-                color=self._color,
-                size=0.5,
-                label_box=True,
-                name=name if name is None else f"{name} (text)",
-                is_html=True,
-            )
-
-    def add_to_plot(self, plot: k3d.Plot):
-        """Add the k3d objects t an existing plot."""
-        if self._points is not None:
             plot += self._points
-        if self._mesh is not None:
-            plot += self._mesh
-        if self._label is not None:
-            plot += self._label
+            if self._mesh is not None:
+                plot += self._mesh
+            if self._label is not None:
+                plot += self._label
+
+        self.data = data
 
     @property
     def reference_system(self) -> str:
@@ -450,9 +433,7 @@ class SpatialDataVisualizer:
             else:
                 method = "point"
 
-        if self._points is not None:
-            self._points.visible = method in ["point", "both"]
-
+        self._points.visible = method in ["point", "both"]
         if self._mesh is not None:
             self._mesh.visible = method in ["mesh", "both"]
 
@@ -465,8 +446,7 @@ class SpatialDataVisualizer:
             If `True`, the label will be shown
 
         """
-        if self._label is not None:
-            self._label.visible = show_label
+        self._label.visible = show_label
 
     def show_wireframe(self, show_wireframe: bool):
         """Set wireframe rendering.
@@ -482,8 +462,7 @@ class SpatialDataVisualizer:
 
     def update_model_matrix(self, model_mat):
         """Update the model matrices of the k3d objects."""
-        if self._points is not None:
-            self._points.model_matrix = model_mat
+        self._points.model_matrix = model_mat
         if self._mesh is not None:
             self._mesh.model_matrix = model_mat
         if self._label is not None:
@@ -498,9 +477,9 @@ class CoordinateSystemManagerVisualizerK3D:
     def __init__(
         self,
         csm,
-        coordinate_systems: List[str] = None,
-        data_sets: List[str] = None,
-        colors: Dict[str, Union[int, Tuple[int, int, int]]] = None,
+        coordinate_systems: list[str] = None,
+        data_sets: list[str] = None,
+        colors: dict[str, Union[int, tuple[int, int, int]]] = None,
         reference_system: str = None,
         title: str = None,
         limits: types_limits = None,
@@ -512,7 +491,6 @@ class CoordinateSystemManagerVisualizerK3D:
         show_traces: bool = True,
         show_vectors: bool = True,
         show_wireframe: bool = True,
-        plot_all_obj: bool = False,
     ):
         """Create a `CoordinateSystemManagerVisualizerK3D`.
 
@@ -601,8 +579,6 @@ class CoordinateSystemManagerVisualizerK3D:
                 plot,
                 color=get_color(data_name, colors, self._color_generator),
                 show_wireframe=show_wireframe,
-                create_label=plot_all_obj,
-                create_points=plot_all_obj,
             )
             for data_name in data_sets
         }
@@ -672,8 +648,6 @@ class CoordinateSystemManagerVisualizerK3D:
             self._plot.grid = (-1, -1, -1, 1, 1, 1)
         else:
             self._plot.grid_auto_fit = False
-            if isinstance(value, pint.Quantity):
-                value = value.to(_DL).m
             grid = tuple(np.array(value).flatten().astype(int))
             if len(grid) == 2:
                 grid = np.repeat(grid, 3)
@@ -695,6 +669,8 @@ class CoordinateSystemManagerVisualizerK3D:
 
     def _get_limits(self):
         limits_spatial = self._get_limits_spatial()
+        if isinstance(limits_spatial, Q_):
+            limits_spatial = limits_spatial.to(_DEFAULT_LEN_UNIT).m
         limits_trace = self._get_limits_trace()
         limits = [lims for lims in [limits_spatial, limits_trace] if lims is not None]
         if limits:
@@ -788,20 +764,44 @@ class CoordinateSystemManagerVisualizerK3D:
         play.disabled = disable_time_widgets
         time_slider.disabled = disable_time_widgets
 
+        # callback functions
+        def _reference_callback(change):
+            self.update_reference_system(change["new"])
+
+        def _time_callback(change):
+            self.update_time_index(change["new"])
+
+        def _vectors_callback(change):
+            self.show_vectors(change["new"])
+
+        def _origins_callback(change):
+            self.show_origins(change["new"])
+
+        def _traces_callback(change):
+            self.show_traces(change["new"])
+
+        def _labels_callback(change):
+            self.show_labels(change["new"])
+
+        def _data_callback(change):
+            self.set_data_visualization_method(change["new"])
+
+        def _data_labels_callback(change):
+            self.show_data_labels(change["new"])
+
+        def _wireframe_callback(change):
+            self.show_wireframes(change["new"])
+
         # register callbacks
-        time_slider.observe(lambda c: self.update_time_index(c["new"]), names="value")
-        reference_dropdown.observe(
-            lambda c: self.update_reference_system(c["new"]), names="value"
-        )
-        vectors_cb.observe(lambda c: self.show_vectors(c["new"]), names="value")
-        origin_cb.observe(lambda c: self.show_origins(c["new"]), names="value")
-        traces_cb.observe(lambda c: self.show_traces(c["new"]), names="value")
-        labels_cb.observe(lambda c: self.show_labels(c["new"]), names="value")
-        data_dropdown.observe(
-            lambda c: self.set_data_visualization_method(c["new"]), names="value"
-        )
-        data_labels_cb.observe(lambda c: self.show_data_labels(c["new"]), names="value")
-        wf_cb.observe(lambda c: self.show_wireframes(c["new"]), names="value")
+        time_slider.observe(_time_callback, names="value")
+        reference_dropdown.observe(_reference_callback, names="value")
+        vectors_cb.observe(_vectors_callback, names="value")
+        origin_cb.observe(_origins_callback, names="value")
+        traces_cb.observe(_traces_callback, names="value")
+        labels_cb.observe(_labels_callback, names="value")
+        data_dropdown.observe(_data_callback, names="value")
+        data_labels_cb.observe(_data_labels_callback, names="value")
+        wf_cb.observe(_wireframe_callback, names="value")
 
         # create control panel
         row_1 = HBox([time_slider, play, reference_dropdown])

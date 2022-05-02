@@ -220,7 +220,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         def show_header(handle):
             with self.out:
                 clear_output()
-                display(handle.show_asdf_header(False, True))
+                display(handle.header(False, True))
 
         # open (existing) file and update it.
         if pathlib.Path(self.filename).stem.endswith("_r"):

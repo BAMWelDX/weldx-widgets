@@ -1,13 +1,11 @@
 """Test k3d implementations."""
-import pytest
 
 import weldx
 from weldx import U_, CoordinateSystemManager, Time, get_groove
 from weldx_widgets.visualization.csm_k3d import CoordinateSystemManagerVisualizerK3D
 
 
-@pytest.mark.parametrize("plot_all", (True, False))
-def test_k3d_csm_vis(plot_all):
+def test_k3d_csm_vis():
     """Create a simple CSM instance for k3d visualization."""
     csm = CoordinateSystemManager("base")
     csm.create_cs("A", "base", coordinates=[1, 1, 1] * U_("mm"))
@@ -29,7 +27,7 @@ def test_k3d_csm_vis(plot_all):
     spatial = weldx.Geometry(groove, "10mm").spatial_data("1 mm", "1 mm")
     csm.assign_data(spatial, "workpiece", "A")
 
-    plot = CoordinateSystemManagerVisualizerK3D(csm=csm, plot_all_obj=plot_all)
+    plot = CoordinateSystemManagerVisualizerK3D(csm=csm)
     for state in [True, False, True]:
         plot.show_data_labels(state)
         plot.show_labels(state)
