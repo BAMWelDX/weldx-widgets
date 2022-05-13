@@ -13,6 +13,7 @@ from matplotlib.figure import Figure
 import weldx.geometry as geo
 from weldx.constants import _DEFAULT_LEN_UNIT, Q_
 from weldx.core import TimeSeries
+
 from .colors import (
     color_generator_function,
     color_int_to_rgb_normalized,
