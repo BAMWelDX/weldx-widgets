@@ -13,13 +13,13 @@ from matplotlib.figure import Figure
 import weldx.geometry as geo
 from weldx.constants import _DEFAULT_LEN_UNIT, Q_
 from weldx.core import TimeSeries
-from weldx.visualization.colors import (
+from .colors import (
     color_generator_function,
     color_int_to_rgb_normalized,
     color_to_rgb_normalized,
     get_color,
 )
-from weldx.visualization.types import types_limits, types_timeindex
+from .types import types_limits, types_timeindex
 
 if TYPE_CHECKING:  # pragma: no cover
     import weldx.transformations as tf
