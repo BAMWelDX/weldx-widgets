@@ -9,10 +9,11 @@ import k3d.colormaps.matplotlib_color_maps
 import k3d.platonic as platonic
 import numpy as np
 import pandas as pd
+import pint
 from ipywidgets import Checkbox, Dropdown, HBox, IntSlider, Layout, Play, VBox, jslink
 
 import weldx.geometry as geo
-from weldx.constants import _DEFAULT_LEN_UNIT, Q_
+from weldx.constants import _DEFAULT_LEN_UNIT as _DL
 from weldx.core import TimeSeries
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -41,20 +42,9 @@ def _get_limits_from_stack(limits):
     return np.vstack([mins, maxs])
 
 
-def _get_unitless_coordinates(lcs: LocalCoordinateSystem):
-    """Get the coordinates of a LocalCoordinateSystem without units."""
-    if isinstance(lcs.coordinates, TimeSeries):
-        raise ValueError(
-            "Can not visualize LCS with expression based coordinates. "
-            "Interpolate values before plotting to solve this issue"
-        )
-    coordinates = lcs.coordinates.data
-    if isinstance(coordinates, Q_):
-        coordinates = coordinates.to(_DEFAULT_LEN_UNIT).m
-    return coordinates.astype("float32")
-
-
-def _get_coordinates_and_orientation(lcs: LocalCoordinateSystem, index: int = 0):
+def _get_coordinates_and_orientation(
+    lcs: LocalCoordinateSystem, index: int = 0
+) -> tuple[pint.Quantity, pint.Quantity]:
     """Get the coordinates and orientation of a coordinate system.
 
     Parameters
@@ -67,23 +57,22 @@ def _get_coordinates_and_orientation(lcs: LocalCoordinateSystem, index: int = 0)
 
     Returns
     -------
-    coordinates : numpy.ndarray
+    coordinates
         The coordinates
-    orientation : numpy.ndarray
+    orientation
         The orientation
-
     """
     if isinstance(lcs.coordinates, TimeSeries):
         raise ValueError(
             "Can not visualize LCS with expression based coordinates. "
             "Interpolate values before plotting to solve this issue"
         )
-    coordinates = lcs.coordinates.isel(time=index, missing_dims="ignore").data
-    if isinstance(coordinates, Q_):
-        coordinates = coordinates.to(_DEFAULT_LEN_UNIT).m
-    coordinates = coordinates.astype("float32")
 
-    orientation = lcs.orientation.isel(time=index, missing_dims="ignore").values.astype(
+    coordinates = lcs.coordinates.isel(time=index, missing_dims="ignore").data.astype(
+        "float32"
+    )
+
+    orientation = lcs.orientation.isel(time=index, missing_dims="ignore").data.astype(
         "float32"
     )
 
@@ -91,7 +80,7 @@ def _get_coordinates_and_orientation(lcs: LocalCoordinateSystem, index: int = 0)
 
 
 def _create_model_matrix(
-    coordinates: np.ndarray, orientation: np.ndarray
+    coordinates: pint.Quantity, orientation: np.ndarray
 ) -> np.ndarray:
     """Create the model matrix from an orientation and coordinates.
 
@@ -106,11 +95,10 @@ def _create_model_matrix(
     -------
     np.ndarray:
         The model matrix
-
     """
     model_matrix = np.eye(4, dtype="float32")
     model_matrix[:3, :3] = orientation
-    model_matrix[:3, 3] = coordinates
+    model_matrix[:3, 3] = coordinates.to(_DL).m
     return model_matrix
 
 
@@ -149,7 +137,6 @@ class CoordinateSystemVisualizerK3D:
             visualized in the color passed as another parameter
         show_vectors :
             If `True`, the the coordinate axes of the coordinate system are visualized
-
         """
         coordinates, orientation = _get_coordinates_and_orientation(lcs)
         self._lcs = lcs
@@ -157,7 +144,7 @@ class CoordinateSystemVisualizerK3D:
         self._vector_scale = vector_scale
 
         self._vectors = k3d.vectors(
-            origins=[coordinates for _ in range(3)],
+            origins=[coordinates.to(_DL).m for _ in range(3)],
             vectors=orientation.transpose() * self._vector_scale,
             line_width=0.05,
             head_size=3.0,
@@ -172,15 +159,16 @@ class CoordinateSystemVisualizerK3D:
         if name is not None:
             self._label = k3d.text(
                 text=name,
-                position=coordinates + 0.05,
+                position=coordinates.to(_DL).m + 0.05,
                 color=self._color,
                 size=1,
                 label_box=False,
                 name=name if name is None else f"{name} (text)",
+                is_html=True,
             )
 
         self._trace = k3d.line(
-            _get_unitless_coordinates(lcs),  # type: ignore
+            np.array(lcs.coordinates.data.to(_DL).m, dtype="float32"),  # type: ignore
             shader="thick",
             width=0.1,  # change with .set_trait("width", value)
             color=color,
@@ -200,7 +188,7 @@ class CoordinateSystemVisualizerK3D:
             if self._label is not None:
                 plot += self._label
 
-    def _update_positions(self, coordinates: np.ndarray, orientation: np.ndarray):
+    def _update_positions(self, coordinates: pint.Quantity, orientation: np.ndarray):
         """Update the positions of the coordinate cross and label.
 
         Parameters
@@ -209,13 +197,12 @@ class CoordinateSystemVisualizerK3D:
             The new coordinates
         orientation :
             The new orientation
-
         """
         self._vectors.origins = [coordinates for _ in range(3)]
         self._vectors.vectors = orientation.transpose() * self._vector_scale
         self.origin.model_matrix = _create_model_matrix(coordinates, orientation)
         if self._label is not None:
-            self._label.position = coordinates + 0.05
+            self._label.position = coordinates.to(_DL).m + 0.05
 
     def show_label(self, show_label: bool):
         """Set the visibility of the label.
@@ -224,7 +211,6 @@ class CoordinateSystemVisualizerK3D:
         ----------
         show_label :
             If `True`, the label will be shown
-
         """
         self._label.visible = show_label
 
@@ -235,7 +221,6 @@ class CoordinateSystemVisualizerK3D:
         ----------
         show_origin :
             If `True`, the coordinate systems origin is shown.
-
         """
         self.origin.visible = show_origin
 
@@ -246,7 +231,6 @@ class CoordinateSystemVisualizerK3D:
         ----------
         show_trace :
             If `True`, the coordinate systems' trace is shown.
-
         """
         self._trace.visible = show_trace
 
@@ -257,7 +241,6 @@ class CoordinateSystemVisualizerK3D:
         ----------
         show_vectors :
             If `True`, the coordinate axis vectors are shown.
-
         """
         self._vectors.visible = show_vectors
 
@@ -270,10 +253,12 @@ class CoordinateSystemVisualizerK3D:
             The new coordinate system
         index :
             The time index of the new coordinate system that should be visualized.
-
         """
         self._lcs = lcs
-        self._trace.vertices = _get_unitless_coordinates(lcs)
+        self._trace.vertices = np.array(
+            lcs.coordinates.data.to(_DL).m,  # type: ignore[union-attr]
+            dtype="float32",
+        )
         self.update_time_index(index)
 
     def update_time_index(self, index: int):
@@ -283,7 +268,6 @@ class CoordinateSystemVisualizerK3D:
         ----------
         index : int
             The array index of the time step
-
         """
         coordinates, orientation = _get_coordinates_and_orientation(self._lcs, index)
         self._update_positions(coordinates, orientation)
@@ -292,10 +276,10 @@ class CoordinateSystemVisualizerK3D:
         lcs = self._lcs
         dims = [d for d in lcs.coordinates.dims if d != "c"]
         if dims:
-            mins = lcs.coordinates.min(dim=dims)
-            maxs = lcs.coordinates.max(dim=dims)
+            mins = lcs.coordinates.min(dim=dims).data
+            maxs = lcs.coordinates.max(dim=dims).data
             return np.vstack([mins, maxs])
-        return np.vstack([lcs.coordinates.values, lcs.coordinates.values])
+        return np.vstack([lcs.coordinates.data, lcs.coordinates.data])
 
 
 class SpatialDataVisualizer:
@@ -312,6 +296,8 @@ class SpatialDataVisualizer:
         color: int = None,
         visualization_method: str = "auto",
         show_wireframe: bool = False,
+        create_points: bool = False,
+        create_label: bool = False,
     ):
         """Create a ``SpatialDataVisualizer`` instance.
 
@@ -334,16 +320,21 @@ class SpatialDataVisualizer:
             triangle data is available and points if not.
         show_wireframe :
             If `True`, meshes will be drawn as wireframes
-
+        create_points
+            create points object even if mesh is available
+        create_label
+            create a K3D label for the data
         """
         if not isinstance(data, geo.SpatialData):
             data = geo.SpatialData(coordinates=data)
 
-        colors = []
+        colors = []  # color mapping for 3d data
         if color is None or isinstance(color, str):
             if isinstance(color, str):
                 colors = data.attributes[color]
             color = RGB_GREY
+
+        self._color = color
 
         if data.triangles is not None:
             triangles = data.triangles.astype(np.uint32)
@@ -352,38 +343,32 @@ class SpatialDataVisualizer:
 
         self._reference_system = reference_system
 
-        self._label_pos = data.coordinates.mean(dim=data.additional_dims).data
-        if isinstance(self._label_pos, Q_):
-            self._label_pos = self._label_pos.to(_DEFAULT_LEN_UNIT).m
+        self.data = data
+
         self._label = None
-        if name is not None:
-            self._label = k3d.text(
-                text=name,
-                position=self._label_pos,
-                reference_point="cc",
-                color=color,
-                size=0.5,
-                label_box=True,
-                name=name if name is None else f"{name} (text)",
+        if create_label & (name is not None):
+            self.create_label(name=name)
+
+        self._points = None
+        if (data.triangles is None) | create_points:
+            self._points = k3d.points(
+                self.data.coordinates.data.to(_DL).m,
+                point_size=0.05,
+                color=self._color,
+                name=name if name is None else f"{name} (points)",
             )
 
-        coordinates = data.coordinates.data
-        if isinstance(coordinates, Q_):
-            coordinates = coordinates.to(_DEFAULT_LEN_UNIT).m
-
-        self._points = k3d.points(
-            coordinates,
-            point_size=0.05,
-            color=color,
-            name=name if name is None else f"{name} (points)",
-        )
         self._mesh = None
+        _coords = self.data.coordinates.data
+        if isinstance(_coords, pint.Quantity):
+            _coords = _coords.to(_DL).m
+
         if data.triangles is not None:
             self._mesh = k3d.mesh(
-                coordinates.astype(np.float32).reshape(-1, 3),
+                _coords.astype(np.float32).reshape(-1, 3),
                 triangles,
                 side="double",
-                color=color,
+                color=self._color,
                 attribute=colors,
                 color_map=k3d.colormaps.matplotlib_color_maps.Viridis,
                 wireframe=show_wireframe,
@@ -393,13 +378,32 @@ class SpatialDataVisualizer:
         self.set_visualization_method(visualization_method)
 
         if plot is not None:
-            plot += self._points
-            if self._mesh is not None:
-                plot += self._mesh
-            if self._label is not None:
-                plot += self._label
+            self.add_to_plot(plot)
 
-        self.data = data
+    def create_label(self, name):
+        """Create a K3D label for this object."""
+        dims = self.data.additional_dims
+        self._label_pos = self.data.coordinates.mean(dim=dims).data.to(_DL).m
+        if name is not None:
+            self._label = k3d.text(
+                text=name,
+                position=self._label_pos,
+                reference_point="cc",
+                color=self._color,
+                size=0.5,
+                label_box=True,
+                name=name if name is None else f"{name} (text)",
+                is_html=True,
+            )
+
+    def add_to_plot(self, plot: k3d.Plot):
+        """Add the k3d objects t an existing plot."""
+        if self._points is not None:
+            plot += self._points
+        if self._mesh is not None:
+            plot += self._mesh
+        if self._label is not None:
+            plot += self._label
 
     @property
     def reference_system(self) -> str:
@@ -409,7 +413,6 @@ class SpatialDataVisualizer:
         -------
         str :
             Name of the reference coordinate system
-
         """
         return self._reference_system
 
@@ -422,7 +425,6 @@ class SpatialDataVisualizer:
             The data visualization method. Options are ``point``, ``mesh``, ``both`` and
             ``auto``. If ``auto`` is selected, a mesh will be drawn if triangle data is
             available and points if not.
-
         """
         if method not in SpatialDataVisualizer.visualization_methods:
             raise ValueError(f"Unknown visualization method: '{method}'")
@@ -433,7 +435,9 @@ class SpatialDataVisualizer:
             else:
                 method = "point"
 
-        self._points.visible = method in ["point", "both"]
+        if self._points is not None:
+            self._points.visible = method in ["point", "both"]
+
         if self._mesh is not None:
             self._mesh.visible = method in ["mesh", "both"]
 
@@ -444,9 +448,9 @@ class SpatialDataVisualizer:
         ----------
         show_label : bool
             If `True`, the label will be shown
-
         """
-        self._label.visible = show_label
+        if self._label is not None:
+            self._label.visible = show_label
 
     def show_wireframe(self, show_wireframe: bool):
         """Set wireframe rendering.
@@ -455,14 +459,14 @@ class SpatialDataVisualizer:
         ----------
         show_wireframe : bool
             If `True`, the mesh will be rendered as wireframe
-
         """
         if self._mesh is not None:
             self._mesh.wireframe = show_wireframe
 
     def update_model_matrix(self, model_mat):
         """Update the model matrices of the k3d objects."""
-        self._points.model_matrix = model_mat
+        if self._points is not None:
+            self._points.model_matrix = model_mat
         if self._mesh is not None:
             self._mesh.model_matrix = model_mat
         if self._label is not None:
@@ -491,6 +495,7 @@ class CoordinateSystemManagerVisualizerK3D:
         show_traces: bool = True,
         show_vectors: bool = True,
         show_wireframe: bool = True,
+        plot_all_obj: bool = False,
     ):
         """Create a `CoordinateSystemManagerVisualizerK3D`.
 
@@ -536,7 +541,6 @@ class CoordinateSystemManagerVisualizerK3D:
             If `True`, the coordinate systems' axis vectors will be shown initially
         show_wireframe :
             If `True`, spatial data containing mesh data will be drawn as wireframe
-
         """
         if time is None:
             time = csm.time_union()
@@ -579,6 +583,8 @@ class CoordinateSystemManagerVisualizerK3D:
                 plot,
                 color=get_color(data_name, colors, self._color_generator),
                 show_wireframe=show_wireframe,
+                create_label=plot_all_obj,
+                create_points=plot_all_obj,
             )
             for data_name in data_sets
         }
@@ -648,6 +654,8 @@ class CoordinateSystemManagerVisualizerK3D:
             self._plot.grid = (-1, -1, -1, 1, 1, 1)
         else:
             self._plot.grid_auto_fit = False
+            if isinstance(value, pint.Quantity):
+                value = value.to(_DL).m
             grid = tuple(np.array(value).flatten().astype(int))
             if len(grid) == 2:
                 grid = np.repeat(grid, 3)
@@ -669,8 +677,6 @@ class CoordinateSystemManagerVisualizerK3D:
 
     def _get_limits(self):
         limits_spatial = self._get_limits_spatial()
-        if isinstance(limits_spatial, Q_):
-            limits_spatial = limits_spatial.to(_DEFAULT_LEN_UNIT).m
         limits_trace = self._get_limits_trace()
         limits = [lims for lims in [limits_spatial, limits_trace] if lims is not None]
         if limits:
@@ -698,7 +704,7 @@ class CoordinateSystemManagerVisualizerK3D:
 
         Parameters
         ----------
-        time : pandas.DatetimeIndex, pandas.TimedeltaIndex, List[pandas.Timestamp], or \
+        time : pandas.DatetimeIndex, pandas.TimedeltaIndex, list[pandas.Timestamp], or \
                LocalCoordinateSystem
             The time steps that should be plotted initially
         show_data_labels : bool
@@ -713,7 +719,6 @@ class CoordinateSystemManagerVisualizerK3D:
             If `True`, the coordinate systems' axis vectors will be shown initially
         show_wireframe : bool
             If `True`, spatial data containing mesh data will be drawn as wireframe
-
         """
         num_times = 1
         disable_time_widgets = True
@@ -764,44 +769,20 @@ class CoordinateSystemManagerVisualizerK3D:
         play.disabled = disable_time_widgets
         time_slider.disabled = disable_time_widgets
 
-        # callback functions
-        def _reference_callback(change):
-            self.update_reference_system(change["new"])
-
-        def _time_callback(change):
-            self.update_time_index(change["new"])
-
-        def _vectors_callback(change):
-            self.show_vectors(change["new"])
-
-        def _origins_callback(change):
-            self.show_origins(change["new"])
-
-        def _traces_callback(change):
-            self.show_traces(change["new"])
-
-        def _labels_callback(change):
-            self.show_labels(change["new"])
-
-        def _data_callback(change):
-            self.set_data_visualization_method(change["new"])
-
-        def _data_labels_callback(change):
-            self.show_data_labels(change["new"])
-
-        def _wireframe_callback(change):
-            self.show_wireframes(change["new"])
-
         # register callbacks
-        time_slider.observe(_time_callback, names="value")
-        reference_dropdown.observe(_reference_callback, names="value")
-        vectors_cb.observe(_vectors_callback, names="value")
-        origin_cb.observe(_origins_callback, names="value")
-        traces_cb.observe(_traces_callback, names="value")
-        labels_cb.observe(_labels_callback, names="value")
-        data_dropdown.observe(_data_callback, names="value")
-        data_labels_cb.observe(_data_labels_callback, names="value")
-        wf_cb.observe(_wireframe_callback, names="value")
+        time_slider.observe(lambda c: self.update_time_index(c["new"]), names="value")
+        reference_dropdown.observe(
+            lambda c: self.update_reference_system(c["new"]), names="value"
+        )
+        vectors_cb.observe(lambda c: self.show_vectors(c["new"]), names="value")
+        origin_cb.observe(lambda c: self.show_origins(c["new"]), names="value")
+        traces_cb.observe(lambda c: self.show_traces(c["new"]), names="value")
+        labels_cb.observe(lambda c: self.show_labels(c["new"]), names="value")
+        data_dropdown.observe(
+            lambda c: self.set_data_visualization_method(c["new"]), names="value"
+        )
+        data_labels_cb.observe(lambda c: self.show_data_labels(c["new"]), names="value")
+        wf_cb.observe(lambda c: self.show_wireframes(c["new"]), names="value")
 
         # create control panel
         row_1 = HBox([time_slider, play, reference_dropdown])
@@ -836,7 +817,6 @@ class CoordinateSystemManagerVisualizerK3D:
             The data visualization method. Options are ``point``, ``mesh``, ``both`` and
             ``auto``. If ``auto`` is selected, a mesh will be drawn if triangle data is
             available and points if not.
-
         """
         for _, data_vis in self._data_vis.items():
             data_vis.set_visualization_method(representation)
@@ -848,7 +828,6 @@ class CoordinateSystemManagerVisualizerK3D:
         ----------
         show_data_labels: bool
             If `True`, labels are shown.
-
         """
         for _, data_vis in self._data_vis.items():
             data_vis.show_label(show_data_labels)
@@ -860,7 +839,6 @@ class CoordinateSystemManagerVisualizerK3D:
         ----------
         show_labels : bool
             If `True`, the coordinate systems' labels are shown.
-
         """
         for _, lcs_vis in self._lcs_vis.items():
             lcs_vis.show_label(show_labels)
@@ -872,7 +850,6 @@ class CoordinateSystemManagerVisualizerK3D:
         ----------
         show_origins : bool
             If `True`, the coordinate systems origins are shown.
-
         """
         for _, lcs_vis in self._lcs_vis.items():
             lcs_vis.show_origin(show_origins)
@@ -884,7 +861,6 @@ class CoordinateSystemManagerVisualizerK3D:
         ----------
         show_traces : bool
             If `True`, the coordinate systems' traces are shown.
-
         """
         for _, lcs_vis in self._lcs_vis.items():
             lcs_vis.show_trace(show_traces)
@@ -896,7 +872,6 @@ class CoordinateSystemManagerVisualizerK3D:
         ----------
         show_vectors : bool
             If `True`, the coordinate axis vectors are shown.
-
         """
         for _, lcs_vis in self._lcs_vis.items():
             lcs_vis.show_vectors(show_vectors)
@@ -908,7 +883,6 @@ class CoordinateSystemManagerVisualizerK3D:
         ----------
         show_wireframes : bool
             If `True`, meshes are rendered as wireframes
-
         """
         for _, data_vis in self._data_vis.items():
             data_vis.show_wireframe(show_wireframes)
@@ -920,7 +894,6 @@ class CoordinateSystemManagerVisualizerK3D:
         ----------
         reference_system : str
             Name of the new reference system
-
         """
         self._current_reference_system = reference_system
         for lcs_name, lcs_vis in self._lcs_vis.items():
@@ -936,7 +909,6 @@ class CoordinateSystemManagerVisualizerK3D:
         ----------
         index : int
             The new index
-
         """
         self._current_time_index = index
         for _, lcs_vis in self._lcs_vis.items():
