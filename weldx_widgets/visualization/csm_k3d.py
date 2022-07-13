@@ -328,6 +328,14 @@ class SpatialDataVisualizer:
         if not isinstance(data, geo.SpatialData):
             data = geo.SpatialData(coordinates=data)
 
+        as_image = False
+        _cmap = k3d.colormaps.matplotlib_color_maps.Viridis
+
+        if color == "hardness":
+            _cmap = k3d.colormaps.matplotlib_color_maps.Jet
+        if color == "rgb":
+            as_image = True
+
         colors = []  # color mapping for 3d data
         if color is None or isinstance(color, str):
             if isinstance(color, str):
@@ -364,16 +372,25 @@ class SpatialDataVisualizer:
             _coords = _coords.to(_DL).m
 
         if data.triangles is not None:
-            self._mesh = k3d.mesh(
-                _coords.astype(np.float32).reshape(-1, 3),
-                triangles,
-                side="double",
-                color=self._color,
-                attribute=colors,
-                color_map=k3d.colormaps.matplotlib_color_maps.Viridis,
-                wireframe=show_wireframe,
-                name=name if name is None else f"{name} (mesh)",
-            )
+            if as_image:  # show rgb color image
+                self._mesh = k3d.mesh(
+                    _coords.astype(np.float32).reshape(-1, 3),
+                    triangles,
+                    side="double",
+                    colors=colors,
+                    name=name if name is None else f"{name} (mesh)",
+                )
+            else:
+                self._mesh = k3d.mesh(
+                    _coords.astype(np.float32).reshape(-1, 3),
+                    triangles,
+                    side="double",
+                    color=self._color,
+                    attribute=colors,
+                    color_map=_cmap,
+                    wireframe=show_wireframe,
+                    name=name if name is None else f"{name} (mesh)",
+                )
 
         self.set_visualization_method(visualization_method)
 
