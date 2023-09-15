@@ -15,11 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        py: ['3.8', '3.9']
+        py: ['3.9', '3.10', '3.11']
         weldx_version: ['weldx']
         include:
           - os: ubuntu-latest
-            py: 3.8
+            py: '3.10'
             weldx_version: 'git+https://github.com/BAMWelDX/weldx.git'
     env:
       WELDX_VERSION: ${{ matrix.weldx_version }}
