@@ -385,7 +385,8 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
             self.groove_obj = groove_obj
 
         # TODO: re-plot can be avoided (e.g. set_xydata?)
-        self.ax.lines.clear()
+        if self.ax.lines:
+            self.ax.lines.clear()
         # self.ax.texts = []
 
         self.groove_obj.plot(line_style="-", ax=self.ax)
