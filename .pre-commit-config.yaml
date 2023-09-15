@@ -19,7 +19,7 @@ repos:
       exclude: devtools/conda.recipe/meta.yaml  # doesn't play nice with jinja
 #    - id: no-commit-to-branch  # only makes sense for local pre-commit hooks
 -   repo: https://github.com/psf/black
-    rev: 23.7.0
+    rev: 23.9.1
     hooks:
     - id: black
 -   repo: https://github.com/PyCQA/isort
@@ -27,7 +27,7 @@ repos:
     hooks:
     - id: isort
 -   repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
+    rev: 6.1.0
     hooks:
     - id: flake8
 -   repo: https://github.com/PyCQA/pydocstyle
