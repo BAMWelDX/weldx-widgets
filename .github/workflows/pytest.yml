@@ -19,7 +19,7 @@ jobs:
         weldx_version: ['weldx']
         include:
           - os: ubuntu-latest
-            py: 3.10
+            py: '3.10'
             weldx_version: 'git+https://github.com/BAMWelDX/weldx.git'
     env:
       WELDX_VERSION: ${{ matrix.weldx_version }}
