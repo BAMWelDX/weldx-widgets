@@ -67,7 +67,7 @@ write_to_template = '__version__ = "{version}"'
 where = ["."]
 
 [tool.pytest.ini_options]
-addopts = "--tb=short --color=yes -rsw --cov=weldx --cov-report=term-missing:skip-covered --doctest-modules"
+addopts = "--tb=short --color=yes -rsw --doctest-modules"
 testpaths = "weldx_widgets/tests"
 norecursedirs = [
     ".ipynb_checkpoints",
