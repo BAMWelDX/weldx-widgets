@@ -26,7 +26,7 @@ from weldx import (
     Trace,
     WeldxFile,
 )
-from weldx_widgets.widget_base import WidgetBase, WidgetSimpleOutput
+from weldx_widgets.widget_base import WidgetBase, WidgetSimpleOutput, metaclass_resolver
 from weldx_widgets.widget_factory import make_title
 from weldx_widgets.widget_measurement import WidgetMeasurement, WidgetMeasurementChain
 
@@ -85,7 +85,7 @@ def _clean_nans_from_spatial_data(data: SpatialData):
     data.coordinates = filtered
 
 
-class WidgetEvaluateSinglePassWeld(Tab, WidgetBase):
+class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
     """Aggregate info of passed file in several tabs."""
 
     def __init__(self, file: WeldxFile):

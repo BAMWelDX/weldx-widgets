@@ -38,7 +38,7 @@ def plot_gmaw(gmaw, t):
     fig, ax = plt.subplots(nrows=n, sharex="all", figsize=(_DEFAULT_FIGWIDTH, 2 * n))
     for i, k in enumerate(pars):
         parplot(pars[k], t, k, ax[i])
-    ax[-1].set_xlabel("time") + " / s"
+    ax[-1].set_xlabel("time / s")
     ax[0].set_title(title, loc="left")
 
     # ipympl_style(fig)
