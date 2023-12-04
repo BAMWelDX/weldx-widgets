@@ -11,7 +11,6 @@ import weldx
 import weldx_widgets
 import weldx_widgets.widget_base
 import weldx_widgets.widget_factory
-from weldx_widgets.translation_utils import _i18n as _
 from weldx_widgets.widget_factory import button_layout
 
 __all__ = [
@@ -50,7 +49,7 @@ def get_param_from_env(name, default=None) -> str:
             raise RuntimeError(
                 f"parameter '{name}' unset and no default provided."
                 f" Given parameters: {parameters}"
-            )
+            ) from None
     return value
 
 
@@ -170,7 +169,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
 
         if not disable_next_button:
             self.btn_next = w.Button(
-                description=_(next_notebook_desc), layout=button_layout
+                description=next_notebook_desc, layout=button_layout
             )
             if next_notebook_params is None:
                 next_notebook_params = dict()
@@ -183,7 +182,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         path = str(fn_path.parent)
         fn = str(fn_path.name)
         self.save_button = weldx_widgets.WidgetSaveButton(
-            desc="1." + _("Save") if not disable_next_button else _("Save"),
+            desc="1. Save" if not disable_next_button else "Save",
             filename=fn,
             path=path,
             select_default=True,
@@ -225,8 +224,8 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
         # open (existing) file and update it.
         if pathlib.Path(self.filename).stem.endswith("_r"):
             with self.out:
-                print("Refusing to save a read-only (template) file!")
-                print("Please choose another name with the '_r' suffix.")
+                print("Refusing to save a read-only (template) file!")  # noqa: T201
+                print("Please choose another name with the '_r' suffix.")  # noqa: T201
             return
         if self.filename != self._initial_file:
             # we want to save the previous file under a different name, so load contents

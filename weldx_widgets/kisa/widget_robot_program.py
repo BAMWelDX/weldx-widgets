@@ -12,7 +12,6 @@ from ipywidgets import HTML, Button, Label, Layout
 from weldx import Q_, WeldxFile
 from weldx.tags.core.file import ExternalFile
 from weldx_widgets.generic import download_button
-from weldx_widgets.translation_utils import _i18n as _
 from weldx_widgets.widget_base import WidgetMyVBox
 from weldx_widgets.widget_factory import FloatWithUnit, make_title
 
@@ -64,10 +63,10 @@ class WidgetLinearWeldYaskawa(WidgetMyVBox):
                 *xyz,
             ]
         )
-        self.jobname = widgets.Text(description=_("Jobname"), value="MAIN_LINEAR_NEW")
+        self.jobname = widgets.Text(description="Jobname", value="MAIN_LINEAR_NEW")
 
         self.button_create = Button(
-            description=_("Create program"),
+            description="Create program",
         )
         self.button_create.on_click(self.create_linear_program)
 
@@ -79,7 +78,7 @@ class WidgetLinearWeldYaskawa(WidgetMyVBox):
 
         super().__init__(
             children=[
-                make_title(_("Create Yaskawa program (linear seam)")),
+                make_title("Create Yaskawa program (linear seam)"),
                 self.uf_to_workpiece,
                 self.jobname,
                 self.button_create,
@@ -110,7 +109,7 @@ class WidgetLinearWeldYaskawa(WidgetMyVBox):
         download_button(
             output,
             filename=f"{self.jobname.value}.JBI",
-            button_description=_("Download program"),
+            button_description="Download program",
             html_instance=dl_button,
         )
 
