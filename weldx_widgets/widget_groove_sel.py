@@ -326,11 +326,11 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
                 t = f"{(item[0].upper() + item[1:]).replace('_', ' ')}"
                 matches = re.match("(.*)([0-9]+)", t)
                 if matches:
-                    t = (matches.group(1))
+                    t = matches.group(1)
                     number = matches.group(2)
                     text = f"{t} {number}"
                 else:
-                    text = (t)
+                    text = t
                 if "angle" in item:
                     param_widgets[item] = FloatWithUnit(text=text, unit="°", value=45)
                 elif "workpiece_thickness" in item:
@@ -451,9 +451,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
             self.groove_sel,
         ]
 
-        super().__init__(
-            children=children, layout=Layout(width="100%")
-        )
+        super().__init__(children=children, layout=Layout(width="100%"))
 
     def create_csm_and_plot(self, change=None, plot=True, **kwargs):
         """Create coordinates system manager containing TCP movement."""

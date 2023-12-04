@@ -99,9 +99,7 @@ class ProcessPulsed(WidgetMyVBox):
 
     def __init__(self, kind="UI"):
         self.pulse_duration = FloatWithUnit("Pulse duration", value=5.0, unit="ms")
-        self.pulse_frequency = FloatWithUnit(
-            "Pulse frequency", value=100.0, unit="Hz"
-        )
+        self.pulse_frequency = FloatWithUnit("Pulse frequency", value=100.0, unit="Hz")
         self.base_current = FloatWithUnit("Base current", value=60.0, unit="A")
 
         if kind == "UI":
@@ -333,7 +331,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
             kind = welding_process.meta["modulation"]
             process_type = f"Pulsed ({kind})"
         elif welding_process.base_process == "spray":
-            process_type = ("Spray")
+            process_type = "Spray"
         else:
             raise NotImplementedError(
                 f"unknown process type: {welding_process.base_process}"

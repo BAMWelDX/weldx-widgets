@@ -4,7 +4,6 @@ import pytest
 import weldx
 from weldx import Q_
 from weldx_widgets import WidgetGMAW
-from weldx_widgets.tests.util import voila_language
 
 
 @pytest.mark.parametrize(
@@ -44,10 +43,3 @@ def test_import_export(kind, write_file):
     w2.from_tree(tree)
 
     assert w2.to_tree() == tree
-
-
-def test_lang():
-    """Test translation."""
-    with voila_language(lang="de"):
-        w = WidgetGMAW(process_type="spray")
-    assert w.welding_wire.diameter.text == "Durchmesser"

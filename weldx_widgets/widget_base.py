@@ -7,6 +7,7 @@ from ipywidgets import HBox, Layout, Output, VBox
 
 from weldx.asdf.util import get_schema_path
 
+
 def metaclass_resolver(*classes):
     """Merge multiple meta classes."""
     # Does something like this:
@@ -22,6 +23,7 @@ def metaclass_resolver(*classes):
         else type(cls_name(metaclass), metaclass, {})
     )  # class M_C
     return metaclass(cls_name(classes), classes, {})  # class C
+
 
 class _merged_meta(type(abc.ABC)):  # avoid metaclass conflict.
     pass

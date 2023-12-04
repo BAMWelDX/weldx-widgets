@@ -218,9 +218,7 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
             self._compare_design_tcp(csm)
             plt.show()
 
-        super().__init__(
-            children=tuple(tabs.values())
-        )
+        super().__init__(children=tuple(tabs.values()))
         for i, key in enumerate(tabs.keys()):
             self.set_title(i, key)
         self.tabs = tabs

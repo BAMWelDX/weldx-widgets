@@ -44,9 +44,7 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
 
     def _set_gas_list(self):
         self.gas_list = ["Argon", "CO2", "Helium", "Hydrogen", "Oxygen"]
-        self._mapping = bidict(
-            dict(zip(self.gas_list, self._asdf_gas_names))
-        )
+        self._mapping = bidict(dict(zip(self.gas_list, self._asdf_gas_names)))
 
     def _clear(self):
         self.children = [self.children[0]]
