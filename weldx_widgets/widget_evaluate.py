@@ -26,8 +26,7 @@ from weldx import (
     Trace,
     WeldxFile,
 )
-from weldx_widgets.translation_utils import _i18n as _
-from weldx_widgets.widget_base import WidgetBase, WidgetSimpleOutput, metaclass_resolver
+from weldx_widgets.widget_base import WidgetBase, WidgetSimpleOutput
 from weldx_widgets.widget_factory import make_title
 from weldx_widgets.widget_measurement import WidgetMeasurement, WidgetMeasurementChain
 
@@ -36,9 +35,9 @@ class WidgetProcessInfo(WidgetSimpleOutput):
     """Plot GMAW process parameter into output widget."""
 
     def __init__(self, gmaw_process: GmawProcess, t, out=None):
-        super(WidgetProcessInfo, self).__init__(out=out)
+        super().__init__(out=out)
 
-        children = [make_title(_("Process parameters")), self.out]
+        children = [make_title("Process parameters"), self.out]
         self.children = children
 
         with self:
@@ -86,7 +85,7 @@ def _clean_nans_from_spatial_data(data: SpatialData):
     data.coordinates = filtered
 
 
-class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
+class WidgetEvaluateSinglePassWeld(Tab, WidgetBase):
     """Aggregate info of passed file in several tabs."""
 
     def __init__(self, file: WeldxFile):
@@ -98,27 +97,27 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
 
         tabs = defaultdict(make_output)
 
-        with tabs[_("ASDF-header")]:
+        with tabs["ASDF-header"]:
             display(file.header(False))
 
         # start and end time of experiment
         t = (file["TCP"].time[[0, -1]]).as_timedelta()
 
         WidgetProcessInfo(
-            file["process"]["welding_process"], t, out=tabs[_("Process parameters")]
+            file["process"]["welding_process"], t, out=tabs["Process parameters"]
         )
 
         groove = file["workpiece"]["geometry"]["groove_shape"]
-        with tabs[_("Specimen")]:
-            print("Material")
-            print(file["workpiece"]["base_metal"]["common_name"])
-            print(file["workpiece"]["base_metal"]["standard"])
+        with tabs["Specimen"]:
+            print("Material")  # noqa: T201
+            print(file["workpiece"]["base_metal"]["common_name"])  # noqa: T201
+            print(file["workpiece"]["base_metal"]["standard"])  # noqa: T201
 
             groove.plot()
             plt.show()
 
             seam_length = file["workpiece"]["geometry"]["seam_length"]
-            print(_("Seam length") + ":", seam_length)
+            print("Seam length:", seam_length)  # noqa: T201
 
         # 3D Geometry
         geometry = self._create_geometry(groove, seam_length, Q_(10, "mm"))
@@ -158,7 +157,7 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
             spatial_data_geo_reduced, "workpiece geometry (reduced)", "workpiece"
         )
 
-        with tabs[_("CSM-Subsystems")]:
+        with tabs[("CSM-Subsystems")]:
             csm.plot_graph()
             plt.show()
             self._show_csm_subsystems(csm)
@@ -219,7 +218,7 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
             self._compare_design_tcp(csm)
             plt.show()
 
-        super(WidgetEvaluateSinglePassWeld, self).__init__(
+        super().__init__(
             children=tuple(tabs.values())
         )
         for i, key in enumerate(tabs.keys()):
@@ -252,18 +251,18 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
         # difference in welding speed
         fig, ax = plt.subplots(1, 2)
         ax[0].plot(time.m, tcp_diff.data[:, 0])
-        ax[0].set_title(_("Difference in welding speed"))
-        ax[0].set_xlabel(_("time in s"))
-        ax[0].set_ylabel(_("diff in mm"))
+        ax[0].set_title(("Difference in welding speed"))
+        ax[0].set_xlabel(("time in s"))
+        ax[0].set_ylabel(("diff in mm"))
 
         # diffs depend on how well the user frame matches
-        ax[1].set_title(_("User frame deviation"))
+        ax[1].set_title(("User frame deviation"))
         ax[1].plot(time.m, tcp_diff.data[:, 1], label="y")
         ax[1].plot(time.m, tcp_diff.data[:, 2], label="z")
         ax[1].legend()
 
-        ax[1].set_xlabel(_("time in s"))
-        ax[1].set_ylabel(_("diff in mm"))
+        ax[1].set_xlabel(("time in s"))
+        ax[1].set_ylabel(("diff in mm"))
 
     @staticmethod
     def _welding_wire_geo_data(radius, length, cross_section_resolution=8):
