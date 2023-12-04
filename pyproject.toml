@@ -1,3 +1,56 @@
+[project]
+name = "weldx_widgets"
+dynamic = [  # see: https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#dynamic-metadata
+    "version",  # version gets derived from git by setuptools_scm.
+]
+authors = [
+    {name="Martin K. Scherer", email="martin.scherer@bam.de"},
+    {name="Cagtay Fabry", email="cagtay.fabry@bam.de"}
+]
+description="Python based widgets for the weldx core package"
+readme = "README.md"
+license = {file = "LICENSE", name="BSD License"}
+keywords = [
+    "weldx",
+    "ipywidgets",
+    "widgets",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+# Dependencies
+requires-python = ">=3.9"
+dependencies = [
+    "weldx >=0.6",
+    "ipywidgets",
+    "k3d >=2.12",
+    "ipympl",
+    "bidict",
+    "ipyfilechooser",
+    "tqdm",
+]
+[project.optional-dependencies]
+test = [
+    "pytest-cov",
+    "pytest-xdist"
+]
+
+[project.urls]
+documentation = "https://weldx.readthedocs.io"
+repository = "https://github.com/BAMweldx/weldx-widgets"
+bug_tracker = "https://github.com/BAMweldx/weldx-widgets/issues"
+changelog = "https://github.com/BAMweldx/weldx-widgets/blob/master/CHANGELOG.md"
+
 [build-system]
 requires = ["setuptools>=45",
     "wheel",
@@ -5,5 +58,106 @@ requires = ["setuptools>=45",
     "babel",
 ]
 
+# Tool configs
 [tool.setuptools_scm]
 write_to = "weldx_widgets/_version.py"
+write_to_template = '__version__ = "{version}"'
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.pytest.ini_options]
+addopts = "--tb=short --color=yes -rsw --cov=weldx --cov-report=term-missing:skip-covered --doctest-modules"
+testpaths = "weldx_widgets/tests"
+norecursedirs = [
+    ".ipynb_checkpoints",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:traittypes.*:",
+    "ignore:Passing method to :FutureWarning:xarray.*:",
+    "error::pint.UnitStrippedWarning",
+]
+
+[tool.coverage.run]
+source = ["weldx_widgets"]
+
+[tool.coverage.report]
+omit = [
+    "weldx_widgets/_version.py",
+    "weldx_widgets/tests/*",
+]
+exclude_lines = [
+# Have to re-enable the standard pragma
+    "pragma: no cover",
+]
+
+[tool.flake8]
+# see weldx formatting
+ignore = "W503,W504,E203"
+max-line-length = 88
+select = "C,E,F,W,B,B950" # black formatting options
+exclude = [
+    "__init__.py",
+]
+
+[tool.ruff]
+target-version = "py38"  # designated Python version
+exclude = [
+    "__init__.py",
+    "doc/src/conf.py",
+]
+# TODO: should be the following list, but Ruff does not yet impl all of them.
+#    W503,W504
+#    E203
+#    C408
+ignore = [
+    "C408",
+    #"E203",
+    "E402",
+    #"W503",
+    #"W504",
+    "D203", "D211", "D213"
+]
+line-length = 88
+select = [
+    "B",  # flake8-bugbear
+    "C",  # flake8-comprehensions
+    #"D", # note: all relevant D's will be set by setting pydocstyle.convention=numpy!
+    "E",  # pycodestyles
+    "F",  # pyflakes
+    "W",  # pycodestyle warnings
+    "UP", # pyupgrade
+    "T2",  # flake8-print
+    "I001",  # isort
+    "ICN", # import conventions, e.g. import numpy as np
+    #"B950",  # not yet implemented by Ruff.
+    "RUF100", # ensure 'noqa' declarations are still valid.
+]
+
+# Allow pydocstyle violations in certain areas.
+per-file-ignores."**/{tests,tags,asdf,devtools}/**" = ["D"]
+per-file-ignores."conftest.py" = ["D"]
+per-file-ignores."doc/src/tutorials/*" = ["D"]
+per-file-ignores."doc/src/conf.py" = ["E501",  # ignore long lines.
+    "RUF100",  # do no check if 'noqa' is needed (circular import workaround)
+]
+# Allow prints in certain areas.
+per-file-ignores."**/{cli,tests,tutorials,devtools}/**/*{.py,ipynb}" = ["T2"]
+
+external = ["B950"]
+pydocstyle = {convention = "numpy"}
+pyupgrade = {keep-runtime-typing = true}
+
+mccabe = {max-complexity = 15}  # max branches inside a function.
+
+[tool.ruff.isort]
+known-first-party = ["weldx"]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.flake8-import-conventions]
+extend-aliases = {xarray = "xr"}
+
+[tool.nbqa.addopts]
+ruff = [
+    "--extend-ignore=B018"
+]
