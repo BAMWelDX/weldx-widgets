@@ -35,7 +35,7 @@ class WidgetScans(WidgetSimpleOutput):
     def __init__(
         self, mh24_file, tool_file, scans_dir, single_weld=False, max_scans=None
     ):
-        super(WidgetScans, self).__init__(width="100%", height="800 px")
+        super().__init__(width="100%", height="800 px")
 
         self.mh24_file = Path(mh24_file)
         self.tool_file = Path(tool_file)

@@ -49,7 +49,7 @@ class WidgetLabeledTextInput(WidgetMyHBox):
         self.label = Label(label_text, layout=description_layout)
         self.text = Text(value=prefilled_text, layout=textbox_layout)
         children = [self.label, self.text]
-        super(WidgetLabeledTextInput, self).__init__(children=children)
+        super().__init__(children=children)
 
     @property
     def text_value(self) -> str:
@@ -71,7 +71,7 @@ class FloatWithUnit(WidgetMyHBox):
         )
         self._unit = Text(value=unit, placeholder="unit", layout=textbox_layout)
 
-        super(FloatWithUnit, self).__init__(
+        super().__init__(
             children=[self._label, self._float, self._unit],
         )
 

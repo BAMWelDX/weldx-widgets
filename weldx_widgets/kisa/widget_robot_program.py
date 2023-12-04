@@ -77,7 +77,7 @@ class WidgetLinearWeldYaskawa(WidgetMyVBox):
                 w.observe(self._invalidate_dl_button)
         self.jobname.observe(self._invalidate_dl_button)
 
-        super(WidgetLinearWeldYaskawa, self).__init__(
+        super().__init__(
             children=[
                 make_title(_("Create Yaskawa program (linear seam)")),
                 self.uf_to_workpiece,

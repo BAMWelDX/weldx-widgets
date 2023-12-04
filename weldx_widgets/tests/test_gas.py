@@ -15,7 +15,7 @@ def test_import_export(write_file):
     w.gas_components.gas_selection.index = 3
     w.gas_components._add_gas_comp(None)
     percentages = (80, 20)
-    for i, (name, box) in enumerate(w.gas_components.components.items()):
+    for i, (_name, box) in enumerate(w.gas_components.components.items()):
         box.children[1].value = percentages[i]
     tree = w.to_tree()
     if write_file:

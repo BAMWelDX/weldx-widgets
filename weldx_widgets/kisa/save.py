@@ -197,7 +197,7 @@ class SaveAndNext(weldx_widgets.widget_base.WidgetMyVBox):
             self.save_button,
             self.out,
         ]
-        super(SaveAndNext, self).__init__(children=children)
+        super().__init__(children=children)
 
     @property
     def filename(self):

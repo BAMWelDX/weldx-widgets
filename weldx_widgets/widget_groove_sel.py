@@ -356,7 +356,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
     def add_parameter_observer(self, observer: Callable):
         """Add observers to groove parameters."""
-        for key, box in self.groove_params_dropdowns.items():
+        for _key, box in self.groove_params_dropdowns.items():
             box.children[1].observe(observer, "value")
             # if key != "code_number":
             #    box.children[2].observe(observer, "value")
