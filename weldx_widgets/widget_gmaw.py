@@ -291,7 +291,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         self.welding_wire = WidgetWire()
 
         children = [
-            make_title(("GMAW process parameters")),
+            make_title("GMAW process parameters"),
             make_title(("Shielding gas"), 4),
             self.gas,
             self.welding_wire,

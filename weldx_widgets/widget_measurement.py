@@ -33,7 +33,7 @@ def plot_signal(signal: weldx.measurement.Signal, name, limits=None, ax=None):
 
     ax.plot(time.m, data.data.m)
     ax.set_ylabel(f"{name} / {ureg.Unit(signal.units):~}")
-    ax.set_xlabel(("time") + " / s")
+    ax.set_xlabel("time / s")
     ax.grid()
 
     if limits is not None:
@@ -53,8 +53,8 @@ def plot_measurements(
         plot_signal(last_signal, measurement.name, ax=axes[i], limits=limits)
         axes[i].set_xlabel(None)
 
-    axes[-1].set_xlabel(("time") + " / s")
-    axes[0].set_title(("Measurements"))
+    axes[-1].set_xlabel("time / s")
+    axes[0].set_title("Measurements")
     return axes
 
 
@@ -92,4 +92,4 @@ class WidgetMeasurementChain(WidgetSimpleOutput):
             plt.tight_layout()
             plt.show()
 
-        self.children = [make_title(("Measurement chain")), self.out]
+        self.children = [make_title("Measurement chain"), self.out]

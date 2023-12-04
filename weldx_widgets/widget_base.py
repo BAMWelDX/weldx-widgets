@@ -4,6 +4,7 @@ import functools
 from pathlib import Path
 
 from ipywidgets import HBox, Layout, Output, VBox
+
 from weldx.asdf.util import get_schema_path
 
 

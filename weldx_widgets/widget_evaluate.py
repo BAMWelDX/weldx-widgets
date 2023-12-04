@@ -251,18 +251,18 @@ class WidgetEvaluateSinglePassWeld(Tab, WidgetBase):
         # difference in welding speed
         fig, ax = plt.subplots(1, 2)
         ax[0].plot(time.m, tcp_diff.data[:, 0])
-        ax[0].set_title(("Difference in welding speed"))
-        ax[0].set_xlabel(("time in s"))
-        ax[0].set_ylabel(("diff in mm"))
+        ax[0].set_title("Difference in welding speed")
+        ax[0].set_xlabel("time in s")
+        ax[0].set_ylabel("diff in mm")
 
         # diffs depend on how well the user frame matches
-        ax[1].set_title(("User frame deviation"))
+        ax[1].set_title("User frame deviation")
         ax[1].plot(time.m, tcp_diff.data[:, 1], label="y")
         ax[1].plot(time.m, tcp_diff.data[:, 2], label="z")
         ax[1].legend()
 
-        ax[1].set_xlabel(("time in s"))
-        ax[1].set_ylabel(("diff in mm"))
+        ax[1].set_xlabel("time in s")
+        ax[1].set_ylabel("diff in mm")
 
     @staticmethod
     def _welding_wire_geo_data(radius, length, cross_section_resolution=8):

@@ -75,12 +75,12 @@ class FloatWithUnit(WidgetMyHBox):
             children=[self._label, self._float, self._unit],
         )
 
-    def observe_float_value(self, handler, names=All, type="change"):  # noqa
+    def observe_float_value(self, handler, names=All, type="change"):
         self._float.observe(handler, names, type)
 
     observe_float_value.__doc__ = HasTraits.observe.__doc__
 
-    def observe_unit(self, handler, names=All, type="change"):  # noqa
+    def observe_unit(self, handler, names=All, type="change"):
         self._unit.observe(handler, names, type)
 
     observe_unit.__doc__ = HasTraits.observe.__doc__

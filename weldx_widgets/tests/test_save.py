@@ -17,7 +17,7 @@ class SimpleIO:
         """Get data."""
         return {"data": self.data}
 
-    def from_tree(self, tree: dict):  # noqa
+    def from_tree(self, tree: dict):
         """Set data."""
         self.data = tree["data"]
 
@@ -40,7 +40,7 @@ def test_on_save_update(tmpdir, change):
     if change:  # fake a change of the initial file choice.
         new_file = out_file + "_2"
         shutil.copy(out_file, new_file)
-        setattr(SaveAndNext, "filename", new_file)
+        SaveAndNext.filename = new_file
         w.on_save(None)
         out_file = new_file
     else:

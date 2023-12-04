@@ -5,15 +5,17 @@ import hashlib
 from functools import partial
 from typing import Callable, Optional
 
-import weldx
 from ipyfilechooser import FileChooser
 from IPython import get_ipython
 from ipywidgets import HTML, Button, HBox, Label
 
-from weldx_widgets.widget_base import (WeldxImportExport, WidgetMyHBox,
-                                       WidgetMyVBox)
-from weldx_widgets.widget_factory import (WidgetLabeledTextInput, copy_layout,
-                                          textbox_layout)
+import weldx
+from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
+from weldx_widgets.widget_factory import (
+    WidgetLabeledTextInput,
+    copy_layout,
+    textbox_layout,
+)
 
 __all__ = [
     "WidgetSaveButton",
