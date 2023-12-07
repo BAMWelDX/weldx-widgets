@@ -7,14 +7,14 @@ from weldx_widgets import WidgetGMAW
 
 
 @pytest.mark.parametrize(
-    ("kind", "write_file"),
+    "kind",
     (
-        ("spray", True),
-        ("UI", True),
-        ("II", True),
+        "spray",
+        "UI",
+        "II",
     ),
 )
-def test_import_export(kind, write_file):
+def test_import_export(kind):
     """Ensure import and exports of Widgets works."""
     w = WidgetGMAW(process_type=kind)
     proc = w.welding_process
@@ -32,12 +32,11 @@ def test_import_export(kind, write_file):
 
     tree = w.to_tree()
 
-    if write_file:
-        tree = {
-            key: value
-            for key, value in weldx.WeldxFile(tree=tree, mode="rw").items()
-            if key not in ("asdf_library", "history")
-        }
+    tree = {
+        key: value
+        for key, value in weldx.WeldxFile(tree=tree, mode="rw").items()
+        if key not in ("asdf_library", "history")
+    }
 
     w2 = WidgetGMAW()
     w2.from_tree(tree)
