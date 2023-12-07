@@ -1,8 +1,7 @@
 """Factory for commonly used widget elements."""
 import contextlib
 
-import ipywidgets as widgets
-from ipywidgets import HTML, Label, Layout, Text
+from ipywidgets import HTML, BoundedFloatText, Label, Layout, Text
 from traitlets import All, HasTraits
 
 from weldx import Q_, TimeSeries
@@ -66,7 +65,7 @@ class FloatWithUnit(WidgetMyHBox):
 
     def __init__(self, text, unit, value: float = 0.0, min=0):
         self._label = Label(text, layout=description_layout)
-        self._float = widgets.BoundedFloatText(
+        self._float = BoundedFloatText(
             value=value, min=min, max=2**32, layout=textbox_layout
         )
         self._unit = Text(value=unit, placeholder="unit", layout=textbox_layout)
