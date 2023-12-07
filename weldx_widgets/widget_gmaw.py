@@ -58,7 +58,7 @@ class BaseProcess(WidgetMyVBox):
         self.tag = tag
         self.meta = meta
 
-        self.manufacturer = WidgetLabeledTextInput("Manufacturer"), "Fronius"
+        self.manufacturer = WidgetLabeledTextInput("Manufacturer", "Fronius")
         self.power_source = WidgetLabeledTextInput("Power source", "TPS 500i")
         self.wire_feedrate = FloatWithUnit(
             text="Wire feed rate", value=10, min=0, unit="m/min"
@@ -263,9 +263,9 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
     def _set_gui_mapping(self):
         self.translate = bidict(
             {
-                ("Spray"): "spray",
-                ("Pulsed") + " (UI)": "UI",
-                ("Pulsed") + " (II)": "II",
+                "Spray": "spray",
+                "Pulsed (UI)": "UI",
+                "Pulsed (II)": "II",
                 # _("CMT"): NotImplemented,
             }
         )
@@ -281,7 +281,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         self.process_type = Dropdown(
             options=list(self.translate.keys()),
             index=index,
-            description=("Process type"),
+            description="Process type",
         )
         self.process_type.observe(self._create_process_widgets, names="value")
         self.gas = WidgetShieldingGas()
@@ -290,7 +290,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
 
         children = [
             make_title("GMAW process parameters"),
-            make_title(("Shielding gas"), 4),
+            make_title("Shielding gas", 4),
             self.gas,
             self.welding_wire,
             # self.weld_speed, # TODO: speed is given by feedrate and groove!
