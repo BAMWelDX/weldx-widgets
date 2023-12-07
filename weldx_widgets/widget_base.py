@@ -12,7 +12,7 @@ def metaclass_resolver(*classes):
     """Merge multiple meta classes."""
     # Does something like this:
     # https://coderedirect.com/questions/163000/multiple-inheritance-metaclass-conflict
-    metaclass = tuple(set(type(cls) for cls in classes))
+    metaclass = tuple({type(cls) for cls in classes})
 
     def cls_name(classes):
         return "_".join(mcls.__name__ for mcls in classes)
