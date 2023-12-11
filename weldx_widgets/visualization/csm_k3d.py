@@ -198,7 +198,7 @@ class CoordinateSystemVisualizerK3D:
         orientation :
             The new orientation
         """
-        self._vectors.origins = [coordinates for _ in range(3)]
+        self._vectors.origins = [coordinates.to(_DL).m for _ in range(3)]
         self._vectors.vectors = orientation.transpose() * self._vector_scale
         self.origin.model_matrix = _create_model_matrix(coordinates, orientation)
         if self._label is not None:
