@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Union
 
 import k3d
@@ -275,17 +276,21 @@ class CoordinateSystemVisualizerK3D:
     def limits(self):
         lcs = self._lcs
         dims = [d for d in lcs.coordinates.dims if d != "c"]
-        if dims:
-            mins = lcs.coordinates.min(dim=dims).data
-            maxs = lcs.coordinates.max(dim=dims).data
-            return np.vstack([mins, maxs])
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=pint.errors.UnitStrippedWarning)
+            if dims:
+                # unit gets stripped during min/max reduction, so restore it.
+                unit = lcs.coordinates.data.u
+                mins = lcs.coordinates.min(dim=dims).data
+                maxs = lcs.coordinates.max(dim=dims).data
+                return np.vstack([mins, maxs]) * unit
         return np.vstack([lcs.coordinates.data, lcs.coordinates.data])
 
 
 class SpatialDataVisualizer:
     """Visualizes spatial data."""
 
-    visualization_methods = ["auto", "point", "mesh", "both"]
+    visualization_methods = ("auto", "point", "mesh", "both")
 
     def __init__(
         self,
