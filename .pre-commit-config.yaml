@@ -25,8 +25,3 @@ repos:
     - id: ruff
     # Run the formatter.
     - id: ruff-format
-
--   repo: https://github.com/PyCQA/pydocstyle
-    rev: 6.3.0
-    hooks:
-    - id: pydocstyle
