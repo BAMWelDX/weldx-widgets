@@ -134,10 +134,10 @@ class WeldxImportExport(abc.ABC):
     @staticmethod
     @functools.lru_cache
     def _get_schema_path(schema) -> Path:
-        """Resolve a schema name to path."""
         return get_schema_path(schema)
 
     def get_schema_path(self) -> Path:
+        """Resolve the actual schema to a path."""
         return WeldxImportExport._get_schema_path(self.schema)
 
     def validate(self, tree):
