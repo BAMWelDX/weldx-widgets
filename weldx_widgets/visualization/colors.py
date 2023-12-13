@@ -50,7 +50,7 @@ def _color_int_to_rgb(integer: int) -> Tuple[int, int, int]:
 
 
 def _color_rgb_to_rgb_normalized(
-    rgb: Tuple[int, int, int]
+    rgb: Tuple[int, int, int],
 ) -> Tuple[float, float, float]:
     """Normalize an RGB color tuple with the range (0-255) to the range (0.0-1.0).
 
@@ -69,7 +69,7 @@ def _color_rgb_to_rgb_normalized(
 
 
 def _color_rgb_normalized_to_rgb(
-    rgb: Tuple[float, float, float]
+    rgb: Tuple[float, float, float],
 ) -> Tuple[int, int, int]:
     """Normalize an RGB color tuple with the range (0.0-1.0) to the range (0-255).
 
@@ -143,7 +143,7 @@ def _shuffled_tab20_colors() -> List[int]:
 
 
 def color_to_rgb_normalized(
-    color: Union[int, Tuple[int, int, int], Tuple[float, float, float]]
+    color: Union[int, Tuple[int, int, int], Tuple[float, float, float]],
 ) -> Tuple[float, float, float]:
     """Convert an arbitrary RGB color representation into a normalized RGB triplet.
 
@@ -228,5 +228,5 @@ def get_color(
         return _color_rgb_to_int(value)
     try:
         return next(color_generator)
-    except StopIteration:
-        raise RuntimeError(f"given generator {color_generator} exhausted.")
+    except StopIteration as si:
+        raise RuntimeError(f"given generator {color_generator} exhausted.") from si
