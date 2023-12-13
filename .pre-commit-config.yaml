@@ -5,7 +5,7 @@ ci:
         for more information, see https://pre-commit.ci
     autofix_prs: false
     autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
-    autoupdate_schedule: weekly
+    autoupdate_schedule: monthly
     skip: []
     submodules: false
 repos:
@@ -16,20 +16,16 @@ repos:
       args: [--markdown-linebreak-ext=md]
     - id: end-of-file-fixer
     - id: check-yaml
-      exclude: devtools/conda.recipe/meta.yaml  # doesn't play nice with jinja
-#    - id: no-commit-to-branch  # only makes sense for local pre-commit hooks
--   repo: https://github.com/psf/black
-    rev: 23.11.0
-    hooks:
-    - id: black
--   repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
-    hooks:
-    - id: isort
--   repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
-    hooks:
-    - id: flake8
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # Ruff version.
+  rev: v0.1.7
+  hooks:
+    # Run the linter.
+    - id: ruff
+    # Run the formatter.
+    - id: ruff-format
+
 -   repo: https://github.com/PyCQA/pydocstyle
     rev: 6.3.0
     hooks:
