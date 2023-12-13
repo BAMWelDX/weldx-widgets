@@ -157,7 +157,7 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
             spatial_data_geo_reduced, "workpiece geometry (reduced)", "workpiece"
         )
 
-        with tabs[("CSM-Subsystems")]:
+        with tabs["CSM-Subsystems"]:
             csm.plot_graph()
             plt.show()
             self._show_csm_subsystems(csm)
@@ -228,7 +228,7 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
         subsystems = csm.subsystems
         if not subsystems:
             return
-        print(csm.subsystem_names)
+        print(csm.subsystem_names)  # noqa: T201
         fig, ax = plt.subplots(ncols=len(subsystems))
         for i, subsystem in enumerate(subsystems):
             subsystem.plot_graph(ax=ax[i])
