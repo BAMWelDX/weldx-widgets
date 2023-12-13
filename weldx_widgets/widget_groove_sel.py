@@ -51,11 +51,9 @@ class WidgetCADExport(WidgetMyVBox):
         does nothing.
     """
 
-    data_formats = (
-        [  # ".stl", # FIXME: for some reason there is a div by zero error in meshio
-            ".ply"
-        ]
-    )  # same groove is fine in ply format...
+    data_formats = [  # ".stl", # FIXME: for some reason there is a div by zero error in meshio
+        ".ply"
+    ]  # same groove is fine in ply format...
     """ example trace for a simple vgroove:
     meshio/stl/_stl.py in write(filename, mesh, binary)
     203         normals = np.cross(pts[:, 1] - pts[:, 0], pts[:, 2] - pts[:, 0])

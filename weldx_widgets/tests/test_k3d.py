@@ -1,5 +1,4 @@
 """Test k3d implementations."""
-import pytest
 
 import weldx
 from weldx import U_, CoordinateSystemManager, Time, get_groove
