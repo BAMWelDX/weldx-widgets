@@ -131,15 +131,19 @@ class WeldxImportExport(abc.ABC):
         """Return a schema name is used to validate input and output."""
         pass
 
+    @staticmethod
     @functools.lru_cache
-    def get_schema_path(self) -> Path:
+    def _get_schema_path(schema) -> Path:
         """Resolve a schema name to path."""
-        return get_schema_path(self.schema)
+        return get_schema_path(schema)
+
+    def get_schema_path(self) -> Path:
+        return WeldxImportExport._get_schema_path(self.schema)
 
     def validate(self, tree):
         """Validate given tree against schema of this class."""
         # should be implemented such that we can validate both input and output.
-        pass
+        return
 
     @abc.abstractmethod
     def from_tree(self, tree: dict):
