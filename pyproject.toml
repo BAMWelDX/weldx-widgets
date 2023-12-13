@@ -91,15 +91,6 @@ exclude_lines = [
     "pragma: no cover",
 ]
 
-[tool.flake8]
-# see weldx formatting
-ignore = "W503,W504,E203"
-max-line-length = 88
-select = "C,E,F,W,B,B950" # black formatting options
-exclude = [
-    "__init__.py",
-]
-
 [tool.ruff]
 target-version = "py38"  # designated Python version
 exclude = [
