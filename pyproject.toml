@@ -67,11 +67,8 @@ write_to_template = '__version__ = "{version}"'
 where = ["."]
 
 [tool.pytest.ini_options]
-addopts = "--tb=short --color=yes -rsw --doctest-modules"
+addopts = "--tb=short --color=yes -rsw --doctest-modules --cov=weldx_widgets"
 testpaths = "weldx_widgets/tests"
-norecursedirs = [
-    ".ipynb_checkpoints",
-]
 filterwarnings = [
     "ignore::DeprecationWarning:traittypes.*:",
     "ignore:Passing method to :FutureWarning:xarray.*:",
