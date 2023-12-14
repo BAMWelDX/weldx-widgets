@@ -11,7 +11,8 @@ def temp_env(**kw):
 
     yield
 
-    os.environ = old
+    os.environ.clear()
+    os.environ.update(old)
 
 
 @contextlib.contextmanager

@@ -177,7 +177,7 @@ def draw_coordinate_system_matplotlib(
         if show_origin:
             axes.plot([p_0[0]], [p_0[1]], [p_0[2]], "o", color=color, label=label)
     elif label is not None:
-        raise Exception("Labels can only be assigned if a color was specified")
+        raise ValueError("Labels can only be assigned if a color was specified")
 
 
 def plot_local_coordinate_system_matplotlib(

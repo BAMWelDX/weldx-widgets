@@ -9,10 +9,9 @@ from matplotlib import pylab as plt
 from weldx import Q_, GmawProcess, Time, TimeSeries
 from weldx_widgets import WidgetShieldingGas
 from weldx_widgets.generic import WidgetTimeSeries
-from weldx_widgets.translation_utils import _i18n as _
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyVBox
 from weldx_widgets.widget_factory import (
-    FloatWithUnit,
+    WidgetFloatWithUnit,
     WidgetLabeledTextInput,
     make_title,
 )
@@ -39,7 +38,7 @@ def plot_gmaw(gmaw, t):
     fig, ax = plt.subplots(nrows=n, sharex="all", figsize=(_DEFAULT_FIGWIDTH, 2 * n))
     for i, k in enumerate(pars):
         parplot(pars[k], t, k, ax[i])
-    ax[-1].set_xlabel(_("time") + " / s")
+    ax[-1].set_xlabel("time / s")
     ax[0].set_title(title, loc="left")
 
     # ipympl_style(fig)
@@ -59,17 +58,17 @@ class BaseProcess(WidgetMyVBox):
         self.tag = tag
         self.meta = meta
 
-        self.manufacturer = WidgetLabeledTextInput(_("Manufacturer"), "Fronius")
-        self.power_source = WidgetLabeledTextInput(_("Power source"), "TPS 500i")
-        self.wire_feedrate = FloatWithUnit(
-            text=_("Wire feed rate"), value=10, min=0, unit="m/min"
+        self.manufacturer = WidgetLabeledTextInput("Manufacturer", "Fronius")
+        self.power_source = WidgetLabeledTextInput("Power source", "TPS 500i")
+        self.wire_feedrate = WidgetFloatWithUnit(
+            text="Wire feed rate", value=10, min=0, unit="m/min"
         )
         children = [
             self.manufacturer,
             self.power_source,
             self.wire_feedrate,
         ]
-        super(BaseProcess, self).__init__(children=children)
+        super().__init__(children=children)
 
     def to_tree(self):
         """Return base process parameters."""
@@ -99,34 +98,36 @@ class ProcessPulsed(WidgetMyVBox):
     """Widget for pulsed processes."""
 
     def __init__(self, kind="UI"):
-        self.pulse_duration = FloatWithUnit(_("Pulse duration"), value=5.0, unit="ms")
-        self.pulse_frequency = FloatWithUnit(
-            _("Pulse frequency"), value=100.0, unit="Hz"
+        self.pulse_duration = WidgetFloatWithUnit(
+            "Pulse duration", value=5.0, unit="ms"
         )
-        self.base_current = FloatWithUnit(_("Base current"), value=60.0, unit="A")
+        self.pulse_frequency = WidgetFloatWithUnit(
+            "Pulse frequency", value=100.0, unit="Hz"
+        )
+        self.base_current = WidgetFloatWithUnit("Base current", value=60.0, unit="A")
 
         if kind == "UI":
-            self.pulsed_dim = FloatWithUnit(_("Pulse voltage"), "V", 40)
+            self.pulsed_dim = WidgetFloatWithUnit("Pulse voltage", "V", 40)
         elif kind == "II":
-            self.pulsed_dim = FloatWithUnit(_("Pulse current"), "A", 300)
+            self.pulsed_dim = WidgetFloatWithUnit("Pulse current", "A", 300)
         else:
             raise ValueError(f"unknown kind: {kind}")
         self.kind = kind
         self.base_process = BaseProcess("CLOOS/pulse", {"modulation": self.kind})
 
         if self.kind == "UI":
-            desc = _("voltage/current")
+            desc = "voltage/current"
         else:
-            desc = _("current")
+            desc = "current"
         children = [
-            make_title(_("Pulsed") + f" {desc} " + _("process parameters")),
+            make_title(f"Pulsed {desc} process parameters"),
             self.base_process,
             self.pulse_duration,
             self.pulse_frequency,
             self.base_current,
             self.pulsed_dim,
         ]
-        super(ProcessPulsed, self).__init__(children=children)
+        super().__init__(children=children)
 
     def to_tree(self):
         """Return pulsed process parameters."""
@@ -182,12 +183,12 @@ class ProcessSpray(WidgetMyVBox):
         self.voltage = WidgetTimeSeries(
             base_data="40.0, 20.0", base_unit="V", time_data="0.0, 10.0", time_unit="s"
         )
-        self.impedance = FloatWithUnit(text=_("Impedance"), value=10, unit="percent")
-        self.characteristic = FloatWithUnit(_("Characteristic"), value=5, unit="V/A")
+        self.impedance = WidgetFloatWithUnit(text="Impedance", value=10, unit="percent")
+        self.characteristic = WidgetFloatWithUnit("Characteristic", value=5, unit="V/A")
 
-        super(ProcessSpray, self).__init__(
+        super().__init__(
             children=[
-                make_title(_("Spray process parameters")),
+                make_title("Spray process parameters"),
                 self.base_process,
                 self.voltage,
                 self.impedance,
@@ -230,18 +231,18 @@ class WidgetWire(WidgetMyVBox):
     heading_level = 4
 
     def __init__(self):
-        self.diameter = FloatWithUnit(_("Diameter"), unit="mm", min=0, value=1.2)
-        self.wire_class = WidgetLabeledTextInput(_("Class"), "G 42 2 C/M G4Si1")
+        self.diameter = WidgetFloatWithUnit("Diameter", unit="mm", min=0, value=1.2)
+        self.wire_class = WidgetLabeledTextInput("Class", "G 42 2 C/M G4Si1")
 
         # TODO: consider a tree like editing widget for metadata.
-        self.metadata = WidgetLabeledTextInput(_("Metadata"), "")
+        self.metadata = WidgetLabeledTextInput("Metadata", "")
         children = [
-            make_title(_("Wire parameters"), heading_level=WidgetWire.heading_level),
+            make_title("Wire parameters", heading_level=WidgetWire.heading_level),
             self.diameter,
             self.wire_class,
             self.metadata,
         ]
-        super(WidgetWire, self).__init__(children=children)
+        super().__init__(children=children)
 
     def to_tree(self):
         """Return welding wire parameters."""
@@ -266,17 +267,12 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
     def _set_gui_mapping(self):
         self.translate = bidict(
             {
-                _("Spray"): "spray",
-                _("Pulsed") + " (UI)": "UI",
-                _("Pulsed") + " (II)": "II",
+                "Spray": "spray",
+                "Pulsed (UI)": "UI",
+                "Pulsed (II)": "II",
                 # _("CMT"): NotImplemented,
             }
         )
-
-    @property
-    def schema(self) -> str:
-        """Return schema."""
-        raise
 
     def __init__(self, process_type="spray"):
         self._set_gui_mapping()  # set up translation mapping.
@@ -284,7 +280,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         self.process_type = Dropdown(
             options=list(self.translate.keys()),
             index=index,
-            description=_("Process type"),
+            description="Process type",
         )
         self.process_type.observe(self._create_process_widgets, names="value")
         self.gas = WidgetShieldingGas()
@@ -292,8 +288,8 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         self.welding_wire = WidgetWire()
 
         children = [
-            make_title(_("GMAW process parameters")),
-            make_title(_("Shielding gas"), 4),
+            make_title("GMAW process parameters"),
+            make_title("Shielding gas", 4),
             self.gas,
             self.welding_wire,
             # self.weld_speed, # TODO: speed is given by feedrate and groove!
@@ -301,7 +297,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
             self.process_type,
             self._welding_process,
         ]
-        super(WidgetGMAW, self).__init__(children=children)
+        super().__init__(children=children)
 
         # initially create the selected process type
         self._create_process_widgets(dict(new=self.process_type.value))
@@ -309,7 +305,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
     def _create_process_widgets(self, change):
         new = change["new"]
         arg = self.translate[new]
-        box = self._cached_process_widgets(arg)
+        box = WidgetGMAW._cached_process_widgets(arg)
         self._welding_process.children = (box,)
 
     @property
@@ -317,8 +313,9 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         """Return welding process widget."""
         return self._welding_process.children[0]
 
+    @staticmethod
     @lru_cache(None)
-    def _cached_process_widgets(self, process):
+    def _cached_process_widgets(process):
         if process == "spray":
             return ProcessSpray()
 
@@ -332,12 +329,12 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         # set the right welding process widget
         if welding_process.base_process == "pulse":
             kind = welding_process.meta["modulation"]
-            process_type = _("Pulsed") + f" ({kind})"
+            process_type = f"Pulsed ({kind})"
         elif welding_process.base_process == "spray":
-            process_type = _("Spray")
+            process_type = "Spray"
         else:
             raise NotImplementedError(
-                _("unknown process type") + f"{welding_process.base_process}"
+                f"unknown process type: {welding_process.base_process}"
             )
         self.process_type.value = process_type
 

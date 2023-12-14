@@ -10,7 +10,6 @@ from IPython import get_ipython
 from ipywidgets import HTML, Button, HBox, Label
 
 import weldx
-from weldx_widgets.translation_utils import _i18n as _
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
     WidgetLabeledTextInput,
@@ -59,14 +58,12 @@ class WidgetSaveButton(WidgetMyHBox):
             filename=filename,
             filter_pattern=filter_pattern,
             select_default=select_default,
-            select_desc=_("Select"),
-            change_desc=_("Change"),
+            select_desc="Select",
+            change_desc="Change",
         )
-        self.button = Button(description=_(desc), layout=button_layout)
+        self.button = Button(description=desc, layout=button_layout)
 
-        super(WidgetSaveButton, self).__init__(
-            children=(self.file_chooser, self.button)
-        )
+        super().__init__(children=(self.file_chooser, self.button))
 
     def set_handler(self, handler: Callable):
         """Set action handler on save button click."""
@@ -90,11 +87,6 @@ class WidgetSaveButton(WidgetMyHBox):
 
 class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
     """Preliminary time series editing widget."""
-
-    @property
-    def schema(self) -> str:
-        """Return schema to validate data against."""
-        return "time_series"
 
     # TODO: handle math-expr
     def __init__(
@@ -121,7 +113,7 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         ]
         if title:
             children.insert(0, Label(title))
-        super(WidgetTimeSeries, self).__init__(children=children)
+        super().__init__(children=children)
 
     def to_tree(self) -> dict:
         """Get mapping of input fields."""
@@ -153,7 +145,7 @@ def download_button(
     button_description: str,
     html_instance: Optional[HTML] = None,
 ) -> HTML:
-    """Load data from buffer into base64 payload embedded into a HTML button.
+    """Load data from buffer into base64 payload embedded into an HTML button.
 
     Parameters
     ----------

@@ -24,7 +24,7 @@ def test_k3d_csm_vis():
         root_face="1 mm",
     )
 
-    spatial = weldx.Geometry(groove, "10mm").spatial_data("1 mm", "1 mm")
+    spatial = weldx.Geometry(groove, "10 mm").spatial_data("1 mm", "1 mm")
     csm.assign_data(spatial, "workpiece", "A")
 
     plot = CoordinateSystemManagerVisualizerK3D(csm=csm)

@@ -36,7 +36,7 @@ def test_plot_coordinate_system():
     # exceptions ------------------------------------------
 
     # label without color
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         vs.draw_coordinate_system_matplotlib(lcs_constant, ax, label="label")
 
 

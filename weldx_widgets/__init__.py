@@ -1,6 +1,6 @@
 """Weldx widgets."""
 from .generic import WidgetSaveButton, WidgetTimeSeries
-from .widget_factory import FloatWithUnit, WidgetLabeledTextInput
+from .widget_factory import WidgetFloatWithUnit, WidgetLabeledTextInput
 from .widget_gas import WidgetShieldingGas
 from .widget_gmaw import WidgetGMAW
 from .widget_groove_sel import WidgetGrooveSelection, WidgetGrooveSelectionTCPMovement
@@ -13,7 +13,7 @@ __all__ = [
     WidgetLabeledTextInput,
     WidgetSaveButton,
     WidgetGMAW,
-    FloatWithUnit,  # TODO: rename
+    WidgetFloatWithUnit,
 ]
 __all__ = map(str, (x.__name__ for x in __all__))
 

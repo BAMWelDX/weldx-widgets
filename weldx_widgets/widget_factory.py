@@ -1,8 +1,7 @@
 """Factory for commonly used widget elements."""
 import contextlib
 
-import ipywidgets as widgets
-from ipywidgets import HTML, Label, Layout, Text
+from ipywidgets import HTML, BoundedFloatText, Label, Layout, Text
 from traitlets import All, HasTraits
 
 from weldx import Q_, TimeSeries
@@ -49,7 +48,7 @@ class WidgetLabeledTextInput(WidgetMyHBox):
         self.label = Label(label_text, layout=description_layout)
         self.text = Text(value=prefilled_text, layout=textbox_layout)
         children = [self.label, self.text]
-        super(WidgetLabeledTextInput, self).__init__(children=children)
+        super().__init__(children=children)
 
     @property
     def text_value(self) -> str:
@@ -61,26 +60,26 @@ class WidgetLabeledTextInput(WidgetMyHBox):
         self.text.value = value
 
 
-class FloatWithUnit(WidgetMyHBox):
+class WidgetFloatWithUnit(WidgetMyHBox):
     """Widget grouping a float with unit."""
 
     def __init__(self, text, unit, value: float = 0.0, min=0):
         self._label = Label(text, layout=description_layout)
-        self._float = widgets.BoundedFloatText(
+        self._float = BoundedFloatText(
             value=value, min=min, max=2**32, layout=textbox_layout
         )
         self._unit = Text(value=unit, placeholder="unit", layout=textbox_layout)
 
-        super(FloatWithUnit, self).__init__(
+        super().__init__(
             children=[self._label, self._float, self._unit],
         )
 
-    def observe_float_value(self, handler, names=All, type="change"):  # noqa
+    def observe_float_value(self, handler, names=All, type="change"):
         self._float.observe(handler, names, type)
 
     observe_float_value.__doc__ = HasTraits.observe.__doc__
 
-    def observe_unit(self, handler, names=All, type="change"):  # noqa
+    def observe_unit(self, handler, names=All, type="change"):
         self._unit.observe(handler, names, type)
 
     observe_unit.__doc__ = HasTraits.observe.__doc__
@@ -137,6 +136,4 @@ class FloatWithUnit(WidgetMyHBox):
 
 def make_title(text, heading_level=3):
     """Return an HTML formatted heading."""
-    from weldx_widgets.translation_utils import _i18n as _
-
-    return HTML(f"<h{heading_level}>{_(text)}</h{heading_level}>")
+    return HTML(f"<h{heading_level}>{text}</h{heading_level}>")

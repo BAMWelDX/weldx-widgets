@@ -1,19 +1,14 @@
 """Base classes for widgets."""
 import abc
-import functools
-from pathlib import Path
 
 from ipywidgets import HBox, Layout, Output, VBox
-
-from weldx.asdf.util import get_schema_path
-from weldx_widgets.translation_utils import set_trans_from_env
 
 
 def metaclass_resolver(*classes):
     """Merge multiple meta classes."""
     # Does something like this:
     # https://coderedirect.com/questions/163000/multiple-inheritance-metaclass-conflict
-    metaclass = tuple(set(type(cls) for cls in classes))
+    metaclass = tuple({type(cls) for cls in classes})
 
     def cls_name(classes):
         return "_".join(mcls.__name__ for mcls in classes)
@@ -26,19 +21,11 @@ def metaclass_resolver(*classes):
     return metaclass(cls_name(classes), classes, {})  # class C
 
 
-class _TranslationUtil:
-    """Ensures upon instantiation of the class we have the proper translation."""
-
-    def __new__(cls, *args, **kwargs):
-        set_trans_from_env()
-        return super().__new__(cls)
-
-
-class _merged_meta(type(abc.ABC), type(_TranslationUtil)):  # avoid metaclass conflict.
+class _merged_meta(type(abc.ABC)):  # avoid metaclass conflict.
     pass
 
 
-class WidgetBase(abc.ABC, _TranslationUtil, metaclass=_merged_meta):
+class WidgetBase(abc.ABC, metaclass=_merged_meta):
     """Base class for weldx widgets."""
 
     def copy(self):
@@ -83,7 +70,7 @@ class WidgetMyHBox(metaclass_resolver(HBox, WidgetBase)):
         layout.border = border_debug_style
         layout.margin = margin
 
-        super(WidgetMyHBox, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class WidgetMyVBox(metaclass_resolver(VBox, WidgetBase)):
@@ -98,7 +85,7 @@ class WidgetMyVBox(metaclass_resolver(VBox, WidgetBase)):
         layout.border = border_debug_style
         layout.margin = margin
 
-        super(WidgetMyVBox, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class WidgetSimpleOutput(WidgetMyHBox):
@@ -120,7 +107,7 @@ class WidgetSimpleOutput(WidgetMyHBox):
         else:
             layout = out.layout
         self.out = out
-        super(WidgetSimpleOutput, self).__init__(children=[self.out], layout=layout)
+        super().__init__(children=[self.out], layout=layout)
 
     def __enter__(self):
         """Enter."""
@@ -134,28 +121,10 @@ class WidgetSimpleOutput(WidgetMyHBox):
 class WeldxImportExport(abc.ABC):
     """Abstract import and export interfaces for weldx data exchange."""
 
-    @property
-    @abc.abstractmethod
-    def schema(self) -> str:
-        """Return a schema name is used to validate input and output."""
-        pass
-
-    @functools.lru_cache
-    def get_schema_path(self) -> Path:
-        """Resolve a schema name to path."""
-        return get_schema_path(self.schema)
-
-    def validate(self, tree):
-        """Validate given tree against schema of this class."""
-        # should be implemented such that we can validate both input and output.
-        pass
-
     @abc.abstractmethod
     def from_tree(self, tree: dict):
         """Fill the widget with given state dictionary."""
-        pass
 
     @abc.abstractmethod
     def to_tree(self) -> dict:
         """Return a dict containing data from widget."""
-        pass
