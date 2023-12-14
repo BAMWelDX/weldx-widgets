@@ -125,12 +125,6 @@ class WidgetSimpleOutput(WidgetMyHBox):
 class WeldxImportExport(abc.ABC):
     """Abstract import and export interfaces for weldx data exchange."""
 
-    @property
-    @abc.abstractmethod
-    def schema(self) -> str:
-        """Return a schema name is used to validate input and output."""
-        pass
-
     @staticmethod
     @functools.lru_cache
     def _get_schema_path(schema) -> Path:
@@ -140,17 +134,10 @@ class WeldxImportExport(abc.ABC):
         """Resolve the actual schema to a path."""
         return WeldxImportExport._get_schema_path(self.schema)
 
-    def validate(self, tree):
-        """Validate given tree against schema of this class."""
-        # should be implemented such that we can validate both input and output.
-        return
-
     @abc.abstractmethod
     def from_tree(self, tree: dict):
         """Fill the widget with given state dictionary."""
-        pass
 
     @abc.abstractmethod
     def to_tree(self) -> dict:
         """Return a dict containing data from widget."""
-        pass

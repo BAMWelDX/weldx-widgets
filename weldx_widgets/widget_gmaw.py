@@ -270,11 +270,6 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
             }
         )
 
-    @property
-    def schema(self) -> str:
-        """Return schema."""
-        raise
-
     def __init__(self, process_type="spray"):
         self._set_gui_mapping()  # set up translation mapping.
         index = list(self.translate.values()).index(process_type)

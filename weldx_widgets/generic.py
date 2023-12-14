@@ -88,11 +88,6 @@ class WidgetSaveButton(WidgetMyHBox):
 class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
     """Preliminary time series editing widget."""
 
-    @property
-    def schema(self) -> str:
-        """Return schema to validate data against."""
-        return "time_series"
-
     # TODO: handle math-expr
     def __init__(
         self, base_unit, time_unit="s", base_data="0", time_data="0", title=""

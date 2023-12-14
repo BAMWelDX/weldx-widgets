@@ -266,11 +266,6 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
                 widget.quantity = v
 
-    @property
-    def schema(self) -> str:
-        """Return schema."""
-        raise NotImplementedError
-
     def from_tree(self, tree: dict):
         """Fill widget from tree."""
         self.groove_obj = tree["groove_shape"]
