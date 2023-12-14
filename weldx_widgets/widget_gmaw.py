@@ -98,8 +98,12 @@ class ProcessPulsed(WidgetMyVBox):
     """Widget for pulsed processes."""
 
     def __init__(self, kind="UI"):
-        self.pulse_duration = WidgetFloatWithUnit("Pulse duration", value=5.0, unit="ms")
-        self.pulse_frequency = WidgetFloatWithUnit("Pulse frequency", value=100.0, unit="Hz")
+        self.pulse_duration = WidgetFloatWithUnit(
+            "Pulse duration", value=5.0, unit="ms"
+        )
+        self.pulse_frequency = WidgetFloatWithUnit(
+            "Pulse frequency", value=100.0, unit="Hz"
+        )
         self.base_current = WidgetFloatWithUnit("Base current", value=60.0, unit="A")
 
         if kind == "UI":

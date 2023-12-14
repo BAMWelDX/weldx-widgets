@@ -326,11 +326,17 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
                 else:
                     text = t
                 if "angle" in item:
-                    param_widgets[item] = WidgetFloatWithUnit(text=text, unit="°", value=45)
+                    param_widgets[item] = WidgetFloatWithUnit(
+                        text=text, unit="°", value=45
+                    )
                 elif "workpiece_thickness" in item:
-                    param_widgets[item] = WidgetFloatWithUnit(text=text, unit="mm", value=15)
+                    param_widgets[item] = WidgetFloatWithUnit(
+                        text=text, unit="mm", value=15
+                    )
                 else:
-                    param_widgets[item] = WidgetFloatWithUnit(text=text, unit="mm", value=5)
+                    param_widgets[item] = WidgetFloatWithUnit(
+                        text=text, unit="mm", value=5
+                    )
             param_widgets[item].mapping = item
 
         groove_list = list(_groove_name_to_type.keys())
@@ -405,7 +411,9 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         self.last_plot: Optional[CoordinateSystemManagerVisualizerK3D] = None
         self.groove_sel = WidgetGrooveSelection()
 
-        self.seam_length = WidgetFloatWithUnit("Seam length", value=300, min=0, unit="mm")
+        self.seam_length = WidgetFloatWithUnit(
+            "Seam length", value=300, min=0, unit="mm"
+        )
         self.seam_length.observe_float_value(self.create_csm_and_plot)
         self.seam_length.observe_unit(self.create_csm_and_plot)
 

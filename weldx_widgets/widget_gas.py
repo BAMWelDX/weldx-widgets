@@ -102,7 +102,9 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
         gas_components = self.to_tree()["gas_component"]
         if not sum(g.gas_percentage for g in gas_components) == 100:
             with self.out:
-                print("Check percentages, all components should sum up to 100!")  # noqa: T201
+                print(
+                    "Check percentages, all components should sum up to 100!"
+                )  # noqa: T201
         else:
             # remove output, if everything is alright.
             self.out.clear_output()
