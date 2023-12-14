@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import TYPE_CHECKING, Union
 
 import k3d
@@ -684,14 +683,6 @@ class CoordinateSystemManagerVisualizerK3D:
         """Get the limits of all spatial data."""
         if not self._data_vis:
             return None
-        #
-        # def get_lim(x):
-        #     with warnings.catch_warnings():
-        #         warnings.simplefilter("ignore", category=pint.errors.UnitStrippedWarning)
-        #         u = getattr(x, "unit", 1)
-        #         return x.limits() * u
-        #
-        # limits = np.stack([get_lim(s.data) for s in self._data_vis.values()])
 
         limits = np.stack([s.data.limits() for s in self._data_vis.values()])
         return _get_limits_from_stack(limits)
