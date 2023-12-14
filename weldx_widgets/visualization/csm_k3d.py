@@ -276,14 +276,10 @@ class CoordinateSystemVisualizerK3D:
     def limits(self):
         lcs = self._lcs
         dims = [d for d in lcs.coordinates.dims if d != "c"]
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=pint.errors.UnitStrippedWarning)
-            if dims:
-                # unit gets stripped during min/max reduction, so restore it.
-                unit = lcs.coordinates.data.u
-                mins = lcs.coordinates.min(dim=dims).data
-                maxs = lcs.coordinates.max(dim=dims).data
-                return np.vstack([mins, maxs]) * unit
+        if dims:
+            mins = lcs.coordinates.min(dim=dims).data
+            maxs = lcs.coordinates.max(dim=dims).data
+            return np.vstack([mins, maxs])
         return np.vstack([lcs.coordinates.data, lcs.coordinates.data])
 
 
@@ -688,6 +684,15 @@ class CoordinateSystemManagerVisualizerK3D:
         """Get the limits of all spatial data."""
         if not self._data_vis:
             return None
+        #
+        # def get_lim(x):
+        #     with warnings.catch_warnings():
+        #         warnings.simplefilter("ignore", category=pint.errors.UnitStrippedWarning)
+        #         u = getattr(x, "unit", 1)
+        #         return x.limits() * u
+        #
+        # limits = np.stack([get_lim(s.data) for s in self._data_vis.values()])
+
         limits = np.stack([s.data.limits() for s in self._data_vis.values()])
         return _get_limits_from_stack(limits)
 
