@@ -60,7 +60,7 @@ class WidgetLabeledTextInput(WidgetMyHBox):
         self.text.value = value
 
 
-class FloatWithUnit(WidgetMyHBox):
+class WidgetFloatWithUnit(WidgetMyHBox):
     """Widget grouping a float with unit."""
 
     def __init__(self, text, unit, value: float = 0.0, min=0):

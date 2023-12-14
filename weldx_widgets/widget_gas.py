@@ -8,7 +8,7 @@ from weldx import Q_
 from weldx.tags.aws import GasComponent, ShieldingGasForProcedure, ShieldingGasType
 from weldx_widgets.widget_base import WidgetMyVBox
 from weldx_widgets.widget_factory import (
-    FloatWithUnit,
+    WidgetFloatWithUnit,
     button_layout,
     description_layout,
 )
@@ -140,7 +140,7 @@ class WidgetShieldingGas(WidgetMyVBox):
     # TODO: this could in principle be used multiple times for all positions
     #  e.g. torch, trailing, backing
     def __init__(self, position="torch"):
-        self.flowrate = FloatWithUnit("Flow rate", "l/min", value=20)
+        self.flowrate = WidgetFloatWithUnit("Flow rate", "l/min", value=20)
         self.gas_components = WidgetSimpleGasSelection()
 
         children = [self.gas_components, self.flowrate]

@@ -25,7 +25,7 @@ from weldx.welding.groove.iso_9692_1 import (
 from weldx_widgets.generic import download_button
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
-    FloatWithUnit,
+    WidgetFloatWithUnit,
     WidgetLabeledTextInput,
     description_layout,
     make_title,
@@ -87,13 +87,13 @@ RuntimeWarning: invalid value encountered in true_divide
         # program directly to his/her computer.
         self._html_dl_button = HTML()
 
-        self.profile_raster_width = FloatWithUnit(
+        self.profile_raster_width = WidgetFloatWithUnit(
             "Profile raster width",
             value=2,
             unit="mm",
             # tooltip="Target distance between the individual points of a profile",
         )
-        self.trace_raster_width = FloatWithUnit(
+        self.trace_raster_width = WidgetFloatWithUnit(
             "Trace raster width",
             value=30,
             unit="mm",
@@ -154,7 +154,7 @@ class WidgetMetal(WidgetMyVBox):
     def __init__(self):
         self.common_name = WidgetLabeledTextInput("Common name", "S355J2+N")
         self.standard = WidgetLabeledTextInput("Standard", "DIN EN 10225-2:2011")
-        self.thickness = FloatWithUnit("Thickness", value=30, unit="mm")
+        self.thickness = WidgetFloatWithUnit("Thickness", value=30, unit="mm")
         children = [
             make_title("Base metal", heading_level=4),
             self.common_name,
@@ -261,7 +261,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         with contextlib.ExitStack() as stack:
             for k, v in self.groove_obj.parameters().items():
                 mapped_k = self._groove_obj._mapping[k]
-                widget: FloatWithUnit = gui_params[mapped_k]
+                widget: WidgetFloatWithUnit = gui_params[mapped_k]
                 stack.enter_context(widget.silence_events())
 
                 widget.quantity = v
@@ -326,11 +326,11 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
                 else:
                     text = t
                 if "angle" in item:
-                    param_widgets[item] = FloatWithUnit(text=text, unit="°", value=45)
+                    param_widgets[item] = WidgetFloatWithUnit(text=text, unit="°", value=45)
                 elif "workpiece_thickness" in item:
-                    param_widgets[item] = FloatWithUnit(text=text, unit="mm", value=15)
+                    param_widgets[item] = WidgetFloatWithUnit(text=text, unit="mm", value=15)
                 else:
-                    param_widgets[item] = FloatWithUnit(text=text, unit="mm", value=5)
+                    param_widgets[item] = WidgetFloatWithUnit(text=text, unit="mm", value=5)
             param_widgets[item].mapping = item
 
         groove_list = list(_groove_name_to_type.keys())
@@ -405,15 +405,15 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         self.last_plot: Optional[CoordinateSystemManagerVisualizerK3D] = None
         self.groove_sel = WidgetGrooveSelection()
 
-        self.seam_length = FloatWithUnit("Seam length", value=300, min=0, unit="mm")
+        self.seam_length = WidgetFloatWithUnit("Seam length", value=300, min=0, unit="mm")
         self.seam_length.observe_float_value(self.create_csm_and_plot)
         self.seam_length.observe_unit(self.create_csm_and_plot)
 
-        self.tcp_y = FloatWithUnit("TCP-y", unit="mm")
-        self.tcp_z = FloatWithUnit("TCP-z", unit="mm")
+        self.tcp_y = WidgetFloatWithUnit("TCP-y", unit="mm")
+        self.tcp_z = WidgetFloatWithUnit("TCP-z", unit="mm")
         # TODO: compute weld speed accordingly to chosen groove area!
         # TODO: consider setting it read-only??
-        self.weld_speed = FloatWithUnit("weld speed", value=6, unit="mm/s")
+        self.weld_speed = WidgetFloatWithUnit("weld speed", value=6, unit="mm/s")
         self.base_metal = WidgetMetal()
         self.geometry_export = WidgetCADExport()
         self.additional_params = (

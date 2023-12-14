@@ -125,15 +125,6 @@ class WidgetSimpleOutput(WidgetMyHBox):
 class WeldxImportExport(abc.ABC):
     """Abstract import and export interfaces for weldx data exchange."""
 
-    @staticmethod
-    @functools.lru_cache
-    def _get_schema_path(schema) -> Path:
-        return get_schema_path(schema)
-
-    def get_schema_path(self) -> Path:
-        """Resolve the actual schema to a path."""
-        return WeldxImportExport._get_schema_path(self.schema)
-
     @abc.abstractmethod
     def from_tree(self, tree: dict):
         """Fill the widget with given state dictionary."""

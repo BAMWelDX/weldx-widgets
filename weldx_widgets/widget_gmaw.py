@@ -11,7 +11,7 @@ from weldx_widgets import WidgetShieldingGas
 from weldx_widgets.generic import WidgetTimeSeries
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyVBox
 from weldx_widgets.widget_factory import (
-    FloatWithUnit,
+    WidgetFloatWithUnit,
     WidgetLabeledTextInput,
     make_title,
 )
@@ -60,7 +60,7 @@ class BaseProcess(WidgetMyVBox):
 
         self.manufacturer = WidgetLabeledTextInput("Manufacturer", "Fronius")
         self.power_source = WidgetLabeledTextInput("Power source", "TPS 500i")
-        self.wire_feedrate = FloatWithUnit(
+        self.wire_feedrate = WidgetFloatWithUnit(
             text="Wire feed rate", value=10, min=0, unit="m/min"
         )
         children = [
@@ -98,14 +98,14 @@ class ProcessPulsed(WidgetMyVBox):
     """Widget for pulsed processes."""
 
     def __init__(self, kind="UI"):
-        self.pulse_duration = FloatWithUnit("Pulse duration", value=5.0, unit="ms")
-        self.pulse_frequency = FloatWithUnit("Pulse frequency", value=100.0, unit="Hz")
-        self.base_current = FloatWithUnit("Base current", value=60.0, unit="A")
+        self.pulse_duration = WidgetFloatWithUnit("Pulse duration", value=5.0, unit="ms")
+        self.pulse_frequency = WidgetFloatWithUnit("Pulse frequency", value=100.0, unit="Hz")
+        self.base_current = WidgetFloatWithUnit("Base current", value=60.0, unit="A")
 
         if kind == "UI":
-            self.pulsed_dim = FloatWithUnit("Pulse voltage", "V", 40)
+            self.pulsed_dim = WidgetFloatWithUnit("Pulse voltage", "V", 40)
         elif kind == "II":
-            self.pulsed_dim = FloatWithUnit("Pulse current", "A", 300)
+            self.pulsed_dim = WidgetFloatWithUnit("Pulse current", "A", 300)
         else:
             raise ValueError(f"unknown kind: {kind}")
         self.kind = kind
@@ -179,8 +179,8 @@ class ProcessSpray(WidgetMyVBox):
         self.voltage = WidgetTimeSeries(
             base_data="40.0, 20.0", base_unit="V", time_data="0.0, 10.0", time_unit="s"
         )
-        self.impedance = FloatWithUnit(text="Impedance", value=10, unit="percent")
-        self.characteristic = FloatWithUnit("Characteristic", value=5, unit="V/A")
+        self.impedance = WidgetFloatWithUnit(text="Impedance", value=10, unit="percent")
+        self.characteristic = WidgetFloatWithUnit("Characteristic", value=5, unit="V/A")
 
         super().__init__(
             children=[
@@ -227,7 +227,7 @@ class WidgetWire(WidgetMyVBox):
     heading_level = 4
 
     def __init__(self):
-        self.diameter = FloatWithUnit("Diameter", unit="mm", min=0, value=1.2)
+        self.diameter = WidgetFloatWithUnit("Diameter", unit="mm", min=0, value=1.2)
         self.wire_class = WidgetLabeledTextInput("Class", "G 42 2 C/M G4Si1")
 
         # TODO: consider a tree like editing widget for metadata.
