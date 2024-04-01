@@ -1,4 +1,5 @@
 """Widget to handle a WeldxFile."""
+
 from weldx import WeldxFile
 
 __all__ = ["WidgetWeldxFile"]

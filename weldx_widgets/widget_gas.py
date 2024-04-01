@@ -1,4 +1,5 @@
 """Widgets to handle shielding gas selection."""
+
 from typing import List
 
 from bidict import bidict

@@ -1,4 +1,5 @@
 """Tests for generic widgets."""
+
 import pandas as pd
 
 import weldx

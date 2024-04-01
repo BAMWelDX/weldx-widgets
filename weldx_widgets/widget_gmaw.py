@@ -1,4 +1,5 @@
 """Widget to edit weldx.GMAW process data."""
+
 from functools import lru_cache
 from typing import Union
 

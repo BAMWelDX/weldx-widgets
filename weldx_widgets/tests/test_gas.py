@@ -1,4 +1,5 @@
 """Tests for WidgetShieldingGas."""
+
 import pytest
 
 from weldx import WeldxFile

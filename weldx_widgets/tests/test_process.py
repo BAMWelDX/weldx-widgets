@@ -1,4 +1,5 @@
 """Tests for GMAW widgets."""
+
 import pytest
 
 import weldx
