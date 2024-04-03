@@ -1,4 +1,5 @@
 """Factory for commonly used widget elements."""
+
 import contextlib
 
 from ipywidgets import HTML, BoundedFloatText, Label, Layout, Text

@@ -9,6 +9,7 @@ That includes:
 5. Parameters for the power source.
 
 """
+
 from collections import defaultdict
 
 import matplotlib.pyplot as plt

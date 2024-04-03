@@ -1,4 +1,5 @@
 """Tests for groove selection widget."""
+
 import pytest
 
 import weldx

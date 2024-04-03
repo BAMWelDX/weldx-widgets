@@ -1,4 +1,5 @@
 """Widgets to select groove type and tcp movement."""
+
 from __future__ import annotations
 
 import contextlib

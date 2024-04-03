@@ -1,4 +1,5 @@
 """Widget to wrap around a measurement."""
+
 from typing import List
 
 from matplotlib import pylab as plt

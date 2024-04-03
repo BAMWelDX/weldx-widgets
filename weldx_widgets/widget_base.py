@@ -1,4 +1,5 @@
 """Base classes for widgets."""
+
 import abc
 
 from ipywidgets import HBox, Layout, Output, VBox
