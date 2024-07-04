@@ -38,6 +38,7 @@ dependencies = [
     "bidict",
     "ipyfilechooser",
     "tqdm",
+    "matplotlib<3.9",
 ]
 [project.optional-dependencies]
 test = [
