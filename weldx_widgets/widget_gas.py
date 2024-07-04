@@ -1,7 +1,5 @@
 """Widgets to handle shielding gas selection."""
 
-from typing import List
-
 from bidict import bidict
 from ipywidgets import Button, Dropdown, HBox, IntSlider, Layout, Output
 
@@ -119,7 +117,7 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
         return dict(gas_component=gas_components)
 
     def from_tree(self, tree):
-        gc_list: List[GasComponent] = tree["gas_component"]
+        gc_list: list[GasComponent] = tree["gas_component"]
         self._clear()
         for gc in gc_list:
             # create widget for gas element with percentage, then add to components dict

@@ -133,7 +133,7 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
         scans_available = True
         try:
             foo = [
-                _clean_nans_from_spatial_data(csm.get_data("scan_%s" % i))
+                _clean_nans_from_spatial_data(csm.get_data(f"scan_{i}"))
                 for i in range(0, 2)
             ]
             assert len(foo) == 2
