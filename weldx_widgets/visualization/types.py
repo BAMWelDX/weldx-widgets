@@ -1,10 +1,10 @@
 """Type aliases shared in visualization package."""
 
-from typing import List, Tuple, Union
+from typing import Union
 
 import pandas as pd
 
-types_timeindex = Union[pd.DatetimeIndex, pd.TimedeltaIndex, List[pd.Timestamp]]
-types_limits = Union[List[Tuple[float, float]], Tuple[float, float]]
+types_timeindex = Union[pd.DatetimeIndex, pd.TimedeltaIndex, list[pd.Timestamp]]
+types_limits = Union[list[tuple[float, float]], tuple[float, float]]
 
 __all__ = ("types_timeindex", "types_limits")

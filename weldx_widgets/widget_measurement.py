@@ -1,7 +1,5 @@
 """Widget to wrap around a measurement."""
 
-from typing import List
-
 from matplotlib import pylab as plt
 
 import weldx
@@ -62,7 +60,7 @@ def plot_measurements(
 class WidgetMeasurement(WidgetSimpleOutput):
     """Widget to wrap around a measurement."""
 
-    def __init__(self, measurements: List["weldx.measurement.Measurement"], out=None):
+    def __init__(self, measurements: list["weldx.measurement.Measurement"], out=None):
         super().__init__(out=out)
 
         n = len(measurements)

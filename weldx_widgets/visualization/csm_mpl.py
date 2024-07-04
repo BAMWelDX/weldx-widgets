@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -156,7 +156,7 @@ def draw_coordinate_system_matplotlib(
             tips = dsx.orientation
         else:
             if not isinstance(scale_vectors, np.ndarray):
-                if isinstance(scale_vectors, List):
+                if isinstance(scale_vectors, list):
                     scale_vectors = np.array(scale_vectors)
                 else:
                     scale_vectors = np.array([scale_vectors for _ in range(3)])
@@ -296,7 +296,7 @@ def _set_limits_matplotlib(
 
     """
     if limits is not None:
-        if not isinstance(limits, List):
+        if not isinstance(limits, list):
             limits = [limits]
         if len(limits) == 1:
             limits = [limits[0] for _ in range(3)]
