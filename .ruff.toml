@@ -58,5 +58,5 @@ required-imports = [
     "from __future__ import annotations",
 ]
 
-[flake8-import-conventions]
+[lint.flake8-import-conventions]
 extend-aliases = { xarray = "xr" }
