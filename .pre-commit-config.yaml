@@ -16,7 +16,7 @@ repos:
       args: [--markdown-linebreak-ext=md]
     - id: end-of-file-fixer
     - id: check-yaml
-
+  # ----- Python formatting -----
 - repo: https://github.com/astral-sh/ruff-pre-commit
   # Ruff version.
   rev: v0.5.0
@@ -28,3 +28,11 @@ repos:
       - --fix
     # Run the formatter.
     - id: ruff-format
+- repo: https://github.com/tox-dev/pyproject-fmt
+  rev: 2.1.3
+  hooks:
+  - id: pyproject-fmt
+- repo: https://github.com/abravalheri/validate-pyproject
+  rev: v0.18
+  hooks:
+    - id: validate-pyproject
