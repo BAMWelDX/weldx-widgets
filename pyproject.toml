@@ -1,91 +1,95 @@
-[project]
-name = "weldx_widgets"
-dynamic = [  # see: https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#dynamic-metadata
-    "version",  # version gets derived from git by setuptools_scm.
-]
-authors = [
-    {name="Martin K. Scherer", email="martin.scherer@bam.de"},
-    {name="Cagtay Fabry", email="cagtay.fabry@bam.de"}
-]
-description="Python based widgets for the weldx core package"
-readme = "README.md"
-license = {file = "LICENSE", name="BSD License"}
-keywords = [
-    "weldx",
-    "ipywidgets",
-    "widgets",
-]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
-    "Operating System :: OS Independent",
-    "Natural Language :: English",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Topic :: Scientific/Engineering :: Physics",
-]
-
-# Dependencies
-requires-python = ">=3.9"
-dependencies = [
-    "weldx >=0.6",
-    "ipywidgets",
-    "k3d >=2.12",
-    "ipympl",
-    "bidict",
-    "ipyfilechooser",
-    "tqdm",
-    "matplotlib<3.9",
-    "numpy<2",
-]
-[project.optional-dependencies]
-test = [
-    "pytest-cov",
-    "pytest-xdist"
-]
-
-[project.urls]
-documentation = "https://weldx.readthedocs.io"
-repository = "https://github.com/BAMweldx/weldx-widgets"
-bug_tracker = "https://github.com/BAMweldx/weldx-widgets/issues"
-changelog = "https://github.com/BAMweldx/weldx-widgets/blob/master/CHANGELOG.md"
-
 [build-system]
-requires = ["setuptools>=45",
-    "wheel",
-    "setuptools_scm[toml]>=6.0",
-    "babel",
+# Tool configs
+requires = [
+  "babel",
+  "setuptools>=45",
+  "setuptools-scm[toml]>=6",
+  "wheel",
 ]
 
-# Tool configs
+[project]
+name = "weldx-widgets"
+description = "Python based widgets for the weldx core package"
+readme = "README.md"
+keywords = [
+  "ipywidgets",
+  "weldx",
+  "widgets",
+]
+license = { file = "LICENSE", name = "BSD License" }
+authors = [
+  { name = "Martin K. Scherer", email = "martin.scherer@bam.de" },
+  { name = "Cagtay Fabry", email = "cagtay.fabry@bam.de" },
+]
+# Dependencies
+requires-python = ">=3.9,<3.12"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: BSD License",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+
+dynamic = [
+  # see: https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#dynamic-metadata
+  "version", # version gets derived from git by setuptools_scm.
+]
+dependencies = [
+  "bidict",
+  "ipyfilechooser",
+  "ipympl",
+  "ipywidgets",
+  "k3d>=2.12",
+  "matplotlib<3.9",
+  "numpy<2",
+  "tqdm",
+  "weldx>=0.6",
+]
+optional-dependencies.test = [
+  "pytest-cov",
+  "pytest-xdist",
+]
+urls.bug_tracker = "https://github.com/BAMweldx/weldx-widgets/issues"
+urls.changelog = "https://github.com/BAMweldx/weldx-widgets/blob/master/CHANGELOG.md"
+urls.documentation = "https://weldx.readthedocs.io"
+urls.repository = "https://github.com/BAMweldx/weldx-widgets"
+
+[tool.setuptools.packages.find]
+where = [
+  ".",
+]
+
 [tool.setuptools_scm]
 write_to = "weldx_widgets/_version.py"
 write_to_template = '__version__ = "{version}"'
-
-[tool.setuptools.packages.find]
-where = ["."]
 
 [tool.pytest.ini_options]
 addopts = "--tb=short --color=yes -rsw --doctest-modules --cov=weldx_widgets"
 testpaths = "weldx_widgets/tests"
 filterwarnings = [
-    "ignore::DeprecationWarning:traittypes.*:",
-    "ignore:Passing method to :FutureWarning:xarray.*:",
-    "error::pint.UnitStrippedWarning",
+  "ignore::DeprecationWarning:traittypes.*:",
+  "ignore:Passing method to :FutureWarning:xarray.*:",
+  "error::pint.UnitStrippedWarning",
 ]
 
 [tool.coverage.run]
-source = ["weldx_widgets"]
+source = [
+  "weldx_widgets",
+]
 
 [tool.coverage.report]
 omit = [
-    "weldx_widgets/_version.py",
-    "weldx_widgets/tests/*",
+  "weldx_widgets/_version.py",
+  "weldx_widgets/tests/*",
 ]
 exclude_lines = [
-# Have to re-enable the standard pragma
-    "pragma: no cover",
+  # Have to re-enable the standard pragma
+  "pragma: no cover",
 ]
