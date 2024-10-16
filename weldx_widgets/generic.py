@@ -147,7 +147,7 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
                     return int(val)  # Otherwise, treat as int
 
             # Step 4: Apply the conversion and create a NumPy array with inferred types
-            num_array = np.array([convert_value(x) for x in input_list], dtype=object)
+            num_array = np.array([convert_value(x) for x in input_list])
 
             return num_array
         except ValueError:
