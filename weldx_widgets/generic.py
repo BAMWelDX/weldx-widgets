@@ -121,11 +121,38 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         from weldx import Q_, TimeSeries
 
         # TODO: eval - the root of evil!
+        base_data = self.convert_to_numpy_array(self.base_data.text_value)
+        time_data = self.convert_to_numpy_array(self.time_data.text_value)
         ts = TimeSeries(
-            data=Q_(eval(self.base_data.text_value), units=self.base_unit.text_value),
-            time=Q_(eval(self.time_data.text_value), units=self.time_unit.text_value),
+            data=Q_(base_data, units=self.base_unit.text_value),
+            time=Q_(time_data, units=self.time_unit.text_value),
         )
         return {"timeseries": ts}
+
+    @staticmethod
+    def convert_to_numpy_array(input_str):
+        import numpy as np
+        try:
+            # Step 1: Remove any unwanted characters and split by commas
+            cleaned_input = input_str.strip().replace("\n", " ")
+
+            # Step 2: Split the input string into individual elements
+            input_list = [x.strip() for x in cleaned_input.split(",") if x]
+
+            # Step 3: Convert each element to either int or float based on its format
+            def convert_value(val):
+                if '.' in val:  # If a decimal point is present, treat as float
+                    return float(val)
+                else:
+                    return int(val)  # Otherwise, treat as int
+
+            # Step 4: Apply the conversion and create a NumPy array with inferred types
+            num_array = np.array([convert_value(x) for x in input_list], dtype=object)
+
+            return num_array
+        except ValueError:
+            print("Error: Invalid input. Please ensure all values are numeric (int or float).")
+            return None
 
     def from_tree(self, tree: dict):
         """Read in data from given dict."""
