@@ -49,7 +49,7 @@ dependencies = [
   "ipywidgets",
   "k3d>=2.12",
   "matplotlib<3.9",
-  "numpy<2",
+  "numpy",
   "tqdm",
   "weldx>=0.6",
 ]
