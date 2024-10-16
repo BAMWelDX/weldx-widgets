@@ -22,7 +22,7 @@ authors = [
   { name = "Cagtay Fabry", email = "cagtay.fabry@bam.de" },
 ]
 # Dependencies
-requires-python = ">=3.9,<3.12"
+requires-python = ">=3.9"
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Science/Research",
@@ -34,6 +34,7 @@ classifiers = [
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Topic :: Scientific/Engineering :: Physics",
 ]
 
