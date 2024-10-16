@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.2.4 (16.10.2024)
+- Unpin Python.
+
 ## 0.2.3 (07.07.2024)
 
 ### Changes
