@@ -10,11 +10,11 @@ from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
-from ipyfilechooser import FileChooser
+import weldx
 from IPython import get_ipython
+from ipyfilechooser import FileChooser
 from ipywidgets import HTML, Button, HBox, Label
 
-import weldx
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
     WidgetLabeledTextInput,
@@ -147,8 +147,11 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
             self.time_data.text_value = f"[{foo}]"
         else:
             self.time_data.text_value = ""
-
-        self.base_data.text_value = repr(list(ts.data.magnitude))
+        if np.__version__ > "2":
+            with np.printoptions(legacy='1.25'):
+                self.base_data.text_value = repr(list(ts.data.magnitude))
+        else:
+            self.base_data.text_value = repr(list(ts.data.magnitude))
         self.base_unit.text_value = format(ts.data.units, "~")
 
 
@@ -156,8 +159,9 @@ def is_safe_nd_array(input_str: str):
     """Check if input_string is a numerical array (allowing floats [with scientific notation), and ints."""
     # Regex pattern to match 1-D and N-D arrays with numbers
     pattern = (
-        r"^\s*(\[\s*(?:(-?\d+(\.\d+)?([eE][+-]?\d+)?|\[\s*.*?\s*\])\s*(,\s*)?)*\]\s*|\s*(-?\d+(\.\d+)?"
-        r"([eE][+-]?\d+)?)(\s*,\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?))*\s*)?\s*$"
+        r"^\s*(\[\s*(?:(-?\d+(\.\d+)?([eE][+-]?\d+)"
+        r"?|\[\s*.*?\s*\])\s*(,\s*)?)*\]\s*|\s*(-?\d+(\.\d+)"
+        r"?([eE][+-]?\d+)?)(\s*,\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?))*\s*)?\s*$"
     )
 
     return bool(re.match(pattern, input_str))
