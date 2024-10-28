@@ -3,6 +3,9 @@
 import base64
 import contextlib
 import hashlib
+import numpy as np
+import re
+import ast
 from functools import partial
 from typing import Callable, Optional
 
@@ -131,21 +134,18 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
 
     @staticmethod
     def convert_to_numpy_array(input_str):
-        import ast
-
-        import numpy as np
-
-        def is_safe_nd_array(input_string):
-            import re
-
-            # Regex pattern to match 1-D and N-D arrays with numbers
-            pattern = r"^\s*\[([-\d.eE+\s]*(,\s*)?|\s*\[.*\]\s*)*\]\s*$"
-            return bool(re.match(pattern, input_string))
-
-        if not is_safe_nd_array(input_str):
-            raise RuntimeError("input_str is not a safe array")
+        if not WidgetTimeSeries.is_safe_nd_array(input_str):
+            raise RuntimeError(f"input_str '{input_str}' is not a safe array")
         a = np.array(ast.literal_eval(input_str))
         return a
+
+    @staticmethod
+    def is_safe_nd_array(input_string):
+        """Check if input_string is a numerical array (allowing floats [with scientific notation), and ints"""
+        # Regex pattern to match 1-D and N-D arrays with numbers
+        pattern = r'^\s*(\[\s*(?:(-?\d+(\.\d+)?([eE][+-]?\d+)?|\[\s*.*?\s*\])\s*(,\s*)?)*\]\s*|\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?)(\s*,\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?))*\s*)?\s*$'
+
+        return bool(re.match(pattern, input_string))
 
     def from_tree(self, tree: dict):
         """Read in data from given dict."""

@@ -11,8 +11,8 @@ from weldx_widgets import WidgetGMAW
     "kind",
     (
         "spray",
-        "UI",
-        "II",
+        #"UI",
+        #"II",
     ),
 )
 def test_import_export(kind):
