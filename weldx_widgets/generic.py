@@ -134,7 +134,7 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
 
     @staticmethod
     def convert_to_numpy_array(input_str):
-        if not WidgetTimeSeries.is_safe_nd_array(input_str):
+        if not is_safe_nd_array(input_str):
             raise RuntimeError(f"input_str '{input_str}' is not a safe array")
         a = np.array(ast.literal_eval(input_str))
         return a
@@ -159,6 +159,12 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         self.base_data.text_value = repr(list(ts.data.magnitude))
         self.base_unit.text_value = format(ts.data.units, "~")
 
+def is_safe_nd_array(input_str : str):
+    """Check if input_string is a numerical array (allowing floats [with scientific notation), and ints."""
+    # Regex pattern to match 1-D and N-D arrays with numbers
+    pattern = r'^\s*(\[\s*(?:(-?\d+(\.\d+)?([eE][+-]?\d+)?|\[\s*.*?\s*\])\s*(,\s*)?)*\]\s*|\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?)(\s*,\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?))*\s*)?\s*$'
+
+    return bool(re.match(pattern, input_str))
 
 def download_button(
     content: bytes,
