@@ -125,17 +125,21 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         time_data = self.convert_to_numpy_array(self.time_data.text_value)
         ts = TimeSeries(
             data=Q_(base_data, units=self.base_unit.text_value),
-            time=pd.TimedeltaIndex(time_data, unit=self.time_unit.text_value)
+            time=pd.TimedeltaIndex(time_data, unit=self.time_unit.text_value),
         )
         return {"timeseries": ts}
 
     @staticmethod
     def convert_to_numpy_array(input_str):
-        import numpy as np, ast
+        import ast
+
+        import numpy as np
+
         def is_safe_nd_array(input_string):
             import re
+
             # Regex pattern to match 1-D and N-D arrays with numbers
-            pattern = r'^\s*\[([-\d.eE+\s]*(,\s*)?|\s*\[.*\]\s*)*\]\s*$'
+            pattern = r"^\s*\[([-\d.eE+\s]*(,\s*)?|\s*\[.*\]\s*)*\]\s*$"
             return bool(re.match(pattern, input_string))
 
         if not is_safe_nd_array(input_str):
