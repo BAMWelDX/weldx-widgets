@@ -10,11 +10,11 @@ from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
-import weldx
-from IPython import get_ipython
 from ipyfilechooser import FileChooser
+from IPython import get_ipython
 from ipywidgets import HTML, Button, HBox, Label
 
+import weldx
 from weldx_widgets.widget_base import WeldxImportExport, WidgetMyHBox, WidgetMyVBox
 from weldx_widgets.widget_factory import (
     WidgetLabeledTextInput,
@@ -94,18 +94,12 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
     """Preliminary time series editing widget."""
 
     # TODO: handle math-expr
-    def __init__(
-        self, base_unit, time_unit="s", base_data="0", time_data="0", title=""
-    ):
+    def __init__(self, base_unit, time_unit="s", base_data="0", time_data="0", title=""):
         layout_prefilled_text = copy_layout(textbox_layout)
         layout_prefilled_text.width = "300px"
 
-        self.base_data = WidgetLabeledTextInput(
-            label_text="Input dimension", prefilled_text=base_data
-        )
-        self.time_data = WidgetLabeledTextInput(
-            label_text="Time steps", prefilled_text=time_data
-        )
+        self.base_data = WidgetLabeledTextInput(label_text="Input dimension", prefilled_text=base_data)
+        self.time_data = WidgetLabeledTextInput(label_text="Time steps", prefilled_text=time_data)
         self.base_data.text.layout = layout_prefilled_text
         self.time_data.text.layout = layout_prefilled_text
 
@@ -148,7 +142,7 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         else:
             self.time_data.text_value = ""
         if np.__version__ > "2":
-            with np.printoptions(legacy='1.25'):
+            with np.printoptions(legacy="1.25"):
                 self.base_data.text_value = repr(list(ts.data.magnitude))
         else:
             self.base_data.text_value = repr(list(ts.data.magnitude))

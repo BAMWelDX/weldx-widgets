@@ -251,9 +251,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
     def groove_obj(self, value: IsoBaseGroove):
         self._groove_obj = value
 
-        self.groove_selection.children[0].value = _groove_type_to_name[
-            self.groove_obj.__class__
-        ]
+        self.groove_selection.children[0].value = _groove_type_to_name[self.groove_obj.__class__]
         # update fields according to data in new groove object.
         gui_params = self.groove_params_dropdowns
 
@@ -298,11 +296,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
     def _create_groove_dropdown(self):
         # get all attribute mappings (human-readable names)
-        attrs = {
-            attr
-            for groove in _groove_name_to_type
-            for attr in _groove_name_to_type[groove]._mapping.values()
-        }
+        attrs = {attr for groove in _groove_name_to_type for attr in _groove_name_to_type[groove]._mapping.values()}
 
         # create dict with hboxes of all attributes
         self.groove_params_dropdowns = dict()
@@ -313,9 +307,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
                     options=get_ff_grove_code_numbers(),
                     layout=description_layout,
                 )
-                param_widgets[item] = HBox(
-                    [Label("Code number", layout=description_layout), dropdown]
-                )
+                param_widgets[item] = HBox([Label("Code number", layout=description_layout), dropdown])
             else:
                 # replace underscores with spaces, first letter uppercase, translate.
                 t = f"{(item[0].upper() + item[1:]).replace('_', ' ')}"
@@ -327,17 +319,11 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
                 else:
                     text = t
                 if "angle" in item:
-                    param_widgets[item] = WidgetFloatWithUnit(
-                        text=text, unit="°", value=45
-                    )
+                    param_widgets[item] = WidgetFloatWithUnit(text=text, unit="°", value=45)
                 elif "workpiece_thickness" in item:
-                    param_widgets[item] = WidgetFloatWithUnit(
-                        text=text, unit="mm", value=15
-                    )
+                    param_widgets[item] = WidgetFloatWithUnit(text=text, unit="mm", value=15)
                 else:
-                    param_widgets[item] = WidgetFloatWithUnit(
-                        text=text, unit="mm", value=5
-                    )
+                    param_widgets[item] = WidgetFloatWithUnit(text=text, unit="mm", value=5)
             param_widgets[item].mapping = item
 
         groove_list = list(_groove_name_to_type.keys())
@@ -397,11 +383,7 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
         self.groove_params.children = [
             slider
             for key, slider in self.groove_params_dropdowns.items()
-            if key
-            in (
-                _groove_name_to_type[selection]._mapping[x]
-                for x in _groove_name_to_type[selection]._mapping
-            )
+            if key in (_groove_name_to_type[selection]._mapping[x] for x in _groove_name_to_type[selection]._mapping)
         ]
 
 
@@ -412,9 +394,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         self.last_plot: Optional[CoordinateSystemManagerVisualizerK3D] = None
         self.groove_sel = WidgetGrooveSelection()
 
-        self.seam_length = WidgetFloatWithUnit(
-            "Seam length", value=300, min=0, unit="mm"
-        )
+        self.seam_length = WidgetFloatWithUnit("Seam length", value=300, min=0, unit="mm")
         self.seam_length.observe_float_value(self.create_csm_and_plot)
         self.seam_length.observe_unit(self.create_csm_and_plot)
 
@@ -442,9 +422,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         self.groove_sel.output_tabs.set_title(1, "3D profile")
         self.groove_sel.output_tabs.set_title(2, "CAD export")
 
-        self.groove_sel.output_tabs.observe(
-            self.create_csm_and_plot, names="selected_index"
-        )
+        self.groove_sel.output_tabs.observe(self.create_csm_and_plot, names="selected_index")
         self.groove_sel.add_parameter_observer(self.create_csm_and_plot)
 
         # csm 3d visualization
@@ -470,18 +448,14 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
         trace = weldx.Trace(trace_segment)
 
         # create 3d workpiece geometry from the groove profile and trace objects
-        geometry = weldx.Geometry(
-            self.groove_sel.groove_obj.to_profile(width_default=Q_(5, "mm")), trace
-        )
+        geometry = weldx.Geometry(self.groove_sel.groove_obj.to_profile(width_default=Q_(5, "mm")), trace)
 
         # rasterize geometry
         profile_raster_width = self.geometry_export.profile_raster_width.quantity
         trace_raster_width = self.geometry_export.trace_raster_width.quantity
 
         # crete a new coordinate system manager with default base coordinate system
-        csm = weldx.CoordinateSystemManager(
-            "base", coordinate_system_manager_name="design"
-        )
+        csm = weldx.CoordinateSystemManager("base", coordinate_system_manager_name="design")
 
         # add the workpiece coordinate system
         csm.add_cs(
@@ -516,9 +490,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
 
         coords = np.stack([tcp_start_point, tcp_end_point])
 
-        tcp_wire = weldx.LocalCoordinateSystem(
-            coordinates=coords, orientation=rot, time=[t_start, t_end]
-        )
+        tcp_wire = weldx.LocalCoordinateSystem(coordinates=coords, orientation=rot, time=[t_start, t_end])
 
         csm.add_cs(
             coordinate_system_name="TCP design",

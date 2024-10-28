@@ -54,9 +54,7 @@ def new_3d_figure_and_axes(
         The matplotlib axes object
 
     """
-    fig, ax = plt.subplots(
-        ncols=num_subplots, subplot_kw={"projection": "3d", "proj_type": "ortho"}
-    )
+    fig, ax = plt.subplots(ncols=num_subplots, subplot_kw={"projection": "3d", "proj_type": "ortho"})
     try:
         fig.canvas.layout.height = f"{height}px"
         fig.canvas.layout.width = f"{width}px"
@@ -260,11 +258,7 @@ def plot_local_coordinate_system_matplotlib(
             show_vectors=show_vectors,
         )
 
-    if (
-        show_trace
-        and not isinstance(lcs.coordinates, TimeSeries)
-        and lcs.coordinates.data.ndim > 1
-    ):
+    if show_trace and not isinstance(lcs.coordinates, TimeSeries) and lcs.coordinates.data.ndim > 1:
         coords = lcs.coordinates.data
         if isinstance(coords, Q_):
             coords = coords.to(_DEFAULT_LEN_UNIT).m

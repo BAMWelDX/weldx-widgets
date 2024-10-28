@@ -42,9 +42,7 @@ def _get_limits_from_stack(limits):
     return np.vstack([mins, maxs])
 
 
-def _get_coordinates_and_orientation(
-    lcs: LocalCoordinateSystem, index: int = 0
-) -> tuple[pint.Quantity, pint.Quantity]:
+def _get_coordinates_and_orientation(lcs: LocalCoordinateSystem, index: int = 0) -> tuple[pint.Quantity, pint.Quantity]:
     """Get the coordinates and orientation of a coordinate system.
 
     Parameters
@@ -68,20 +66,14 @@ def _get_coordinates_and_orientation(
             "Interpolate values before plotting to solve this issue"
         )
 
-    coordinates = lcs.coordinates.isel(time=index, missing_dims="ignore").data.astype(
-        "float32"
-    )
+    coordinates = lcs.coordinates.isel(time=index, missing_dims="ignore").data.astype("float32")
 
-    orientation = lcs.orientation.isel(time=index, missing_dims="ignore").data.astype(
-        "float32"
-    )
+    orientation = lcs.orientation.isel(time=index, missing_dims="ignore").data.astype("float32")
 
     return coordinates, orientation
 
 
-def _create_model_matrix(
-    coordinates: pint.Quantity, orientation: np.ndarray
-) -> np.ndarray:
+def _create_model_matrix(coordinates: pint.Quantity, orientation: np.ndarray) -> np.ndarray:
     """Create the model matrix from an orientation and coordinates.
 
     Parameters
@@ -487,9 +479,7 @@ class SpatialDataVisualizer:
         if self._mesh is not None:
             self._mesh.model_matrix = model_mat
         if self._label is not None:
-            self._label.position = (
-                np.matmul(model_mat[0:3, 0:3], self._label_pos) + model_mat[0:3, 3]
-            )
+            self._label.position = np.matmul(model_mat[0:3, 0:3], self._label_pos) + model_mat[0:3, 3]
 
 
 class CoordinateSystemManagerVisualizerK3D:
@@ -780,9 +770,7 @@ class CoordinateSystemManagerVisualizerK3D:
         traces_cb = Checkbox(value=show_traces, description="show traces", layout=lo)
         labels_cb = Checkbox(value=show_labels, description="show labels", layout=lo)
         wf_cb = Checkbox(value=show_wireframe, description="show wireframe", layout=lo)
-        data_labels_cb = Checkbox(
-            value=show_data_labels, description="show data labels", layout=lo
-        )
+        data_labels_cb = Checkbox(value=show_data_labels, description="show data labels", layout=lo)
 
         jslink((play, "value"), (time_slider, "value"))
         play.disabled = disable_time_widgets
@@ -790,16 +778,12 @@ class CoordinateSystemManagerVisualizerK3D:
 
         # register callbacks
         time_slider.observe(lambda c: self.update_time_index(c["new"]), names="value")
-        reference_dropdown.observe(
-            lambda c: self.update_reference_system(c["new"]), names="value"
-        )
+        reference_dropdown.observe(lambda c: self.update_reference_system(c["new"]), names="value")
         vectors_cb.observe(lambda c: self.show_vectors(c["new"]), names="value")
         origin_cb.observe(lambda c: self.show_origins(c["new"]), names="value")
         traces_cb.observe(lambda c: self.show_traces(c["new"]), names="value")
         labels_cb.observe(lambda c: self.show_labels(c["new"]), names="value")
-        data_dropdown.observe(
-            lambda c: self.set_data_visualization_method(c["new"]), names="value"
-        )
+        data_dropdown.observe(lambda c: self.set_data_visualization_method(c["new"]), names="value")
         data_labels_cb.observe(lambda c: self.show_data_labels(c["new"]), names="value")
         wf_cb.observe(lambda c: self.show_wireframes(c["new"]), names="value")
 
@@ -817,9 +801,7 @@ class CoordinateSystemManagerVisualizerK3D:
             return lcs_vis.origin.model_matrix
 
         lcs = self._csm.get_cs(lcs_name, self._current_reference_system)
-        coordinates, orientation = _get_coordinates_and_orientation(
-            lcs, self._current_time_index
-        )
+        coordinates, orientation = _get_coordinates_and_orientation(lcs, self._current_time_index)
         return _create_model_matrix(coordinates, orientation)
 
     def _update_spatial_data(self):
@@ -916,9 +898,7 @@ class CoordinateSystemManagerVisualizerK3D:
         """
         self._current_reference_system = reference_system
         for lcs_name, lcs_vis in self._lcs_vis.items():
-            lcs_vis.update_lcs(
-                self._csm.get_cs(lcs_name, reference_system), self._current_time_index
-            )
+            lcs_vis.update_lcs(self._csm.get_cs(lcs_name, reference_system), self._current_time_index)
         self._update_spatial_data()
 
     def update_time_index(self, index: int):

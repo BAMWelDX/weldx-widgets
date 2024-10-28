@@ -14,11 +14,7 @@ def metaclass_resolver(*classes):
     def cls_name(classes):
         return "_".join(mcls.__name__ for mcls in classes)
 
-    metaclass = (
-        metaclass[0]
-        if len(metaclass) == 1
-        else type(cls_name(metaclass), metaclass, {})
-    )  # class M_C
+    metaclass = metaclass[0] if len(metaclass) == 1 else type(cls_name(metaclass), metaclass, {})  # class M_C
     return metaclass(cls_name(classes), classes, {})  # class C
 
 

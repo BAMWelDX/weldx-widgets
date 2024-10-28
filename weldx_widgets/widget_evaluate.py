@@ -104,9 +104,7 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
         # start and end time of experiment
         t = (file["TCP"].time[[0, -1]]).as_timedelta()
 
-        WidgetProcessInfo(
-            file["process"]["welding_process"], t, out=tabs["Process parameters"]
-        )
+        WidgetProcessInfo(file["process"]["welding_process"], t, out=tabs["Process parameters"])
 
         groove = file["workpiece"]["geometry"]["groove_shape"]
         with tabs["Specimen"]:
@@ -132,10 +130,7 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
         # clean up scan data (fill up NaNs)
         scans_available = True
         try:
-            foo = [
-                _clean_nans_from_spatial_data(csm.get_data(f"scan_{i}"))
-                for i in range(0, 2)
-            ]
+            foo = [_clean_nans_from_spatial_data(csm.get_data(f"scan_{i}")) for i in range(0, 2)]
             assert len(foo) == 2
             # assert csm.get_data("scan_1").coordinates.
         except KeyError:
@@ -145,18 +140,14 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
         spatial_data_geo_full = geometry_full_width.spatial_data(
             profile_raster_width=Q_(4, "mm"), trace_raster_width=Q_(60, "mm")
         )
-        spatial_data_geo_full.coordinates = spatial_data_geo_full.coordinates.astype(
-            "float32"
-        )
+        spatial_data_geo_full.coordinates = spatial_data_geo_full.coordinates.astype("float32")
 
         spatial_data_geo_reduced = geometry.spatial_data(
             profile_raster_width=Q_(4, "mm"), trace_raster_width=Q_(60, "mm")
         )
 
         csm.assign_data(spatial_data_geo_full, "workpiece geometry", "workpiece")
-        csm.assign_data(
-            spatial_data_geo_reduced, "workpiece geometry (reduced)", "workpiece"
-        )
+        csm.assign_data(spatial_data_geo_reduced, "workpiece geometry (reduced)", "workpiece")
 
         with tabs["CSM-Subsystems"]:
             csm.plot_graph()
@@ -284,9 +275,7 @@ class WidgetEvaluateSinglePassWeld(metaclass_resolver(Tab, WidgetBase)):
         triangles[-1][1] = 1
         triangles[-1][2] = 0
 
-        return SpatialData(
-            Q_(points, "mm").astype("float32"), np.array(triangles, dtype="uint32")
-        )
+        return SpatialData(Q_(points, "mm").astype("float32"), np.array(triangles, dtype="uint32"))
 
     @staticmethod
     def _create_geometry(groove, seam_length, width):

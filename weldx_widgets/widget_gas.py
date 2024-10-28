@@ -30,11 +30,7 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
         self.initial_percentage = percentage
         self.components = {self.gas_list[index]: gas}
 
-        self.out = Output(
-            layout=Layout(
-                width="auto", height="80px", display="none", border="2px solid"
-            )
-        )
+        self.out = Output(layout=Layout(width="auto", height="80px", display="none", border="2px solid"))
 
         button_add = Button(description="Add gas component")
         button_add.on_click(self._add_gas_comp)
@@ -58,9 +54,7 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
             style={"description_width": "initial"},
         )
 
-        percentage = IntSlider(
-            start=0, end=100, value=percentage, description="percentage"
-        )
+        percentage = IntSlider(start=0, end=100, value=percentage, description="percentage")
         percentage.observe(self._check, type="change")
 
         self.gas_selection = gas_dropdown
@@ -109,9 +103,7 @@ class WidgetSimpleGasSelection(WidgetMyVBox):
 
     def to_tree(self) -> dict:
         gas_components = [
-            GasComponent(
-                self._mapping[element], Q_(int(widget.children[1].value), "percent")
-            )
+            GasComponent(self._mapping[element], Q_(int(widget.children[1].value), "percent"))
             for element, widget in self.components.items()
         ]
         return dict(gas_component=gas_components)
@@ -149,9 +141,7 @@ class WidgetShieldingGas(WidgetMyVBox):
         """Return weldx objects describing the shielding gas."""
         gas_for_proc = ShieldingGasForProcedure(
             use_torch_shielding_gas=True,
-            torch_shielding_gas=ShieldingGasType(
-                **self.gas_components.to_tree(), common_name="SG"
-            ),
+            torch_shielding_gas=ShieldingGasType(**self.gas_components.to_tree(), common_name="SG"),
             torch_shielding_gas_flowrate=self.flowrate.quantity,
         )
         return dict(shielding_gas=gas_for_proc)
@@ -160,7 +150,5 @@ class WidgetShieldingGas(WidgetMyVBox):
         """Restore widget state from tree."""
         gas_for_proc: ShieldingGasForProcedure = tree["shielding_gas"]
         self.flowrate.quantity = gas_for_proc.torch_shielding_gas_flowrate
-        gas_components = dict(
-            gas_component=gas_for_proc.torch_shielding_gas.gas_component
-        )
+        gas_components = dict(gas_component=gas_for_proc.torch_shielding_gas.gas_component)
         self.gas_components.from_tree(gas_components)
