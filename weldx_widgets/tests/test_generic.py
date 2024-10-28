@@ -14,7 +14,7 @@ def test_import_export():
     w = WidgetTimeSeries("m")
     w.from_tree(dict(timeseries=ts))
     assert w.base_unit.text_value == "m"
-    assert w.base_data.text_value == str(data)
+    assert w.base_data.text_value == str(data)#.replace("[","")
     assert w.time_data.text_value == str(time)
 
     ts2 = w.to_tree()
