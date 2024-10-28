@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        py: ['3.9', '3.10', '3.11', '3.12']
+        py: ['3.9', '3.10', '3.11', '3.12', '3.13']
         weldx_version: ['weldx']
         include:
           - os: ubuntu-latest
