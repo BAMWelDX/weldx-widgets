@@ -3,7 +3,6 @@
 import pandas as pd
 
 import weldx
-
 from weldx_widgets import WidgetTimeSeries
 from weldx_widgets.generic import is_safe_nd_array
 

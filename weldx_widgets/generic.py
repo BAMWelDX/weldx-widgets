@@ -1,14 +1,14 @@
 """Generic widgets."""
 
+import ast
 import base64
 import contextlib
 import hashlib
-import numpy as np
 import re
-import ast
 from functools import partial
 from typing import Callable, Optional
 
+import numpy as np
 import pandas as pd
 from ipyfilechooser import FileChooser
 from IPython import get_ipython
@@ -143,7 +143,10 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
     def is_safe_nd_array(input_string):
         """Check if input_string is a numerical array (allowing floats [with scientific notation), and ints"""
         # Regex pattern to match 1-D and N-D arrays with numbers
-        pattern = r'^\s*(\[\s*(?:(-?\d+(\.\d+)?([eE][+-]?\d+)?|\[\s*.*?\s*\])\s*(,\s*)?)*\]\s*|\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?)(\s*,\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?))*\s*)?\s*$'
+        pattern = (
+            r"^\s*(\[\s*(?:(-?\d+(\.\d+)?([eE][+-]?\d+)?|\[\s*.*?\s*\])\s*(,\s*)?)*\]\s*|\s*(-?\d+(\.\d+)?"
+            r"([eE][+-]?\d+)?)(\s*,\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?))*\s*)?\s*$"
+        )
 
         return bool(re.match(pattern, input_string))
 
@@ -159,12 +162,14 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         self.base_data.text_value = repr(list(ts.data.magnitude))
         self.base_unit.text_value = format(ts.data.units, "~")
 
-def is_safe_nd_array(input_str : str):
+
+def is_safe_nd_array(input_str: str):
     """Check if input_string is a numerical array (allowing floats [with scientific notation), and ints."""
     # Regex pattern to match 1-D and N-D arrays with numbers
-    pattern = r'^\s*(\[\s*(?:(-?\d+(\.\d+)?([eE][+-]?\d+)?|\[\s*.*?\s*\])\s*(,\s*)?)*\]\s*|\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?)(\s*,\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?))*\s*)?\s*$'
+    pattern = r"^\s*(\[\s*(?:(-?\d+(\.\d+)?([eE][+-]?\d+)?|\[\s*.*?\s*\])\s*(,\s*)?)*\]\s*|\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?)(\s*,\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?))*\s*)?\s*$"
 
     return bool(re.match(pattern, input_str))
+
 
 def download_button(
     content: bytes,
