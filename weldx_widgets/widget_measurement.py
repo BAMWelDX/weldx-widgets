@@ -83,9 +83,7 @@ class WidgetMeasurementChain(WidgetSimpleOutput):
     def __init__(self, measurements, out=None):
         super().__init__(out=out)
         with self:
-            fig, ax = plt.subplots(
-                nrows=len(measurements), figsize=(_DEFAULT_FIGWIDTH, 18)
-            )
+            fig, ax = plt.subplots(nrows=len(measurements), figsize=(_DEFAULT_FIGWIDTH, 18))
             for i, measurement in enumerate(measurements):
                 measurement.measurement_chain.plot(ax[i])
             plt.tight_layout()

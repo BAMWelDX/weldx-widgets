@@ -66,9 +66,7 @@ class WidgetFloatWithUnit(WidgetMyHBox):
 
     def __init__(self, text, unit, value: float = 0.0, min=0):
         self._label = Label(text, layout=description_layout)
-        self._float = BoundedFloatText(
-            value=value, min=min, max=2**32, layout=textbox_layout
-        )
+        self._float = BoundedFloatText(value=value, min=min, max=2**32, layout=textbox_layout)
         self._unit = Text(value=unit, placeholder="unit", layout=textbox_layout)
 
         super().__init__(

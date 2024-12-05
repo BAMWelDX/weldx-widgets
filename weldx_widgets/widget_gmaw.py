@@ -61,9 +61,7 @@ class BaseProcess(WidgetMyVBox):
 
         self.manufacturer = WidgetLabeledTextInput("Manufacturer", "Fronius")
         self.power_source = WidgetLabeledTextInput("Power source", "TPS 500i")
-        self.wire_feedrate = WidgetFloatWithUnit(
-            text="Wire feed rate", value=10, min=0, unit="m/min"
-        )
+        self.wire_feedrate = WidgetFloatWithUnit(text="Wire feed rate", value=10, min=0, unit="m/min")
         children = [
             self.manufacturer,
             self.power_source,
@@ -88,9 +86,7 @@ class BaseProcess(WidgetMyVBox):
         process: GmawProcess = tree["welding_process"]
         self.manufacturer.text_value = process.manufacturer
         self.power_source.text_value = process.power_source
-        self.wire_feedrate.quantity = from_scalar_timeseries_to_q(
-            process.parameters["wire_feedrate"]
-        )
+        self.wire_feedrate.quantity = from_scalar_timeseries_to_q(process.parameters["wire_feedrate"])
         self.tag = process.tag
         self.meta = process.meta
 
@@ -99,12 +95,8 @@ class ProcessPulsed(WidgetMyVBox):
     """Widget for pulsed processes."""
 
     def __init__(self, kind="UI"):
-        self.pulse_duration = WidgetFloatWithUnit(
-            "Pulse duration", value=5.0, unit="ms"
-        )
-        self.pulse_frequency = WidgetFloatWithUnit(
-            "Pulse frequency", value=100.0, unit="Hz"
-        )
+        self.pulse_duration = WidgetFloatWithUnit("Pulse duration", value=5.0, unit="ms")
+        self.pulse_frequency = WidgetFloatWithUnit("Pulse frequency", value=100.0, unit="Hz")
         self.base_current = WidgetFloatWithUnit("Base current", value=60.0, unit="A")
 
         if kind == "UI":
@@ -158,22 +150,14 @@ class ProcessPulsed(WidgetMyVBox):
         self.kind = process.meta["modulation"]
 
         params = process.parameters
-        self.pulse_duration.quantity = from_scalar_timeseries_to_q(
-            params["pulse_duration"]
-        )
-        self.pulse_frequency.quantity = from_scalar_timeseries_to_q(
-            params["pulse_frequency"]
-        )
+        self.pulse_duration.quantity = from_scalar_timeseries_to_q(params["pulse_duration"])
+        self.pulse_frequency.quantity = from_scalar_timeseries_to_q(params["pulse_frequency"])
         self.base_current.quantity = from_scalar_timeseries_to_q(params["base_current"])
 
         if self.kind == "UI":
-            self.pulsed_dim.quantity = from_scalar_timeseries_to_q(
-                params["pulse_voltage"]
-            )
+            self.pulsed_dim.quantity = from_scalar_timeseries_to_q(params["pulse_voltage"])
         else:
-            self.pulsed_dim.quantity = from_scalar_timeseries_to_q(
-                params["pulse_current"]
-            )
+            self.pulsed_dim.quantity = from_scalar_timeseries_to_q(params["pulse_current"])
 
 
 class ProcessSpray(WidgetMyVBox):
@@ -181,9 +165,7 @@ class ProcessSpray(WidgetMyVBox):
 
     def __init__(self):
         self.base_process = BaseProcess("CLOOS/spray_arc")
-        self.voltage = WidgetTimeSeries(
-            base_data="40.0, 20.0", base_unit="V", time_data="0.0, 10.0", time_unit="s"
-        )
+        self.voltage = WidgetTimeSeries(base_data="40.0, 20.0", base_unit="V", time_data="0.0, 10.0", time_unit="s")
         self.impedance = WidgetFloatWithUnit(text="Impedance", value=10, unit="percent")
         self.characteristic = WidgetFloatWithUnit("Characteristic", value=5, unit="V/A")
 
@@ -221,9 +203,7 @@ class ProcessSpray(WidgetMyVBox):
         self.voltage.from_tree(dict(timeseries=parameters["voltage"]))
 
         self.impedance.quantity = from_scalar_timeseries_to_q(parameters["impedance"])
-        self.characteristic.quantity = from_scalar_timeseries_to_q(
-            parameters["characteristic"]
-        )
+        self.characteristic.quantity = from_scalar_timeseries_to_q(parameters["characteristic"])
 
 
 class WidgetWire(WidgetMyVBox):
@@ -334,9 +314,7 @@ class WidgetGMAW(WidgetMyVBox, WeldxImportExport):
         elif welding_process.base_process == "spray":
             process_type = "Spray"
         else:
-            raise NotImplementedError(
-                f"unknown process type: {welding_process.base_process}"
-            )
+            raise NotImplementedError(f"unknown process type: {welding_process.base_process}")
         self.process_type.value = process_type
 
         self.welding_process.from_tree(process)

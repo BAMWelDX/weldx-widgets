@@ -1,11 +1,15 @@
 """Generic widgets."""
 
+import ast
 import base64
 import contextlib
 import hashlib
+import re
 from functools import partial
 from typing import Callable, Optional
 
+import numpy as np
+import pandas as pd
 from ipyfilechooser import FileChooser
 from IPython import get_ipython
 from ipywidgets import HTML, Button, HBox, Label
@@ -90,18 +94,12 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
     """Preliminary time series editing widget."""
 
     # TODO: handle math-expr
-    def __init__(
-        self, base_unit, time_unit="s", base_data="0", time_data="0", title=""
-    ):
+    def __init__(self, base_unit, time_unit="s", base_data="0", time_data="0", title=""):
         layout_prefilled_text = copy_layout(textbox_layout)
         layout_prefilled_text.width = "300px"
 
-        self.base_data = WidgetLabeledTextInput(
-            label_text="Input dimension", prefilled_text=base_data
-        )
-        self.time_data = WidgetLabeledTextInput(
-            label_text="Time steps", prefilled_text=time_data
-        )
+        self.base_data = WidgetLabeledTextInput(label_text="Input dimension", prefilled_text=base_data)
+        self.time_data = WidgetLabeledTextInput(label_text="Time steps", prefilled_text=time_data)
         self.base_data.text.layout = layout_prefilled_text
         self.time_data.text.layout = layout_prefilled_text
 
@@ -120,12 +118,20 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         """Get mapping of input fields."""
         from weldx import Q_, TimeSeries
 
-        # TODO: eval - the root of evil!
+        base_data = self.convert_to_numpy_array(self.base_data.text_value)
+        time_data = self.convert_to_numpy_array(self.time_data.text_value)
         ts = TimeSeries(
-            data=Q_(eval(self.base_data.text_value), units=self.base_unit.text_value),
-            time=Q_(eval(self.time_data.text_value), units=self.time_unit.text_value),
+            data=Q_(base_data, units=self.base_unit.text_value),
+            time=pd.TimedeltaIndex(time_data, unit=self.time_unit.text_value),
         )
         return {"timeseries": ts}
+
+    @staticmethod
+    def convert_to_numpy_array(input_str):
+        if not is_safe_nd_array(input_str):
+            raise RuntimeError(f"input_str '{input_str}' is not a safe array")
+        a = np.array(ast.literal_eval(input_str))
+        return a
 
     def from_tree(self, tree: dict):
         """Read in data from given dict."""
@@ -135,9 +141,24 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
             self.time_data.text_value = f"[{foo}]"
         else:
             self.time_data.text_value = ""
-
-        self.base_data.text_value = repr(list(ts.data.magnitude))
+        if np.__version__ > "2":
+            with np.printoptions(legacy="1.25"):
+                self.base_data.text_value = repr(list(ts.data.magnitude))
+        else:
+            self.base_data.text_value = repr(list(ts.data.magnitude))
         self.base_unit.text_value = format(ts.data.units, "~")
+
+
+def is_safe_nd_array(input_str: str):
+    """Check if input_string is a numerical array (allowing floats [with scientific notation), and ints."""
+    # Regex pattern to match 1-D and N-D arrays with numbers
+    pattern = (
+        r"^\s*(\[\s*(?:(-?\d+(\.\d+)?([eE][+-]?\d+)"
+        r"?|\[\s*.*?\s*\])\s*(,\s*)?)*\]\s*|\s*(-?\d+(\.\d+)"
+        r"?([eE][+-]?\d+)?)(\s*,\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?))*\s*)?\s*$"
+    )
+
+    return bool(re.match(pattern, input_str))
 
 
 def download_button(
