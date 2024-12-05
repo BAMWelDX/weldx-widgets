@@ -45,12 +45,12 @@ dynamic = [
 ]
 dependencies = [
   "bidict",
-  "flexparser<0.4", # pint compat, see https://github.com/hgrecco/pint/issues/1969#issuecomment-2461687001
   "ipyfilechooser",
   "ipympl",
   "ipywidgets",
   "k3d>=2.12",
   "matplotlib<3.9",
+  "numpy",
   "pint",
   "tqdm",
   "weldx>=0.6",
