@@ -693,7 +693,7 @@ class CoordinateSystemManagerVisualizerK3D:
         return None
 
     def _ipython_display_(self):
-        from IPython.core.display import display
+        from IPython.display import display
 
         # display everything
         self._plot.display()
