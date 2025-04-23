@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.2.6 (23.04.2025)
+
+### Dependencies
+
+- require `ipython>=8` and update deprecated import #151
+
 ## 0.2.5 (06.12.2024)
 
 ### Dependencies
