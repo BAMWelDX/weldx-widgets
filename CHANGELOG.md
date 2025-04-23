@@ -2,6 +2,10 @@
 
 ## 0.2.6 (23.04.2025)
 
+### Changes
+
+- update version genertion #152
+
 ### Dependencies
 
 - require `ipython>=8` and update deprecated import #151

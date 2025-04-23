@@ -1,9 +1,8 @@
 [build-system]
-# Tool configs
 requires = [
   "babel",
   "setuptools>=45",
-  "setuptools-scm[toml]>=6",
+  "setuptools-scm[toml]>=8",
   "wheel",
 ]
 
@@ -16,7 +15,7 @@ keywords = [
   "weldx",
   "widgets",
 ]
-license = { file = "LICENSE", name = "BSD License" }
+license = { file = "LICENSE" }
 authors = [
   { name = "Martin K. Scherer", email = "martin.scherer@bam.de" },
   { name = "Cagtay Fabry", email = "cagtay.fabry@bam.de" },
@@ -40,8 +39,7 @@ classifiers = [
 ]
 
 dynamic = [
-  # see: https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#dynamic-metadata
-  "version", # version gets derived from git by setuptools_scm.
+  "version",
 ]
 dependencies = [
   "bidict",
@@ -71,8 +69,7 @@ where = [
 ]
 
 [tool.setuptools_scm]
-write_to = "weldx_widgets/_version.py"
-write_to_template = '__version__ = "{version}"'
+# enable setuptools-scm versioning
 
 [tool.pytest.ini_options]
 addopts = "--tb=short --color=yes -rsw --doctest-modules --cov=weldx_widgets"
@@ -90,7 +87,6 @@ source = [
 
 [tool.coverage.report]
 omit = [
-  "weldx_widgets/_version.py",
   "weldx_widgets/tests/*",
 ]
 exclude_lines = [
