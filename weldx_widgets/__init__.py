@@ -23,6 +23,6 @@ try:
     __version__ = version("weldx_widgets")
 except PackageNotFoundError:
     # package is not installed
-    __version__ = "unknown(pkg-not-installed)"
+    pass
 finally:
     del version, PackageNotFoundError
