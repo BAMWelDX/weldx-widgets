@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 import re
 import tempfile
-from typing import TYPE_CHECKING, Callable, Optional, Union
+from typing import TYPE_CHECKING, Callable, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -392,7 +392,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     """Widget to combine groove type and tcp movement."""
 
     def __init__(self):
-        self.last_plot: Optional[CoordinateSystemManagerVisualizerK3D] = None
+        self.last_plot: CoordinateSystemManagerVisualizerK3D | None = None
         self.groove_sel = WidgetGrooveSelection()
 
         self.seam_length = WidgetFloatWithUnit("Seam length", value=300, min=0, unit="mm")
