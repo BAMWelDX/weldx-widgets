@@ -4,7 +4,7 @@
 
 ### Changes
 
-- update version genertion #152
+- update version generation #152
 
 ### Dependencies
 

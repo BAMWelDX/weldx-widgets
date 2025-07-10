@@ -38,7 +38,7 @@ def create_axis_video(
         the original length.
         No speedup if parameter is not provided.
     default_tz, optional
-        The default timezone to interpret all tiemstamps without
+        The default timezone to interpret all timestamps without
         timezone information (naive), by default "Europe/Berlin"
     video_root_path, optional
         The root path from where to start looking for videos,
