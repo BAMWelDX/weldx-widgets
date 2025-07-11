@@ -28,4 +28,5 @@ def test_is_safe_nd_array():
     assert is_safe_nd_array("[[1, 2, 3], [4, 5, 6]]")
     assert is_safe_nd_array("[[1.2e3, -4.5E-2], [3.4]]")
     assert not is_safe_nd_array("[1, 2, 'evil']")
+    assert not is_safe_nd_array("[1., 2.]")
     assert not is_safe_nd_array("1, 2, (x) => x")

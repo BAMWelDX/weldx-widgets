@@ -122,7 +122,7 @@ class WidgetTimeSeries(WidgetMyVBox, WeldxImportExport):
         time_data = self.convert_to_numpy_array(self.time_data.text_value)
         ts = TimeSeries(
             data=Q_(base_data, units=self.base_unit.text_value),
-            time=pd.TimedeltaIndex(time_data, unit=self.time_unit.text_value),
+            time=pd.to_timedelta(time_data, unit=self.time_unit.text_value),
         )
         return {"timeseries": ts}
 

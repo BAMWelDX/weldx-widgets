@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 import re
 import tempfile
-from typing import TYPE_CHECKING, Callable, Optional, Union
+from typing import TYPE_CHECKING, Callable, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -372,7 +372,8 @@ class WidgetGrooveSelection(WidgetMyVBox, WeldxImportExport):
 
         # TODO: re-plot can be avoided (e.g. set_xydata?)
         if self.ax.lines:
-            self.ax.lines.clear()
+            for artist in self.ax.lines:
+                artist.remove()
         # self.ax.texts = []
 
         self.groove_obj.plot(line_style="-", ax=self.ax)
@@ -391,7 +392,7 @@ class WidgetGrooveSelectionTCPMovement(WidgetMyVBox):
     """Widget to combine groove type and tcp movement."""
 
     def __init__(self):
-        self.last_plot: Optional[CoordinateSystemManagerVisualizerK3D] = None
+        self.last_plot: CoordinateSystemManagerVisualizerK3D | None = None
         self.groove_sel = WidgetGrooveSelection()
 
         self.seam_length = WidgetFloatWithUnit("Seam length", value=300, min=0, unit="mm")

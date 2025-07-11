@@ -17,8 +17,8 @@ keywords = [
 ]
 license = { file = "LICENSE" }
 authors = [
+  { name = "Çağtay Fabry", email = "cagtay.fabry@bam.de" },
   { name = "Martin K. Scherer", email = "martin.scherer@bam.de" },
-  { name = "Cagtay Fabry", email = "cagtay.fabry@bam.de" },
 ]
 # Dependencies
 requires-python = ">=3.9"
@@ -46,9 +46,9 @@ dependencies = [
   "ipyfilechooser",
   "ipympl",
   "ipython>=8",
-  "ipywidgets",
+  "ipywidgets>=8.1",
   "k3d>=2.12",
-  "matplotlib<3.9",
+  "matplotlib>=3.8",
   "numpy",
   "pint",
   "tqdm",
