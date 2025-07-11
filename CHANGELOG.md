@@ -2,15 +2,25 @@
 
 ## 0.3.0 (11.07.2025)
 
-### Fixes
+### Added
+- Added codespell spellchecking to pre-commit hooks (excluding `demo.ipynb`).
+- Added Çağtay Fabry as an author in `pyproject.toml`.
 
-- remove recursive `display` call from `BaseWidget` #157  
-  (show widgets with default notebook output or explicit `display()` call)
-- fix matplotlib syntax for newer versions #157
+### Changed
+- Updated `ipywidgets` dependency to require version `>=8.1`.
+- Updated `matplotlib` dependency to require version `>=3.8`.
+- Updated ruff pre-commit hook to use `ruff-check` and bumped ruff version to `v0.12.2`.
+- Improved type hint for `last_plot` in `WidgetGrooveSelectionTCPMovement` to use `CoordinateSystemManagerVisualizerK3D | None`.
+- Replaced usage of `pd.TimedeltaIndex` with `pd.to_timedelta` in `to_tree` for improved time data handling.
+- Improved removal of lines in matplotlib axes by using `artist.remove()` instead of `ax.lines.clear()` in `_update_plot`.
 
-### Dependencies
+### Fixed
+- Corrected a typo in docstring: "tiemstamps" → "timestamps".
+- Updated unsafe input detection test in `is_safe_nd_array` by adding a test case for `[1., 2.]`.
 
-- set `matplotlib>=3.8` & `ipywidgets>=8.1`
+### Removed
+- Removed the `display` and `_ipython_display_` methods in `widget_base.py` (previously used for frontend drawing).  
+(show widgets with default notebook output or explicit `display()` call)
 
 ## 0.2.6 (23.04.2025)
 
