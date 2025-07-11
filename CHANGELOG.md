@@ -3,23 +3,22 @@
 ## 0.3.0 (11.07.2025)
 
 ### Added
-- Added codespell spellchecking to pre-commit hooks (excluding `demo.ipynb`).
-- Added Çağtay Fabry as an author in `pyproject.toml`.
+- Added codespell spellchecking to pre-commit hooks (excluding `demo.ipynb`). #157
+- Added Çağtay Fabry as an author in `pyproject.toml`. #157
 
 ### Changed
-- Updated `ipywidgets` dependency to require version `>=8.1`.
-- Updated `matplotlib` dependency to require version `>=3.8`.
-- Updated ruff pre-commit hook to use `ruff-check` and bumped ruff version to `v0.12.2`.
-- Improved type hint for `last_plot` in `WidgetGrooveSelectionTCPMovement` to use `CoordinateSystemManagerVisualizerK3D | None`.
-- Replaced usage of `pd.TimedeltaIndex` with `pd.to_timedelta` in `to_tree` for improved time data handling.
-- Improved removal of lines in matplotlib axes by using `artist.remove()` instead of `ax.lines.clear()` in `_update_plot`.
+- Updated `ipywidgets` dependency to require version `>=8.1`. #157
+- Updated `matplotlib` dependency to require version `>=3.8`. #157
+- Updated ruff pre-commit hook to use `ruff-check` and bumped ruff version to `v0.12.2`. #157
+- Improved type hint for `last_plot` in `WidgetGrooveSelectionTCPMovement` to use `CoordinateSystemManagerVisualizerK3D | None`. #157
+- Replaced usage of `pd.TimedeltaIndex` with `pd.to_timedelta` in `to_tree` for improved time data handling. #157
+- Improved removal of lines in matplotlib axes by using `artist.remove()` instead of `ax.lines.clear()` in `_update_plot`. #157
 
 ### Fixed
-- Corrected a typo in docstring: "tiemstamps" → "timestamps".
-- Updated unsafe input detection test in `is_safe_nd_array` by adding a test case for `[1., 2.]`.
+- Updated unsafe input detection test in `is_safe_nd_array` by adding a test case for `[1., 2.]`. #157
 
 ### Removed
-- Removed the `display` and `_ipython_display_` methods in `widget_base.py` (previously used for frontend drawing).  
+- Removed the `display` and `_ipython_display_` methods in `widget_base.py` (previously used for frontend drawing). #157  
 (show widgets with default notebook output or explicit `display()` call)
 
 ## 0.2.6 (23.04.2025)
