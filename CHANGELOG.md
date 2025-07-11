@@ -1,5 +1,17 @@
 # Release Notes
 
+## 0.3.0
+
+### Fixes
+
+- remove recursive `display` call from `BaseWidget` #157  
+  (show widgets with default notebook output or explicit `display()` call)
+- fix matplotlib syntax for newer versions #157
+
+### Dependencies
+
+- set `matplotlib>=3.8` & `ipywidgets>=8.1`
+
 ## 0.2.6 (23.04.2025)
 
 ### Changes
