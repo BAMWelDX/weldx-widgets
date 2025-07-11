@@ -31,12 +31,6 @@ class WidgetBase(abc.ABC, metaclass=_merged_meta):
 
         return deepcopy(self)
 
-    # def display(self):
-    #     """Draw the widget in the frontend."""
-    #     if not hasattr(self, "_ipython_display_"):
-    #         raise NotImplementedError
-    #     self._ipython_display_()
-
     def set_visible(self, state: bool):
         """Toggle visibility."""
         if not hasattr(self, "layout"):
@@ -46,9 +40,6 @@ class WidgetBase(abc.ABC, metaclass=_merged_meta):
         else:
             visibility = "hidden"
         self.layout.visibility = visibility
-
-    # def _ipython_display_(self):
-    #     self.display()
 
 
 border_debug_style = ""  # 2px dashed green"
