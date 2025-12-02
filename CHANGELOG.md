@@ -2,7 +2,7 @@
 
 ## 0.3.1 (02.12.2025)
 
-Release `0.3.1` is a maintenance and documentation release to prepare archiving on zenodo. 
+Release `0.3.1` is a maintenance and documentation release to prepare archiving on zenodo.
 
 ### Documentation
 - Update `README.md` with examples #168
