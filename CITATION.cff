@@ -3,7 +3,7 @@
 cff-version: 1.2.0
 title: "weldx-widgets: advanced visualisation and jupyter widgets for weldx"
 type: software
-version: v0.3.1
+version: v0.3.2
 date-released: 2025-12-02
 license: BSD-3-Clause
 authors:
@@ -12,9 +12,15 @@ authors:
     family-names: Fabry
     given-names: Çağtay
     orcid: "https://orcid.org/0000-0002-0788-8079"
+  - family-names: Hirthammer
+    given-names: Volker
+    orcid: "https://orcid.org/0000-0002-0160-969X"
+  - family-names: Scherer
+    given-names: Martin K.
+    orcid: "https://orcid.org/0000-0002-7983-4387"
 message: "If you use this software in your work, please cite it using the following metadata."
 repository-code: "https://github.com/BAMWelDX/weldx-widgets"
-# doi: ""
+doi: "10.5281/zenodo.17790485"
 keywords:
   - weldx
   - welding
@@ -23,4 +29,4 @@ keywords:
   - widgets
   - jupyter
 abstract: |
-  "This package provides advanced visualisation and interactive widgets for the `weldx` core package."
+  This package provides advanced visualisation and interactive widgets for the weldx core package.
