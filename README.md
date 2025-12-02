@@ -1,5 +1,7 @@
 # weldx-widgets: advanced visualisation and jupyter widgets for weldx
 
+[![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.17790485.svg)](https://doi.org/10.5281/zenodo.17790485)
+
 This package provides advanced visualisation and interactive widgets for the `weldx` core package.
 
 ## Installation
