@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.3.2 (02.12.2025)
+
+Release `0.3.2` updates the project metadata for zenodo.
+
 ## 0.3.1 (02.12.2025)
 
 Release `0.3.1` is a maintenance and documentation release to prepare archiving on zenodo.
