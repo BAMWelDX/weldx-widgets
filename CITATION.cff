@@ -1,0 +1,26 @@
+# YAML 1.2
+---
+cff-version: 1.2.0
+title: "weldx-widgets: advanced visualisation and jupyter widgets for weldx"
+type: software
+version: v0.3.1
+date-released: 2025-12-02
+license: BSD-3-Clause
+authors:
+  - affiliation: "Bundesanstalt für Materialforschung und -prüfung (BAM)"
+    email: cagtay.fabry@bam.de
+    family-names: Fabry
+    given-names: Çağtay
+    orcid: "https://orcid.org/0000-0002-0788-8079"
+message: "If you use this software in your work, please cite it using the following metadata."
+repository-code: "https://github.com/BAMWelDX/weldx-widgets"
+# doi: ""
+keywords:
+  - weldx
+  - welding
+  - "research data"
+  - visualisation
+  - widgets
+  - jupyter
+abstract: |
+  "This package provides advanced visualisation and interactive widgets for the `weldx` core package."
