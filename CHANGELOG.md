@@ -1,5 +1,13 @@
 # Release Notes
 
+## 0.3.1 (02.12.2025)
+
+Release `0.3.1` is a maintenance and documentation release to prepare archiving on zenodo. 
+
+### Documentation
+- Update `README.md` with examples #168
+- Add `CITATION.cff` #168
+
 ## 0.3.0 (11.07.2025)
 
 ### Added
