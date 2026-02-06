@@ -70,6 +70,7 @@ where = [
 ]
 
 [tool.setuptools_scm]
+
 # enable setuptools-scm versioning
 
 [tool.pytest.ini_options]
@@ -81,11 +82,6 @@ filterwarnings = [
   "error::pint.UnitStrippedWarning",
 ]
 
-[tool.coverage.run]
-source = [
-  "weldx_widgets",
-]
-
 [tool.coverage.report]
 omit = [
   "weldx_widgets/tests/*",
@@ -93,4 +89,8 @@ omit = [
 exclude_lines = [
   # Have to re-enable the standard pragma
   "pragma: no cover",
+]
+[tool.coverage.run]
+source = [
+  "weldx_widgets",
 ]
