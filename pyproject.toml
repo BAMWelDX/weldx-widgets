@@ -38,7 +38,6 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering :: Physics",
 ]
-
 dynamic = [
   "version",
 ]
@@ -64,33 +63,31 @@ urls.changelog = "https://github.com/BAMweldx/weldx-widgets/blob/master/CHANGELO
 urls.documentation = "https://weldx.readthedocs.io"
 urls.repository = "https://github.com/BAMweldx/weldx-widgets"
 
-[tool.setuptools.packages.find]
-where = [
+[tool.setuptools]
+packages.find.where = [
   ".",
 ]
 
 [tool.setuptools_scm]
 
+[tool.pytest]
 # enable setuptools-scm versioning
-
-[tool.pytest.ini_options]
-addopts = "--tb=short --color=yes -rsw --doctest-modules --cov=weldx_widgets"
-testpaths = "weldx_widgets/tests"
-filterwarnings = [
+ini_options.addopts = "--tb=short --color=yes -rsw --doctest-modules --cov=weldx_widgets"
+ini_options.testpaths = "weldx_widgets/tests"
+ini_options.filterwarnings = [
   "ignore::DeprecationWarning:traittypes.*:",
   "ignore:Passing method to :FutureWarning:xarray.*:",
   "error::pint.UnitStrippedWarning",
 ]
 
-[tool.coverage.report]
-omit = [
-  "weldx_widgets/tests/*",
+[tool.coverage]
+run.source = [
+  "weldx_widgets",
 ]
-exclude_lines = [
+report.exclude_lines = [
   # Have to re-enable the standard pragma
   "pragma: no cover",
 ]
-[tool.coverage.run]
-source = [
-  "weldx_widgets",
+report.omit = [
+  "weldx_widgets/tests/*",
 ]
