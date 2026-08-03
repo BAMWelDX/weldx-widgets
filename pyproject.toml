@@ -71,13 +71,13 @@ packages.find.where = [
 [tool.setuptools_scm]
 
 [tool.pytest]
+ini_options.testpaths = "weldx_widgets/tests"
 # enable setuptools-scm versioning
 ini_options.addopts = "--tb=short --color=yes -rsw --doctest-modules --cov=weldx_widgets"
-ini_options.testpaths = "weldx_widgets/tests"
 ini_options.filterwarnings = [
+  "error::pint.UnitStrippedWarning",
   "ignore::DeprecationWarning:traittypes.*:",
   "ignore:Passing method to :FutureWarning:xarray.*:",
-  "error::pint.UnitStrippedWarning",
 ]
 
 [tool.coverage]
