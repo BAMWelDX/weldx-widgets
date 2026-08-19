@@ -2,6 +2,7 @@
 
 import contextlib
 
+import numpy as np
 from ipywidgets import HTML, BoundedFloatText, Label, Layout, Text
 from traitlets import All, HasTraits
 
@@ -125,7 +126,10 @@ class WidgetFloatWithUnit(WidgetMyHBox):
 
     @quantity.setter
     def quantity(self, value):
-        self.float_value = value.magnitude
+        # numpy>=2 no longer allows float() on non-0d arrays (e.g. array([20.])),
+        # which magnitude can be for a scalar-valued TimeSeries; .item() handles
+        # both plain scalars and single-element arrays.
+        self.float_value = float(np.asarray(value.magnitude).item())
         self.unit = value.units
 
     def as_time_series(self) -> TimeSeries:
