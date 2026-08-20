@@ -78,10 +78,7 @@ jobs:
           environments: ${{ matrix.environment }}
           activate-environment: true
           log-level: vvv
-
-      - name: Install pip
-        if: ${{ matrix.weldx != null }}
-        run: pixi add pip
+          frozen: true
 
       - name: Install weldx
         if: ${{ matrix.weldx != null }}
