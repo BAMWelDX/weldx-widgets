@@ -71,8 +71,9 @@ jobs:
             weldx: "git+https://github.com/BAMWelDX/weldx.git"
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: prefix-dev/setup-pixi@v0.9.4
+      - uses: prefix-dev/setup-pixi@v0.10.1
         with:
+          pixi-version: v0.77.0
           environments: ${{ matrix.environment }}
           activate-environment: true
           log-level: vvv
