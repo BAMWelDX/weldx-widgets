@@ -1,5 +1,14 @@
 # Release Notes
 
+## 0.3.3 (unreleased)
+
+### Fixes
+- Replace the removed `plt.cm.get_cmap()` call in `visualization/colors.py` with
+  `matplotlib.colormaps[name].resampled(n)`, restoring compatibility with matplotlib>=3.9 and therefore python>=3.10.
+- Fix `WidgetFloat.quantity` setter in `widget_factory.py` to convert a single-element
+  numpy array magnitude to a plain float via `.item()`; `float()` on a non-0d array now
+  raises `TypeError` under numpy>=2.
+
 ## 0.3.2 (02.12.2025)
 
 Release `0.3.2` updates the project metadata for zenodo.

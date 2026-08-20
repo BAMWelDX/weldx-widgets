@@ -43,6 +43,7 @@ dynamic = [
 ]
 dependencies = [
   "bidict",
+  "decorator",
   "ipyfilechooser",
   "ipympl",
   "ipython>=8",

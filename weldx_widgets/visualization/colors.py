@@ -3,7 +3,7 @@
 from collections.abc import Generator, Sized
 from typing import Union
 
-import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 
 RGB_BLACK = 0x000000
@@ -133,7 +133,7 @@ def _shuffled_tab20_colors() -> list[int]:
 
     """
     num_colors = 20
-    colormap = plt.cm.get_cmap("tab20", num_colors)
+    colormap = mpl.colormaps["tab20"].resampled(num_colors)
     colors = [colormap(i)[:3] for i in range(num_colors)]
 
     # randomize colors
