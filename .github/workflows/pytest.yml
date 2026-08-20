@@ -76,7 +76,6 @@ jobs:
         with:
           pixi-version: v0.77.0
           environments: ${{ matrix.environment }}
-          activate-environment: true
           log-level: vvv
           frozen: true
 
