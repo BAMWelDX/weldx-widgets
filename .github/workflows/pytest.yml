@@ -8,53 +8,6 @@ on:
       - '.github/workflows/pytest.yml'
 
 jobs:
-  pytest:
-    name: pytest
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        py: ['3.9', '3.10', '3.11', '3.12']
-        weldx_version: ['weldx']
-        include:
-          - os: ubuntu-latest
-            py: '3.10'
-            weldx_version: 'git+https://github.com/BAMWelDX/weldx.git'
-    env:
-      WELDX_VERSION: ${{ matrix.weldx_version }}
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0 # Fetch all history for all tags and branches
-      - uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.py }}
-
-      - uses: actions/cache@v5
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('setup.cfg') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: pip installs
-        run: |
-          pip install wheel
-          pip install $WELDX_VERSION
-          pip install -e .[test]
-
-      - name: run pytest
-        run: |
-          pytest --no-cov-on-fail
-
-      - name: coverage xml (combination is performed by pytest-cov)
-        run: coverage xml
-
-      - name: codecov.io
-        uses: codecov/codecov-action@v6.0.1
-
   test-pixi:
     runs-on: ubuntu-latest
     strategy:
