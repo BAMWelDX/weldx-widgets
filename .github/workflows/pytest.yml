@@ -8,21 +8,26 @@ on:
       - '.github/workflows/pytest.yml'
 
 jobs:
-  test-pixi:
-    runs-on: ubuntu-latest
+  pytest:
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: ["ubuntu-latest"]
         environment:
           - test-py310
           - test-py311
           - test-py312
           - test-py313
           - test-py314
-        weldx: [null]
+        weldx: [null, "git+https://github.com/BAMWelDX/weldx.git"]
         include:
-          - environment: "test-py312"
-            weldx: "git+https://github.com/BAMWelDX/weldx.git"
+          - os: macos-latest
+            environment: "test-py312"
+            weldx: null
+          - os: windows-latest
+            environment: "test-py312"
+            weldx: null
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: prefix-dev/setup-pixi@v0.10.1

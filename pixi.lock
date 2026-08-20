@@ -11488,7 +11488,7 @@ packages:
   - weldx>=0.6
   - pytest-cov ; extra == 'test'
   - pytest-xdist ; extra == 'test'
-  requires_python: '>=3.9'
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/00/60/249e3444fcd9c833704741769981cd02fe2c7ce94126b1394e7a3b26e543/ipyfilechooser-0.6.0-py3-none-any.whl
   name: ipyfilechooser
   version: 0.6.0

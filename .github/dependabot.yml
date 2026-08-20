@@ -4,9 +4,15 @@ version: 2
 updates:
 
   # Check for updates to GitHub Actions every sunday
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "weekly"
+      interval: weekly 
       day: "sunday"
       timezone: "Europe/Berlin"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+    cooldown:
+      default-days: 7
