@@ -84,4 +84,4 @@ jobs:
         if: ${{ matrix.weldx != null }}
         run: pixi run -e ${{ matrix.environment }} pip install "${{matrix.weldx}}"
 
-      - run: pixi run --environment ${{ matrix.environment }} test
+      - run: pixi run --frozen --environment ${{ matrix.environment }} test
