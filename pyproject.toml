@@ -53,6 +53,7 @@ dependencies = [
   "pint",
   "tqdm",
   "weldx>=0.6",
+  "decorator",
 ]
 optional-dependencies.test = [
   "pytest-cov",
