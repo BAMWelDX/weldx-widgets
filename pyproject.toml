@@ -43,6 +43,7 @@ dynamic = [
 ]
 dependencies = [
   "bidict",
+  "decorator",
   "ipyfilechooser",
   "ipympl",
   "ipython>=8",
@@ -53,7 +54,6 @@ dependencies = [
   "pint",
   "tqdm",
   "weldx>=0.6",
-  "decorator",
 ]
 optional-dependencies.test = [
   "pytest-cov",
