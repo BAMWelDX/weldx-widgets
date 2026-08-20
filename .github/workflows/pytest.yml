@@ -42,3 +42,9 @@ jobs:
         run: pixi run --frozen -e ${{ matrix.environment }} pip install "${{matrix.weldx}}"
 
       - run: pixi run --frozen --environment ${{ matrix.environment }} test
+
+      - name: coverage xml (combination is performed by pytest-cov)
+        run: coverage xml
+
+      - name: codecov.io
+        uses: codecov/codecov-action@v6.0.1
