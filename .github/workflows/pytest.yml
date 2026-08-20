@@ -14,11 +14,11 @@ jobs:
       fail-fast: false
       matrix:
         environment:
-          # - test-py310
-          # - test-py311
+          - test-py310
+          - test-py311
           - test-py312
-          # - test-py313
-          # - test-py314
+          - test-py313
+          - test-py314
         weldx: [null]
         include:
           - environment: "test-py312"
@@ -34,6 +34,6 @@ jobs:
 
       - name: Install weldx
         if: ${{ matrix.weldx != null }}
-        run: pixi run -e ${{ matrix.environment }} pip install "${{matrix.weldx}}"
+        run: pixi run --frozen -e ${{ matrix.environment }} pip install "${{matrix.weldx}}"
 
       - run: pixi run --frozen --environment ${{ matrix.environment }} test
