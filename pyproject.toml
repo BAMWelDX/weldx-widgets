@@ -78,6 +78,10 @@ report.exclude_lines = [
 ]
 report.omit = ["weldx_widgets/tests/*"]
 
+[tool.codespell]
+skip = "*.lock,demo.ipynb"
+ignore-words-list = "ro"
+
 # -----
 # Pixi
 # -----
