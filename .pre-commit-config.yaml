@@ -28,10 +28,10 @@ repos:
       - --fix
     # Run ruff formatter.
     - id: ruff-format
-  - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.21.1
-    hooks:
-    - id: pyproject-fmt
+  # - repo: https://github.com/tox-dev/pyproject-fmt
+  #   rev: v2.21.1
+  #   hooks:
+  #   - id: pyproject-fmt
   - repo: https://github.com/abravalheri/validate-pyproject
     rev: v0.25
     hooks:
@@ -41,9 +41,8 @@ repos:
     rev: v2.4.2
     hooks:
       - id: codespell
-        exclude: demo.ipynb
-        args:
-          - -L ro
+        additional_dependencies:
+          - tomli
  # ----- CFF checking -----
   # Format and validate CFF. NOTE: pre-commit doesn't recognize CFF as YAML
   # (https://github.com/pre-commit/identify/pull/435), so we may need to

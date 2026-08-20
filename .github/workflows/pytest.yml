@@ -9,48 +9,42 @@ on:
 
 jobs:
   pytest:
-    name: pytest
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        py: ['3.9', '3.10', '3.11', '3.12']
-        weldx_version: ['weldx']
+        os: ["ubuntu-latest"]
+        environment:
+          - test-py310
+          - test-py311
+          - test-py312
+          - test-py313
+          # - test-py314
+        weldx: [null, "git+https://github.com/BAMWelDX/weldx.git"]
         include:
-          - os: ubuntu-latest
-            py: '3.10'
-            weldx_version: 'git+https://github.com/BAMWelDX/weldx.git'
-    env:
-      WELDX_VERSION: ${{ matrix.weldx_version }}
-
+          - os: macos-latest
+            environment: "test-py312"
+            weldx: null
+          - os: windows-latest
+            environment: "test-py312"
+            weldx: null
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
+      - uses: prefix-dev/setup-pixi@v0.10.1
         with:
-          fetch-depth: 0 # Fetch all history for all tags and branches
-      - uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.py }}
+          pixi-version: v0.77.0
+          environments: ${{ matrix.environment }}
+          log-level: vvv
+          frozen: true
 
-      - uses: actions/cache@v5
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('setup.cfg') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+      - name: Install weldx
+        if: ${{ matrix.weldx != null }}
+        run: pixi run --frozen -e ${{ matrix.environment }} pip install "${{matrix.weldx}}"
 
-      - name: pip installs
-        run: |
-          pip install wheel
-          pip install $WELDX_VERSION
-          pip install -e .[test]
-
-      - name: run pytest
-        run: |
-          pytest --no-cov-on-fail
+      - run: pixi run --frozen --environment ${{ matrix.environment }} test
 
       - name: coverage xml (combination is performed by pytest-cov)
-        run: coverage xml
+        run: pixi run --frozen --environment ${{ matrix.environment }} coverage xml
 
       - name: codecov.io
         uses: codecov/codecov-action@v6.0.1

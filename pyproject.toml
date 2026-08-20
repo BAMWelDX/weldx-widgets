@@ -1,27 +1,19 @@
 [build-system]
-requires = [
-  "babel",
-  "setuptools>=45",
-  "setuptools-scm[toml]>=8",
-  "wheel",
-]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [project]
 name = "weldx-widgets"
 description = "Python based widgets for the weldx core package"
 readme = "README.md"
-keywords = [
-  "ipywidgets",
-  "weldx",
-  "widgets",
-]
+keywords = ["ipywidgets", "weldx", "widgets"]
 license = { file = "LICENSE" }
 authors = [
   { name = "Çağtay Fabry", email = "cagtay.fabry@bam.de" },
   { name = "Martin K. Scherer", email = "martin.scherer@bam.de" },
 ]
 # Dependencies
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Science/Research",
@@ -30,7 +22,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -38,9 +29,7 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering :: Physics",
 ]
-dynamic = [
-  "version",
-]
+dynamic = ["version"]
 dependencies = [
   "bidict",
   "decorator",
@@ -55,21 +44,20 @@ dependencies = [
   "tqdm",
   "weldx>=0.6",
 ]
-optional-dependencies.test = [
-  "pytest-cov",
-  "pytest-xdist",
-]
+optional-dependencies.test = ["pytest-cov", "pytest-xdist"]
 urls.bug_tracker = "https://github.com/BAMweldx/weldx-widgets/issues"
 urls.changelog = "https://github.com/BAMweldx/weldx-widgets/blob/master/CHANGELOG.md"
 urls.documentation = "https://weldx.readthedocs.io"
 urls.repository = "https://github.com/BAMweldx/weldx-widgets"
 
-[tool.setuptools]
-packages.find.where = [
-  ".",
-]
+[tool.hatch.version]
+source = "vcs"
 
-[tool.setuptools_scm]
+[tool.hatch.build.hooks.vcs]
+version-file = "weldx_widgets/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["weldx-widgets"]
 
 [tool.pytest]
 # enable setuptools-scm versioning
@@ -82,13 +70,79 @@ ini_options.filterwarnings = [
 ]
 
 [tool.coverage]
-run.source = [
-  "weldx_widgets",
-]
+run.source = ["weldx_widgets"]
 report.exclude_lines = [
   # Have to re-enable the standard pragma
   "pragma: no cover",
 ]
-report.omit = [
-  "weldx_widgets/tests/*",
-]
+report.omit = ["weldx_widgets/tests/*"]
+
+[tool.codespell]
+skip = "*.lock,demo.ipynb"
+ignore-words-list = "ro"
+
+# -----
+# Pixi
+# -----
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "win-64", "linux-64"]
+
+[tool.pixi.dependencies]
+numpy = "*"
+matplotlib = "3.10.*"
+decorator = ">=5.3.1,<6"
+
+[tool.pixi.pypi-dependencies]
+weldx-widgets = { path = ".", editable = true }
+
+[tool.pixi.feature.dev.pypi-dependencies]
+weldx = { path = "../weldx", editable = true }
+
+[tool.pixi.feature.test.tasks]
+test = { cmd = "pytest", default-environment = "test" }
+
+[tool.pixi.feature.test.dependencies]
+pip = ">=26.2.1,<27"
+
+[tool.pixi.feature.build.dependencies]
+hatchling = ">=1.27.0,<2"
+hatch-vcs = ">=0.4.0,<0.5"
+
+[tool.pixi.feature.build.tasks]
+build = "hatchling build"
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
+test-py310 = ["test", "py310"]
+test-py311 = ["test", "py311"]
+test-py312 = ["test", "py312"]
+test-py313 = ["test", "py313"]
+test-py314 = ["test", "py314"]
+lint = { features = ["lint"], no-default-feature = true }
+build = { features = ["build"], no-default-feature = true }
+dev = { features = ["dev"], solve-group = "dev" }
+
+[tool.pixi.tasks]
+
+[tool.pixi.feature.py310.dependencies]
+python = "3.10.*"
+
+[tool.pixi.feature.py311.dependencies]
+python = "3.11.*"
+
+[tool.pixi.feature.py312.dependencies]
+python = "3.12.*"
+
+[tool.pixi.feature.py313.dependencies]
+python = "3.13.*"
+
+[tool.pixi.feature.py314.dependencies]
+python = "3.14.*"
+
+[tool.pixi.feature.lint.dependencies]
+prek = "*"
+
+[tool.pixi.feature.lint.tasks]
+lint = { cmd = "prek -a", default-environment = "lint" }
