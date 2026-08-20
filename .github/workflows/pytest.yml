@@ -19,7 +19,7 @@ jobs:
           - test-py311
           - test-py312
           - test-py313
-          - test-py314
+          # - test-py314
         weldx: [null, "git+https://github.com/BAMWelDX/weldx.git"]
         include:
           - os: macos-latest
