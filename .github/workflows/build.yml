@@ -18,7 +18,7 @@ jobs:
         log-level: vvv
         frozen: true
     - name: Build a binary wheel and a source tarball
-      run: pixi run -e build build
+      run: pixi run --frozen -e build build
     - name: Store the distribution packages
       uses: actions/upload-artifact@v5
       with:
