@@ -1,6 +1,9 @@
 # Release Notes
 
-## 0.3.3 (unreleased)
+## 0.3.3 (21.08.2026)
+
+### Added
+- Add `recipe/recipe.yaml` and `build_conda` Pixi task for building conda packages with `rattler-build`.
 
 ### Fixes
 - Replace the removed `plt.cm.get_cmap()` call in `visualization/colors.py` with
