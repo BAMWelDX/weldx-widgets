@@ -11,6 +11,7 @@ license = { file = "LICENSE" }
 authors = [
   { name = "Çağtay Fabry", email = "cagtay.fabry@bam.de" },
   { name = "Martin K. Scherer", email = "martin.scherer@bam.de" },
+  { name = "Michael Winkler", email = "michael.winkler@bam.de" },
 ]
 # Dependencies
 requires-python = ">=3.10"
@@ -57,7 +58,7 @@ source = "vcs"
 version-file = "weldx_widgets/_version.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["weldx-widgets"]
+packages = ["weldx_widgets"]
 
 [tool.pytest]
 # enable setuptools-scm versioning
@@ -108,9 +109,13 @@ pip = ">=26.2.1,<27"
 [tool.pixi.feature.build.dependencies]
 hatchling = ">=1.27.0,<2"
 hatch-vcs = ">=0.4.0,<0.5"
+rattler-build = "*"
+conda-recipe-manager = "*"
+twine = "*"
 
 [tool.pixi.feature.build.tasks]
 build = "hatchling build"
+build_conda = "rattler-build build --recipe recipe/recipe.yaml"
 
 [tool.pixi.environments]
 default = { solve-group = "default" }

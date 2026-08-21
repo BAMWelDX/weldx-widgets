@@ -1,0 +1,72 @@
+context:
+  name: weldx-widgets
+  version: ${{ env.SETUPTOOLS_SCM_PRETEND_VERSION | default("0.3.3.dev") }}
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  path: ..
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
+
+requirements:
+  host:
+    - python >=3.10,<3.14
+    - pip
+    - hatchling >=1.27.0
+    - hatch-vcs >=0.4.0
+  run:
+    - python >=3.10,<3.14
+    - bidict
+    - decorator
+    - ipyfilechooser
+    - ipympl
+    - ipython >=8
+    - ipywidgets >=8.1
+    - k3d >=2.12
+    - matplotlib >=3.8
+    - numpy
+    - pint
+    - setuptools <82
+    - tqdm
+    - weldx >=0.7
+
+tests:
+  - python:
+      imports:
+        - weldx_widgets
+        - weldx_widgets.visualization
+        - weldx_widgets.visualization.colors
+        - weldx_widgets.visualization.csm_k3d
+        - weldx_widgets.visualization.csm_mpl
+        - weldx_widgets.generic
+        - weldx_widgets.widget_base
+        - weldx_widgets.widget_factory
+        - weldx_widgets.widget_gas
+        - weldx_widgets.widget_gmaw
+        - weldx_widgets.widget_groove_sel
+        - weldx_widgets.widget_measurement
+        - weldx_widgets.widget_weldx_file
+      pip_check: false
+
+about:
+  homepage: https://www.bam.de/Content/EN/Projects/WelDX/weldx.html
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: Python based widgets for the weldx core package
+  description: |
+    weldx-widgets provides graphical user interface widgets based on ipywidgets
+    for interactive exploration and visualization of WelDX data and experimental setups.
+  documentation: https://weldx.readthedocs.io
+  repository: https://github.com/BAMweldx/weldx-widgets
+
+extra:
+  recipe-maintainers:
+    - marscher
+    - vhirtham
+    - CagtayFabry
