@@ -47,7 +47,7 @@ dependencies = [
 ]
 optional-dependencies.test = ["pytest-cov", "pytest-xdist"]
 urls.bug_tracker = "https://github.com/BAMweldx/weldx-widgets/issues"
-urls.changelog = "https://github.com/BAMweldx/weldx-widgets/blob/master/CHANGELOG.md"
+urls.changelog = "https://github.com/BAMweldx/weldx-widgets/blob/main/CHANGELOG.md"
 urls.documentation = "https://weldx.readthedocs.io"
 urls.repository = "https://github.com/BAMweldx/weldx-widgets"
 
@@ -91,8 +91,6 @@ platforms = ["osx-arm64", "win-64", "linux-64"]
 
 [tool.pixi.dependencies]
 numpy = "*"
-matplotlib = "3.10.*"
-decorator = ">=5.3.1,<6"
 
 [tool.pixi.pypi-dependencies]
 weldx-widgets = { path = ".", editable = true }
